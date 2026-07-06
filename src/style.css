@@ -1,0 +1,109 @@
+:root {
+  --app-bg: #f6f8f4;
+  --app-surface: #ffffff;
+  --app-border: #e2e8de;
+  --app-text: #26302a;
+  --app-text-muted: #6b7a70;
+  --app-accent: #16a34a;
+  --app-danger: #dc2626;
+  --app-radius: 12px;
+  --app-nav-height: 60px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-weight: 650;
+  margin: 0;
+}
+
+/* ---- Wiederkehrende Bausteine ---- */
+
+.card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1rem;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.85rem;
+}
+
+.page {
+  padding: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: var(--app-text-muted);
+  font-size: 0.87rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--app-text-muted);
+}
+
+.empty-state .pi {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-field > label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--app-text-muted);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.overdue {
+  color: var(--app-danger);
+  font-weight: 600;
+}
