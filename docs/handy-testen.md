@@ -22,7 +22,7 @@ gh repo edit --visibility public --accept-visibility-change-consequences
 
 1. Warte nach einem Push ~2 Minuten (Actions-Tab zeigt den Fortschritt).
 2. Öffne am Handy im Browser:
-   `https://DEIN-GITHUB-NAME.github.io/mygardenapp/`
+   `https://dragonfire11235.github.io/mygardenapp/`
 3. Teste die App direkt im Browser — oder installiere sie:
 
 **Als App installieren:**
