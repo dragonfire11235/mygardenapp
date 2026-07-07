@@ -30,8 +30,8 @@ export const useBedsStore = defineStore('beds', () => {
     loaded.value = true
   }
 
-  async function createBed(data: Pick<Bed, 'name' | 'location' | 'sizeText' | 'notes'>) {
-    await storage.beds.put(createEntity<Bed>(data))
+  async function createBed(data: Pick<Bed, 'name' | 'location' | 'sizeText' | 'notes' | 'photoId' | 'widthM' | 'heightM'>) {
+    await storage.beds.put(createEntity<Bed>({ ...data, mapX: null, mapY: null }))
     await load()
   }
 
@@ -51,8 +51,19 @@ export const useBedsStore = defineStore('beds', () => {
     await load()
   }
 
-  async function addPlanting(data: Pick<Planting, 'plantId' | 'bedId' | 'quantity' | 'plantedAt' | 'notes'>) {
-    await storage.plantings.put(createEntity<Planting>({ ...data, removedAt: null }))
+  async function addPlanting(
+    data: Pick<Planting, 'plantId' | 'bedId' | 'quantity' | 'plantedAt' | 'notes'> &
+      Partial<Pick<Planting, 'posX' | 'posY'>>,
+  ) {
+    await storage.plantings.put(
+      createEntity<Planting>({ posX: null, posY: null, ...data, removedAt: null }),
+    )
+    await load()
+  }
+
+  /** Aktualisiert eine Bepflanzung (z. B. Position im Beetplaner). */
+  async function updatePlanting(planting: Planting) {
+    await storage.plantings.put(touch(planting))
     await load()
   }
 
@@ -76,6 +87,7 @@ export const useBedsStore = defineStore('beds', () => {
     updateBed,
     removeBed,
     addPlanting,
+    updatePlanting,
     endPlanting,
   }
 })

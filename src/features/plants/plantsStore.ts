@@ -13,6 +13,8 @@ export function emptyPlantDraft(): PlantDraft {
     photoId: null,
     wateringIntervalDays: null,
     fertilizingIntervalDays: null,
+    wateringStartDate: null,
+    spreadM: null,
     sowingMonths: [],
     harvestMonths: [],
     sunlight: null,

@@ -25,6 +25,8 @@ export const useTasksStore = defineStore('tasks', () => {
 
   const dueTasks = computed(() => openTasks.value.filter((t) => daysFromToday(t.dueDate) <= 0))
   const overdueCount = computed(() => openTasks.value.filter((t) => daysFromToday(t.dueDate) < 0).length)
+  /** Fällige Gießaufgaben (für den „Alles gegossen"-Button) */
+  const dueWatering = computed(() => dueTasks.value.filter((t) => t.type === 'giessen'))
 
   async function load() {
     tasks.value = await storage.tasks.getAll()
@@ -55,6 +57,22 @@ export const useTasksStore = defineStore('tasks', () => {
     return next
   }
 
+  /** Schließt alle fälligen Gießaufgaben auf einmal ab (mit Folgeaufgaben). Gibt die Anzahl zurück. */
+  async function completeAllWatering(): Promise<number> {
+    const targets = dueWatering.value
+    const toPut: Task[] = []
+    for (const t of targets) {
+      const { done, next } = completeTask(t)
+      toPut.push(done)
+      if (next) toPut.push(next)
+    }
+    if (toPut.length) {
+      await storage.tasks.bulkPut(toPut)
+      await load()
+    }
+    return targets.length
+  }
+
   /** Erzeugt fehlende Pflegeaufgaben aus den Pflanzen-Intervallen. */
   async function syncCareTasks(plants: Plant[], activePlantings: Planting[]): Promise<number> {
     const created = generateCareTasks(plants, activePlantings, openTasks.value)
@@ -72,11 +90,13 @@ export const useTasksStore = defineStore('tasks', () => {
     doneTasks,
     dueTasks,
     overdueCount,
+    dueWatering,
     load,
     create,
     update,
     remove,
     complete,
+    completeAllWatering,
     syncCareTasks,
   }
 })

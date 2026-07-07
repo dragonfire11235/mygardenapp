@@ -11,6 +11,7 @@ import type {
 } from '../models'
 import type { BackupData, Repository, StorageProvider } from '../storage'
 import { base64ToBlob, blobToBase64 } from '../blobCodec'
+import { toPlainObject } from '../clone'
 
 interface SettingRow {
   key: string
@@ -59,11 +60,12 @@ class DexieRepository<T extends BaseEntity> implements Repository<T> {
   }
 
   async put(item: T): Promise<void> {
-    await this.table.put(item)
+    // toPlainObject: Vue-Proxies sind nicht structured-clonebar
+    await this.table.put(toPlainObject(item))
   }
 
   async bulkPut(items: T[]): Promise<void> {
-    await this.table.bulkPut(items)
+    await this.table.bulkPut(items.map((i) => toPlainObject(i)))
   }
 
   async softDelete(id: string): Promise<void> {
@@ -105,7 +107,7 @@ export class DexieProvider implements StorageProvider {
   }
 
   async setSetting(key: string, value: unknown): Promise<void> {
-    await this.db.settings.put({ key, value })
+    await this.db.settings.put({ key, value: toPlainObject(value) })
   }
 
   async exportAll(includePhotos: boolean): Promise<BackupData> {

@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
-import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
-import Message from 'primevue/message'
-import { usePlantsStore } from '../plants/plantsStore'
+import PlantSelect from '../plants/PlantSelect.vue'
 import { toIsoDate } from '../../shared/dates'
 
 const emit = defineEmits<{
@@ -14,8 +12,6 @@ const emit = defineEmits<{
 }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
-
-const plantsStore = usePlantsStore()
 
 const plantId = ref<string | null>(null)
 const quantity = ref(1)
@@ -28,10 +24,6 @@ watch(visible, (open) => {
     plantedAt.value = new Date()
   }
 })
-
-const plantOptions = computed(() =>
-  plantsStore.plants.map((p) => ({ label: p.name, value: p.id })),
-)
 
 function save() {
   if (!plantId.value) return
@@ -46,22 +38,10 @@ function save() {
 
 <template>
   <Dialog v-model:visible="visible" modal header="Pflanze einsetzen" :style="{ width: 'min(440px, 95vw)' }">
-    <Message v-if="!plantOptions.length" severity="info" :closable="false">
-      Die Bibliothek ist noch leer — lege zuerst unter „Pflanzen" eine Pflanze an.
-    </Message>
-
-    <div v-else class="form-grid">
+    <div class="form-grid">
       <div class="form-field">
         <label for="planting-plant">Pflanze *</label>
-        <Select
-          id="planting-plant"
-          v-model="plantId"
-          :options="plantOptions"
-          option-label="label"
-          option-value="value"
-          filter
-          placeholder="wählen"
-        />
+        <PlantSelect id="planting-plant" v-model="plantId" placeholder="wählen oder neu anlegen" />
       </div>
       <div class="form-row">
         <div class="form-field">

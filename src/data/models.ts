@@ -30,6 +30,10 @@ export interface Plant extends BaseEntity {
   photoId: string | null
   wateringIntervalDays: number | null
   fertilizingIntervalDays: number | null
+  /** Ab wann gegossen werden soll (yyyy-mm-dd); null = ab sofort */
+  wateringStartDate: string | null
+  /** Wuchsbreite/Durchmesser in Metern; null = Kategorie-Standard (categorySpreadM) */
+  spreadM: number | null
   /** Monate 1–12 */
   sowingMonths: number[]
   harvestMonths: number[]
@@ -41,9 +45,17 @@ export interface Plant extends BaseEntity {
 export interface Bed extends BaseEntity {
   name: string
   location: string
-  /** Freitext, z. B. "2 × 1 m" oder "3 Töpfe" */
+  /** Legacy-Freitext für alte Daten; neue Beete nutzen widthM/heightM */
   sizeText: string
+  /** Beetmaße in Metern (für den Beetplaner) */
+  widthM: number | null
+  heightM: number | null
   notes: string
+  /** Titelbild aus der Photo-Tabelle */
+  photoId: string | null
+  /** Position auf dem Lageplan (normalisiert 0..1); null = noch nicht platziert */
+  mapX: number | null
+  mapY: number | null
 }
 
 /** Eine Pflanze steht für einen Zeitraum in einem Beet. */
@@ -53,6 +65,9 @@ export interface Planting extends BaseEntity {
   quantity: number
   plantedAt: string // ISO-Datum (yyyy-mm-dd)
   removedAt: string | null
+  /** Position im Beetplaner: Kreis-Mittelpunkt in Metern vom linken/oberen Beetrand */
+  posX: number | null
+  posY: number | null
   notes: string
 }
 

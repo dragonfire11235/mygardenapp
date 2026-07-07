@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
+import { getPhotoUrl } from './shared/photos'
 import { useSettingsStore } from './features/settings/settingsStore'
 import { usePlantsStore } from './features/plants/plantsStore'
 import { useBedsStore } from './features/beds/bedsStore'
 import { useTasksStore } from './features/tasks/tasksStore'
 import { useDiaryStore } from './features/diary/diaryStore'
 import { useDevicesStore } from './features/devices/devicesStore'
+import { useWeatherStore } from './features/weather/weatherStore'
 
 const settings = useSettingsStore()
 const plants = usePlantsStore()
@@ -15,6 +17,7 @@ const beds = useBedsStore()
 const tasks = useTasksStore()
 const diary = useDiaryStore()
 const devices = useDevicesStore()
+const weather = useWeatherStore()
 
 const navItems = [
   { to: '/', icon: 'pi-home', label: 'Start' },
@@ -26,11 +29,24 @@ const navItems = [
   { to: '/einstellungen', icon: 'pi-cog', label: 'Mehr' },
 ]
 
+// Hintergrundbild gilt für alle Seiten (nicht nur Dashboard)
+const backgroundUrl = ref<string | null>(null)
+watch(
+  () => settings.dashboardBackgroundPhotoId,
+  async (id) => {
+    backgroundUrl.value = id ? await getPhotoUrl(id) : null
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load()])
 
   // Fehlende Pflegeaufgaben aus den Pflanzen-Intervallen erzeugen
   await tasks.syncCareTasks(plants.plants, beds.activePlantings)
+
+  // Wetter laden (für Widget + „Alles gegossen"-Hervorhebung bei Regen)
+  void weather.load()
 
   // Zähler am App-Icon + Hinweis beim Öffnen (echte Push-Nachrichten brauchen ein Backend)
   const due = tasks.dueTasks.length
@@ -66,7 +82,11 @@ onMounted(async () => {
       </nav>
     </aside>
 
-    <main class="app-main">
+    <main
+      class="app-main"
+      :class="{ 'has-bg': backgroundUrl }"
+      :style="backgroundUrl ? { backgroundImage: `linear-gradient(rgba(246, 248, 244, 0.6), rgba(246, 248, 244, 0.6)), url(${backgroundUrl})` } : undefined"
+    >
       <RouterView />
     </main>
 
@@ -78,6 +98,14 @@ onMounted(async () => {
 <style scoped>
 .app-shell {
   min-height: 100vh;
+}
+
+/* Optionales Hintergrundbild hinter dem Seiteninhalt (alle Seiten) */
+.app-main.has-bg {
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh; /* füllt den Bildschirm auch bei wenig Inhalt */
 }
 
 .app-brand {

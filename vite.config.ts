@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
-      registerType: 'prompt',
+      // autoUpdate: neue Versionen aktivieren sich beim nächsten Öffnen von selbst
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Mein Garten',
@@ -27,6 +28,8 @@ export default defineConfig({
     }),
   ],
   server: {
+    host: true,
+    allowedHosts: ['.trycloudflare.com'],
     proxy: {
       // Trefle.io sendet keine CORS-Header → Browser-Aufrufe laufen über diesen Proxy.
       '/api/trefle': {
@@ -37,6 +40,8 @@ export default defineConfig({
     },
   },
   preview: {
+    host: true,
+    allowedHosts: ['.trycloudflare.com'],
     proxy: {
       '/api/trefle': {
         target: 'https://trefle.io/api/v1',

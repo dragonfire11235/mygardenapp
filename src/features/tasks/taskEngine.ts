@@ -49,19 +49,20 @@ export function generateCareTasks(
     const plant = plantById.get(planting.plantId)
     if (!plant) continue
 
-    const care: { type: Task['type']; interval: number | null; label: string }[] = [
-      { type: 'giessen', interval: plant.wateringIntervalDays, label: 'Gießen' },
-      { type: 'duengen', interval: plant.fertilizingIntervalDays, label: 'Düngen' },
+    const care: { type: Task['type']; interval: number | null; label: string; start: string | null }[] = [
+      { type: 'giessen', interval: plant.wateringIntervalDays, label: 'Gießen', start: plant.wateringStartDate },
+      { type: 'duengen', interval: plant.fertilizingIntervalDays, label: 'Düngen', start: null },
     ]
 
-    for (const { type, interval, label } of care) {
+    for (const { type, interval, label, start } of care) {
       if (interval === null || interval <= 0) continue
       if (hasOpenTask(plant.id, planting.bedId, type)) continue
       newTasks.push(
         createEntity<Task>({
           title: `${label}: ${plant.name}`,
           type,
-          dueDate: today,
+          // Erste Fälligkeit: gewünschtes Startdatum (falls gesetzt), sonst heute
+          dueDate: start ?? today,
           intervalDays: interval,
           plantId: plant.id,
           bedId: planting.bedId,

@@ -8,12 +8,14 @@ import { daysFromToday, formatDue } from '../../shared/dates'
 import { taskTypeIcons } from '../../shared/texts'
 import { usePlantsStore } from '../plants/plantsStore'
 import { useBedsStore } from '../beds/bedsStore'
+import { useWeatherStore } from '../weather/weatherStore'
 import { useTasksStore, type TaskDraft } from './tasksStore'
 import TaskFormDialog from './TaskFormDialog.vue'
 
 const store = useTasksStore()
 const plantsStore = usePlantsStore()
 const bedsStore = useBedsStore()
+const weather = useWeatherStore()
 const toast = useToast()
 const confirm = useConfirm()
 
@@ -62,6 +64,16 @@ async function complete(task: Task) {
   })
 }
 
+async function waterAll() {
+  const count = await store.completeAllWatering()
+  toast.add({
+    severity: 'success',
+    summary: 'Alles gegossen 💧',
+    detail: count === 1 ? '1 Gießaufgabe erledigt.' : `${count} Gießaufgaben erledigt.`,
+    life: 3000,
+  })
+}
+
 function context(task: Task): string {
   const parts: string[] = []
   const plant = task.plantId ? plantsStore.byId.get(task.plantId) : null
@@ -80,7 +92,18 @@ function context(task: Task): string {
         <h1>Aufgaben</h1>
         <span class="muted">{{ store.openTasks.length }} offen</span>
       </div>
-      <Button label="Neue Aufgabe" icon="pi pi-plus" @click="openNew" />
+      <div class="header-actions">
+        <Button
+          v-if="store.dueWatering.length"
+          :label="`${weather.rainToday ? '🌧️ ' : ''}Alles gegossen (${store.dueWatering.length})`"
+          icon="pi pi-check"
+          severity="info"
+          :class="{ 'rain-highlight': weather.rainToday }"
+          :title="weather.rainToday ? 'Es regnet – der Garten ist gewässert' : undefined"
+          @click="waterAll"
+        />
+        <Button label="Neue Aufgabe" icon="pi pi-plus" @click="openNew" />
+      </div>
     </div>
 
     <div v-if="store.openTasks.length" class="task-list">
@@ -143,6 +166,27 @@ function context(task: Task): string {
 </template>
 
 <style scoped>
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Bei Regen den „Alles gegossen"-Button pulsieren lassen */
+.rain-highlight {
+  animation: rain-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rain-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(59, 130, 246, 0);
+  }
+}
+
 .task-list {
   display: flex;
   flex-direction: column;

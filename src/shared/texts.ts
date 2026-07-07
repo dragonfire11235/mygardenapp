@@ -2,7 +2,7 @@
 // (UI-Texte stehen direkt in den Komponenten; hier liegt alles,
 // was an mehreren Stellen gebraucht wird.)
 
-import type { DeviceKind, PlantCategory, Sunlight, TaskType } from '../data'
+import type { DeviceKind, Plant, PlantCategory, Sunlight, TaskType } from '../data'
 
 export const categoryLabels: Record<PlantCategory, string> = {
   gemuese: 'Gemüse',
@@ -42,6 +42,37 @@ export const deviceKindLabels: Record<DeviceKind, string> = {
   switch: 'Schalter',
   valve: 'Ventil',
   sensor: 'Sensor',
+}
+
+/**
+ * Durchschnittliche Wuchsbreite (Kreis-Durchmesser) in Metern je Kategorie.
+ * Quellen: übliche Pflanzabstände (Kräuter 20–30 cm, Gemüse 30–70 cm,
+ * Stauden 20–90 cm, Sträucher 80–150 cm, Baum mit kleiner Krone bis 4 m).
+ */
+export const categorySpreadM: Record<PlantCategory, number> = {
+  kraeuter: 0.3,
+  gemuese: 0.4,
+  blumen: 0.5,
+  sonstiges: 0.5,
+  obst: 1.0,
+  strauch: 1.2,
+  baum: 2.5,
+}
+
+/** Effektive Wuchsbreite einer Pflanze: eigener Wert oder Kategorie-Standard. */
+export function plantSpreadM(plant: Plant): number {
+  return plant.spreadM ?? categorySpreadM[plant.category]
+}
+
+/** Kreisfarben im Beetplaner je Kategorie */
+export const categoryColors: Record<PlantCategory, string> = {
+  gemuese: '#f59e0b',
+  obst: '#ef4444',
+  kraeuter: '#10b981',
+  blumen: '#d946ef',
+  strauch: '#8b5cf6',
+  baum: '#15803d',
+  sonstiges: '#64748b',
 }
 
 export const monthNamesShort = [

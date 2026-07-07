@@ -10,7 +10,7 @@ import Textarea from 'primevue/textarea'
 import type { Task, TaskType } from '../../data'
 import { taskTypeLabels } from '../../shared/texts'
 import { toIsoDate } from '../../shared/dates'
-import { usePlantsStore } from '../plants/plantsStore'
+import PlantSelect from '../plants/PlantSelect.vue'
 import { useBedsStore } from '../beds/bedsStore'
 import type { TaskDraft } from './tasksStore'
 
@@ -23,7 +23,6 @@ const emit = defineEmits<{
 
 const visible = defineModel<boolean>('visible', { required: true })
 
-const plantsStore = usePlantsStore()
 const bedsStore = useBedsStore()
 
 const title = ref('')
@@ -50,11 +49,6 @@ const typeOptions = (Object.keys(taskTypeLabels) as TaskType[]).map((value) => (
   value,
   label: taskTypeLabels[value],
 }))
-
-const plantOptions = computed(() => [
-  { label: '–', value: null },
-  ...plantsStore.plants.map((p) => ({ label: p.name, value: p.id })),
-])
 
 const bedOptions = computed(() => [
   { label: '–', value: null },
@@ -105,7 +99,7 @@ function save() {
       <div class="form-row">
         <div class="form-field">
           <label for="task-plant">Pflanze</label>
-          <Select id="task-plant" v-model="plantId" :options="plantOptions" option-label="label" option-value="value" filter />
+          <PlantSelect id="task-plant" v-model="plantId" placeholder="–" show-clear />
         </div>
         <div class="form-field">
           <label for="task-bed">Beet</label>

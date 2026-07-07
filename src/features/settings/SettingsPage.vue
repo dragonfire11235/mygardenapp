@@ -6,11 +6,56 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { downloadBackup, importBackupFile } from '../../data/backup'
+import PhotoPicker from '../../shared/PhotoPicker.vue'
+import { widgetRegistry } from '../dashboard/widgetRegistry'
+import { searchLocation, type GeoResult } from '../weather/weatherApi'
 import { useSettingsStore, type DashboardWidgetConfig } from './settingsStore'
 
 const settings = useSettingsStore()
 const toast = useToast()
 const confirm = useConfirm()
+
+// --- Dashboard-Bilder (Titelbild/Hero + Hintergrund) ---
+const headerPhotoId = computed({
+  get: () => settings.dashboardHeaderPhotoId,
+  set: (id: string | null) => void settings.setDashboardHeaderPhotoId(id),
+})
+
+const backgroundPhotoId = computed({
+  get: () => settings.dashboardBackgroundPhotoId,
+  set: (id: string | null) => void settings.setDashboardBackgroundPhotoId(id),
+})
+
+// --- Wetter-Standort ---
+const locationQuery = ref('')
+const locationResults = ref<GeoResult[]>([])
+const locationSearching = ref(false)
+
+async function findLocation() {
+  if (!locationQuery.value.trim()) return
+  locationSearching.value = true
+  try {
+    locationResults.value = await searchLocation(locationQuery.value.trim())
+    if (!locationResults.value.length) {
+      toast.add({ severity: 'info', summary: 'Kein Ort gefunden', life: 2500 })
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Ortssuche nicht erreichbar', life: 3000 })
+  } finally {
+    locationSearching.value = false
+  }
+}
+
+async function chooseLocation(result: GeoResult) {
+  await settings.setWeatherLocation({ lat: result.lat, lon: result.lon, name: result.name })
+  locationResults.value = []
+  locationQuery.value = ''
+  toast.add({ severity: 'success', summary: 'Standort gespeichert', detail: result.name, life: 2500 })
+}
+
+async function clearLocation() {
+  await settings.setWeatherLocation(null)
+}
 
 // --- Trefle-API ---
 const tokenInput = ref(settings.trefleToken)
@@ -39,24 +84,29 @@ async function toggleNotifications(enabled: boolean) {
 }
 
 // --- Dashboard-Widgets ---
-const widgetLabels: Record<string, string> = {
-  tasks: 'Fällige Aufgaben',
-  season: 'Saison',
-  beds: 'Beete',
-  diary: 'Tagebuch',
-  sensors: 'Sensoren',
-  switches: 'Schalter',
-}
-
-const widgetIds = Object.keys(widgetLabels)
+// Labels kommen aus der Widget-Registry (eine Quelle für Dashboard + Einstellungen).
+const widgetTitle = new Map(widgetRegistry.map((w) => [w.id, w.title]))
 
 const layout = computed<DashboardWidgetConfig[]>(() => {
   const existing = new Map(settings.dashboardLayout.map((c) => [c.id, c]))
-  return widgetIds.map((id) => existing.get(id) ?? { id, visible: true })
+  const stored = settings.dashboardLayout.filter((c) => widgetTitle.has(c.id))
+  const missing = widgetRegistry
+    .filter((w) => !existing.has(w.id))
+    .map((w) => ({ id: w.id, visible: true }))
+  return [...stored, ...missing]
 })
 
 async function toggleWidget(id: string, visible: boolean) {
   await settings.setDashboardLayout(layout.value.map((c) => (c.id === id ? { ...c, visible } : c)))
+}
+
+async function moveWidget(id: string, direction: -1 | 1) {
+  const next = [...layout.value]
+  const index = next.findIndex((c) => c.id === id)
+  const target = index + direction
+  if (index < 0 || target < 0 || target >= next.length) return
+  ;[next[index], next[target]] = [next[target], next[index]]
+  await settings.setDashboardLayout(next)
 }
 
 // --- Backup ---
@@ -121,7 +171,53 @@ function onImportSelected(event: Event) {
       </section>
 
       <section class="card">
+        <h2>Aussehen</h2>
+        <p class="muted">Titelbild fürs Dashboard und ein Hintergrundbild für alle Seiten.</p>
+        <div class="picture-settings">
+          <div class="form-field">
+            <label>Titelbild (Dashboard-Banner)</label>
+            <PhotoPicker v-model="headerPhotoId" label="Titelbild wählen" />
+          </div>
+          <div class="form-field">
+            <label>Hintergrundbild (alle Seiten)</label>
+            <PhotoPicker v-model="backgroundPhotoId" label="Hintergrund wählen" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Wetter</h2>
+        <p class="muted">Standort für das Wetter-Widget am Dashboard (Open-Meteo, kostenlos).</p>
+        <div v-if="settings.weatherLocation" class="row">
+          <i class="pi pi-map-marker" />
+          <span class="grow">{{ settings.weatherLocation.name }}</span>
+          <Button label="Entfernen" severity="secondary" text size="small" @click="clearLocation" />
+        </div>
+        <div class="row">
+          <InputText
+            v-model="locationQuery"
+            placeholder="Ort suchen, z. B. Wien"
+            class="grow"
+            @keyup.enter="findLocation"
+          />
+          <Button label="Suchen" icon="pi pi-search" :loading="locationSearching" @click="findLocation" />
+        </div>
+        <div v-if="locationResults.length" class="location-results">
+          <Button
+            v-for="result in locationResults"
+            :key="`${result.lat},${result.lon}`"
+            :label="`${result.name}${result.admin ? ', ' + result.admin : ''} (${result.country})`"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="chooseLocation(result)"
+          />
+        </div>
+      </section>
+
+      <section class="card">
         <h2>Dashboard-Widgets</h2>
+        <p class="muted">Sichtbarkeit und Reihenfolge der Karten am Dashboard.</p>
         <div class="widget-toggles">
           <div v-for="config in layout" :key="config.id" class="row">
             <ToggleSwitch
@@ -129,7 +225,9 @@ function onImportSelected(event: Event) {
               :inputId="`widget-${config.id}`"
               @update:modelValue="(v: boolean) => toggleWidget(config.id, v)"
             />
-            <label :for="`widget-${config.id}`">{{ widgetLabels[config.id] }}</label>
+            <label :for="`widget-${config.id}`" class="grow">{{ widgetTitle.get(config.id) }}</label>
+            <Button icon="pi pi-arrow-up" text rounded size="small" severity="secondary" aria-label="Nach oben" @click="moveWidget(config.id, -1)" />
+            <Button icon="pi pi-arrow-down" text rounded size="small" severity="secondary" aria-label="Nach unten" @click="moveWidget(config.id, 1)" />
           </div>
         </div>
       </section>
@@ -157,6 +255,26 @@ function onImportSelected(event: Event) {
   flex-direction: column;
   gap: 1rem;
   max-width: 640px;
+}
+
+.picture-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .picture-settings {
+    grid-template-columns: 1fr;
+  }
+}
+
+.location-results {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
 }
 
 .card h2 {

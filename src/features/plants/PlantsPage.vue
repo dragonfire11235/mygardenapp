@@ -5,7 +5,9 @@ import InputText from 'primevue/inputtext'
 import Tag from 'primevue/tag'
 import { useConfirm } from 'primevue/useconfirm'
 import type { Plant } from '../../data'
+import Select from 'primevue/select'
 import { categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
+import PhotoImg from '../../shared/PhotoImg.vue'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
 import PlantFormDialog from './PlantFormDialog.vue'
 import TrefleSearchDialog from './TrefleSearchDialog.vue'
@@ -14,17 +16,39 @@ const store = usePlantsStore()
 const confirm = useConfirm()
 
 const filter = ref('')
+const sortBy = ref<'name' | 'category' | 'standort'>('name')
 const dialogVisible = ref(false)
 const trefleVisible = ref(false)
 const editingPlant = ref<Plant | null>(null)
 const initialDraft = ref<PlantDraft | null>(null)
 
+const sortOptions = [
+  { label: 'Name', value: 'name' },
+  { label: 'Kategorie', value: 'category' },
+  { label: 'Standort', value: 'standort' },
+]
+
 const filteredPlants = computed(() => {
   const q = filter.value.trim().toLowerCase()
-  if (!q) return store.plants
-  return store.plants.filter(
-    (p) => p.name.toLowerCase().includes(q) || p.botanicalName.toLowerCase().includes(q),
-  )
+  const list = q
+    ? store.plants.filter(
+        (p) => p.name.toLowerCase().includes(q) || p.botanicalName.toLowerCase().includes(q),
+      )
+    : [...store.plants]
+
+  return list.sort((a, b) => {
+    if (sortBy.value === 'category') {
+      const cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category], 'de')
+      if (cmp !== 0) return cmp
+    } else if (sortBy.value === 'standort') {
+      // Ohne Standort ans Ende
+      const sa = a.sunlight ? sunlightLabels[a.sunlight] : 'zzz'
+      const sb = b.sunlight ? sunlightLabels[b.sunlight] : 'zzz'
+      const cmp = sa.localeCompare(sb, 'de')
+      if (cmp !== 0) return cmp
+    }
+    return a.name.localeCompare(b.name, 'de')
+  })
 })
 
 function openNew() {
@@ -80,11 +104,24 @@ function removeCurrent() {
       </div>
     </div>
 
-    <InputText v-model="filter" placeholder="Bibliothek durchsuchen …" class="filter-input" />
+    <div class="toolbar">
+      <InputText v-model="filter" placeholder="Bibliothek durchsuchen …" class="filter-input" />
+      <div class="sort-field">
+        <label for="plant-sort" class="muted">Sortieren</label>
+        <Select
+          id="plant-sort"
+          v-model="sortBy"
+          :options="sortOptions"
+          option-label="label"
+          option-value="value"
+        />
+      </div>
+    </div>
 
     <div v-if="filteredPlants.length" class="card-grid">
       <button v-for="plant in filteredPlants" :key="plant.id" class="card plant-card" @click="openEdit(plant)">
-        <img v-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="plant-img" loading="lazy" />
+        <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="plant-img" />
+        <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="plant-img" loading="lazy" />
         <div v-else class="plant-img plant-img-empty">🌿</div>
         <div class="plant-info">
           <div class="plant-title">
@@ -132,9 +169,27 @@ function removeCurrent() {
   flex-wrap: wrap;
 }
 
-.filter-input {
-  width: 100%;
+.toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.sort-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.sort-field label {
+  font-size: 0.8rem;
 }
 
 .plant-card {
@@ -150,7 +205,8 @@ function removeCurrent() {
   border-color: var(--app-accent);
 }
 
-.plant-img {
+/* Direktkind-Selektor überschreibt die Standardgröße von PhotoImg (.photo-img) */
+.plant-card > .plant-img {
   width: 72px;
   height: 72px;
   border-radius: 10px;

@@ -42,6 +42,12 @@ h1, h2, h3 {
   padding: 1rem;
 }
 
+/* Über einem Hintergrundbild werden Karten leicht durchscheinend (bessere Lesbarkeit) */
+.app-main.has-bg .card {
+  background: color-mix(in srgb, var(--app-surface) 90%, transparent);
+  backdrop-filter: blur(6px);
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

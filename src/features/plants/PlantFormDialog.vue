@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -7,8 +7,11 @@ import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import Textarea from 'primevue/textarea'
+import DatePicker from 'primevue/datepicker'
+import PhotoPicker from '../../shared/PhotoPicker.vue'
 import type { PlantCategory, Sunlight } from '../../data'
-import { categoryLabels, monthOptions, sunlightLabels } from '../../shared/texts'
+import { categoryLabels, categorySpreadM, monthOptions, sunlightLabels } from '../../shared/texts'
+import { toIsoDate } from '../../shared/dates'
 import { emptyPlantDraft, type PlantDraft } from './plantsStore'
 
 const props = defineProps<{
@@ -39,6 +42,14 @@ const sunlightOptions = [
   { value: null, label: '–' },
   ...(Object.keys(sunlightLabels) as Sunlight[]).map((value) => ({ value, label: sunlightLabels[value] })),
 ]
+
+// DatePicker arbeitet mit Date, gespeichert wird der ISO-String (yyyy-mm-dd)
+const wateringStart = computed<Date | null>({
+  get: () => (draft.value.wateringStartDate ? new Date(draft.value.wateringStartDate) : null),
+  set: (d) => {
+    draft.value.wateringStartDate = d ? toIsoDate(d) : null
+  },
+})
 
 function save() {
   if (!draft.value.name.trim()) return
@@ -102,6 +113,33 @@ function save() {
 
       <div class="form-row">
         <div class="form-field">
+          <label for="plant-watering-start">Gießen ab (optional)</label>
+          <DatePicker
+            id="plant-watering-start"
+            v-model="wateringStart"
+            date-format="dd.mm.yy"
+            show-button-bar
+            placeholder="ab sofort"
+          />
+        </div>
+        <div class="form-field">
+          <label for="plant-spread">Wuchsbreite (m)</label>
+          <InputNumber
+            id="plant-spread"
+            v-model="draft.spreadM"
+            :min="0.1"
+            :max="15"
+            :step="0.1"
+            :min-fraction-digits="0"
+            :max-fraction-digits="2"
+            suffix=" m"
+            :placeholder="`Standard: ${categorySpreadM[draft.category].toLocaleString('de-DE')} m`"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
           <label for="plant-sowing">Aussaat-Monate</label>
           <MultiSelect
             id="plant-sowing"
@@ -126,7 +164,12 @@ function save() {
       </div>
 
       <div class="form-field">
-        <label for="plant-image">Bild-URL</label>
+        <label>Eigenes Foto</label>
+        <PhotoPicker v-model="draft.photoId" label="Foto wählen" />
+      </div>
+
+      <div class="form-field">
+        <label for="plant-image">Bild-URL (alternativ)</label>
         <InputText id="plant-image" v-model="draft.imageUrl" placeholder="https://…" />
       </div>
 

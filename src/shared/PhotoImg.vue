@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-import { useDiaryStore } from './diaryStore'
+import { getPhotoUrl } from './photos'
 
 const props = defineProps<{ photoId: string }>()
 
-const store = useDiaryStore()
 const url = ref<string | null>(null)
 
 watchEffect(async () => {
-  url.value = await store.photoUrl(props.photoId)
+  url.value = await getPhotoUrl(props.photoId)
 })
 </script>
 
 <template>
-  <img v-if="url" :src="url" alt="" class="diary-photo" loading="lazy" />
+  <img v-if="url" :src="url" alt="" class="photo-img" loading="lazy" />
 </template>
 
 <style scoped>
-.diary-photo {
+.photo-img {
   width: 100%;
   height: 140px;
   object-fit: cover;

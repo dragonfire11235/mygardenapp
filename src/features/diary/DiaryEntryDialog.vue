@@ -8,10 +8,12 @@ import MultiSelect from 'primevue/multiselect'
 import DatePicker from 'primevue/datepicker'
 import type { DiaryEntry } from '../../data'
 import { toIsoDate } from '../../shared/dates'
-import { usePlantsStore } from '../plants/plantsStore'
+import { addPhoto } from '../../shared/photos'
+import PhotoImg from '../../shared/PhotoImg.vue'
+import { usePlantsStore, type PlantDraft } from '../plants/plantsStore'
+import PlantFormDialog from '../plants/PlantFormDialog.vue'
 import { useBedsStore } from '../beds/bedsStore'
-import { useDiaryStore, type DiaryDraft } from './diaryStore'
-import PhotoImg from './PhotoImg.vue'
+import type { DiaryDraft } from './diaryStore'
 
 const props = defineProps<{ initial?: DiaryEntry | null }>()
 
@@ -24,7 +26,6 @@ const visible = defineModel<boolean>('visible', { required: true })
 
 const plantsStore = usePlantsStore()
 const bedsStore = useBedsStore()
-const diaryStore = useDiaryStore()
 
 const date = ref<Date>(new Date())
 const title = ref('')
@@ -34,6 +35,12 @@ const bedIds = ref<string[]>([])
 const photoIds = ref<string[]>([])
 const uploading = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const newPlantVisible = ref(false)
+
+async function onPlantCreated(draft: PlantDraft) {
+  const plant = await plantsStore.create(draft)
+  plantIds.value = [...plantIds.value, plant.id]
+}
 
 watch(visible, (open) => {
   if (!open) return
@@ -55,7 +62,7 @@ async function onFilesSelected(event: Event) {
   uploading.value = true
   try {
     for (const file of Array.from(files)) {
-      photoIds.value.push(await diaryStore.addPhoto(file))
+      photoIds.value.push(await addPhoto(file))
     }
   } finally {
     uploading.value = false
@@ -108,15 +115,25 @@ function save() {
       <div class="form-row">
         <div class="form-field">
           <label for="diary-plants">Pflanzen</label>
-          <MultiSelect
-            id="diary-plants"
-            v-model="plantIds"
-            :options="plantOptions"
-            option-label="label"
-            option-value="value"
-            filter
-            placeholder="verknüpfen"
-          />
+          <div class="field-with-add">
+            <MultiSelect
+              id="diary-plants"
+              v-model="plantIds"
+              :options="plantOptions"
+              option-label="label"
+              option-value="value"
+              filter
+              placeholder="verknüpfen"
+              class="grow"
+            />
+            <Button
+              icon="pi pi-plus"
+              severity="secondary"
+              outlined
+              aria-label="Neue Pflanze anlegen"
+              @click="newPlantVisible = true"
+            />
+          </div>
         </div>
         <div class="form-field">
           <label for="diary-beds">Beete</label>
@@ -171,10 +188,23 @@ function save() {
       <Button label="Abbrechen" severity="secondary" text @click="visible = false" />
       <Button label="Speichern" @click="save" />
     </template>
+
+    <PlantFormDialog v-model:visible="newPlantVisible" :initial="null" @save="onPlantCreated" />
   </Dialog>
 </template>
 
 <style scoped>
+.field-with-add {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.field-with-add .grow {
+  flex: 1;
+  min-width: 0;
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -186,7 +216,7 @@ function save() {
   position: relative;
 }
 
-.photo-wrap :deep(.diary-photo) {
+.photo-wrap :deep(.photo-img) {
   height: 90px;
 }
 
