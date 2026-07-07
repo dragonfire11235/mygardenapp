@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 export const router = createRouter({
-  history: createWebHistory(),
+  // BASE_URL: bei GitHub-Pages-Deployments liegt die App unter /<repo>/ statt /
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'dashboard', component: () => import('./features/dashboard/DashboardPage.vue'), meta: { title: 'Dashboard' } },
     { path: '/pflanzen', name: 'plants', component: () => import('./features/plants/PlantsPage.vue'), meta: { title: 'Pflanzen' } },
