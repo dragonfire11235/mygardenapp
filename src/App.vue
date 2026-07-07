@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { getPhotoUrl } from './shared/photos'
+import { deleteOrphanPhotos } from './shared/photoGc'
 import { useSettingsStore } from './features/settings/settingsStore'
 import { usePlantsStore } from './features/plants/plantsStore'
 import { useBedsStore } from './features/beds/bedsStore'
@@ -47,6 +48,10 @@ onMounted(async () => {
 
   // Wetter laden (für Widget + „Alles gegossen"-Hervorhebung bei Regen)
   void weather.load()
+
+  // Verwaiste Foto-Blobs im Hintergrund aufräumen (PhotoPicker ersetzt/entfernt
+  // nur die Referenz; die Blobs selbst räumt dieser Sweep ab)
+  void deleteOrphanPhotos()
 
   // Zähler am App-Icon + Hinweis beim Öffnen (echte Push-Nachrichten brauchen ein Backend)
   const due = tasks.dueTasks.length
