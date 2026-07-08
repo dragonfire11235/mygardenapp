@@ -40,6 +40,15 @@ watch(
   { immediate: true },
 )
 
+// Dunkelmodus: schaltet die .app-dark-Klasse (PrimeVue + eigene CSS-Variablen)
+watch(
+  () => settings.darkMode,
+  (dark) => {
+    document.documentElement.classList.toggle('app-dark', dark)
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load()])
 

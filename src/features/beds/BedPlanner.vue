@@ -11,6 +11,8 @@ import { useToast } from 'primevue/usetoast'
 import type { Bed, Plant, Planting } from '../../data'
 import { categoryColors, categoryLabels, plantSpreadM } from '../../shared/texts'
 import { todayIso } from '../../shared/dates'
+import { shareOrDownload } from '../../shared/shareFile'
+import { renderPlannerImage } from './plannerImage'
 import { usePlantsStore } from '../plants/plantsStore'
 import { useTasksStore } from '../tasks/tasksStore'
 import { useBedsStore } from './bedsStore'
@@ -149,6 +151,30 @@ function showLabel(plant: Plant): boolean {
 
 function fmtM(n: number): string {
   return n.toLocaleString('de-DE', { maximumFractionDigits: 2 })
+}
+
+// Beetplan als Bild teilen (oder herunterladen, wenn Teilen nicht geht)
+const sharing = ref(false)
+async function sharePlan() {
+  sharing.value = true
+  try {
+    const blob = await renderPlannerImage(props.bed, placed.value)
+    const safeName = props.bed.name.replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-|-$/g, '') || 'beet'
+    const file = new File([blob], `beetplan-${safeName}.png`, { type: 'image/png' })
+    await shareOrDownload(file, {
+      title: `Beetplan: ${props.bed.name}`,
+      text: '🌱 Mein Beetplan',
+    })
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: 'Teilen fehlgeschlagen',
+      detail: e instanceof Error ? e.message : String(e),
+      life: 4000,
+    })
+  } finally {
+    sharing.value = false
+  }
 }
 
 // ---- Kreise verschieben (gleiches Muster wie BedMapView) ----
@@ -343,8 +369,19 @@ function removeSelected() {
             :style="circleStyle(paletteDrag.plant, paletteDrag.x, paletteDrag.y)"
           />
         </div>
-        <div class="canvas-meta muted">
-          {{ fmtM(bed.widthM!) }} m × {{ fmtM(bed.heightM!) }} m · Raster 0,5 m · Einrasten 0,25 m
+        <div class="canvas-footer">
+          <span class="canvas-meta muted">
+            {{ fmtM(bed.widthM!) }} m × {{ fmtM(bed.heightM!) }} m · Raster 0,5 m · Einrasten 0,25 m
+          </span>
+          <Button
+            label="Als Bild teilen"
+            icon="pi pi-share-alt"
+            size="small"
+            severity="secondary"
+            outlined
+            :loading="sharing"
+            @click="sharePlan"
+          />
         </div>
       </div>
 
@@ -490,10 +527,17 @@ function removeSelected() {
   pointer-events: none;
 }
 
+.canvas-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
 .canvas-meta {
-  margin-top: 0.3rem;
   font-size: 0.8rem;
-  text-align: right;
 }
 
 .selection-bar {

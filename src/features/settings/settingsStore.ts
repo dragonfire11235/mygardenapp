@@ -21,6 +21,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const dashboardBackgroundPhotoId = ref<string | null>(null)
   const weatherLocation = ref<WeatherLocation | null>(null)
   const gardenMapPhotoId = ref<string | null>(null)
+  const darkMode = ref(false)
   const loaded = ref(false)
 
   async function load() {
@@ -31,7 +32,15 @@ export const useSettingsStore = defineStore('settings', () => {
     dashboardBackgroundPhotoId.value = (await storage.getSetting<string>('dashboardBackgroundPhotoId')) ?? null
     weatherLocation.value = (await storage.getSetting<WeatherLocation>('weatherLocation')) ?? null
     gardenMapPhotoId.value = (await storage.getSetting<string>('gardenMapPhotoId')) ?? null
+    // Ohne gespeicherte Wahl der Systemvorgabe folgen
+    const storedDark = await storage.getSetting<boolean>('darkMode')
+    darkMode.value = storedDark ?? window.matchMedia('(prefers-color-scheme: dark)').matches
     loaded.value = true
+  }
+
+  async function setDarkMode(enabled: boolean) {
+    darkMode.value = enabled
+    await storage.setSetting('darkMode', enabled)
   }
 
   async function setTrefleToken(token: string) {
@@ -77,6 +86,7 @@ export const useSettingsStore = defineStore('settings', () => {
     dashboardBackgroundPhotoId,
     weatherLocation,
     gardenMapPhotoId,
+    darkMode,
     loaded,
     load,
     setTrefleToken,
@@ -86,5 +96,6 @@ export const useSettingsStore = defineStore('settings', () => {
     setDashboardBackgroundPhotoId,
     setWeatherLocation,
     setGardenMapPhotoId,
+    setDarkMode,
   }
 })

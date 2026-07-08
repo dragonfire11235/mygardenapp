@@ -26,6 +26,11 @@ const backgroundPhotoId = computed({
   set: (id: string | null) => void settings.setDashboardBackgroundPhotoId(id),
 })
 
+const darkMode = computed({
+  get: () => settings.darkMode,
+  set: (enabled: boolean) => void settings.setDarkMode(enabled),
+})
+
 // --- Wetter-Standort ---
 const locationQuery = ref('')
 const locationResults = ref<GeoResult[]>([])
@@ -172,6 +177,10 @@ function onImportSelected(event: Event) {
 
       <section class="card">
         <h2>Aussehen</h2>
+        <div class="row">
+          <ToggleSwitch v-model="darkMode" inputId="darkmode" />
+          <label for="darkmode">Dunkelmodus</label>
+        </div>
         <p class="muted">Titelbild fürs Dashboard und ein Hintergrundbild für alle Seiten.</p>
         <div class="picture-settings">
           <div class="form-field">

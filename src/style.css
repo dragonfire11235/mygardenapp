@@ -10,6 +10,18 @@
   --app-nav-height: 60px;
 }
 
+/* Dunkelmodus — via .app-dark auf <html> (siehe App.vue) */
+.app-dark {
+  --app-bg: #0f1411;
+  --app-surface: #1a201b;
+  --app-border: #2c352d;
+  --app-text: #e3e8e2;
+  --app-text-muted: #9aa79c;
+  --app-accent: #4ade80;
+  --app-danger: #f87171;
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }

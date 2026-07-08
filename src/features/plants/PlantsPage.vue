@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Tag from 'primevue/tag'
-import { useConfirm } from 'primevue/useconfirm'
 import type { Plant } from '../../data'
 import Select from 'primevue/select'
 import { categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
@@ -13,13 +13,12 @@ import PlantFormDialog from './PlantFormDialog.vue'
 import TrefleSearchDialog from './TrefleSearchDialog.vue'
 
 const store = usePlantsStore()
-const confirm = useConfirm()
+const router = useRouter()
 
 const filter = ref('')
 const sortBy = ref<'name' | 'category' | 'standort'>('name')
 const dialogVisible = ref(false)
 const trefleVisible = ref(false)
-const editingPlant = ref<Plant | null>(null)
 const initialDraft = ref<PlantDraft | null>(null)
 
 const sortOptions = [
@@ -52,42 +51,22 @@ const filteredPlants = computed(() => {
 })
 
 function openNew() {
-  editingPlant.value = null
   initialDraft.value = null
   dialogVisible.value = true
 }
 
-function openEdit(plant: Plant) {
-  editingPlant.value = plant
-  initialDraft.value = { ...plant }
-  dialogVisible.value = true
+function openDetail(plant: Plant) {
+  router.push(`/pflanzen/${plant.id}`)
 }
 
 function openTrefleImport(draft: PlantDraft) {
-  editingPlant.value = null
   initialDraft.value = draft
   dialogVisible.value = true
 }
 
 async function save(draft: PlantDraft) {
-  if (editingPlant.value) {
-    await store.update({ ...editingPlant.value, ...draft })
-  } else {
-    await store.create(draft)
-  }
-}
-
-function removeCurrent() {
-  const plant = editingPlant.value
-  if (!plant) return
-  confirm.require({
-    message: `„${plant.name}" wirklich löschen?`,
-    header: 'Pflanze löschen',
-    icon: 'pi pi-exclamation-triangle',
-    acceptProps: { label: 'Löschen', severity: 'danger' },
-    rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
-    accept: () => store.remove(plant.id),
-  })
+  // Auf dieser Seite wird nur neu angelegt; Bearbeiten passiert auf der Detailseite.
+  await store.create(draft)
 }
 </script>
 
@@ -119,7 +98,7 @@ function removeCurrent() {
     </div>
 
     <div v-if="filteredPlants.length" class="card-grid">
-      <button v-for="plant in filteredPlants" :key="plant.id" class="card plant-card" @click="openEdit(plant)">
+      <button v-for="plant in filteredPlants" :key="plant.id" class="card plant-card" @click="openDetail(plant)">
         <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="plant-img" />
         <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="plant-img" loading="lazy" />
         <div v-else class="plant-img plant-img-empty">🌿</div>
@@ -154,9 +133,8 @@ function removeCurrent() {
     <PlantFormDialog
       v-model:visible="dialogVisible"
       :initial="initialDraft"
-      :editing="editingPlant !== null"
+      :editing="false"
       @save="save"
-      @delete="removeCurrent"
     />
     <TrefleSearchDialog v-model:visible="trefleVisible" @import="openTrefleImport" />
   </div>

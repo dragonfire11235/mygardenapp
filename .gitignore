@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Umgebungsvariablen (z. B. spätere Supabase-Keys)
+.env
+.env.*
+!.env.example
