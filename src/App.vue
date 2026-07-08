@@ -202,6 +202,11 @@ onMounted(async () => {
     z-index: 100;
     background: var(--app-surface);
     border-top: 1px solid var(--app-border);
+    /* iOS-Sicherheitsbereiche: Home-Indikator unten + abgerundete Ecken seitlich.
+       Auf Android/Desktop sind diese Insets 0 → keine Änderung. */
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: max(6px, env(safe-area-inset-left));
+    padding-right: max(6px, env(safe-area-inset-right));
   }
 
   .app-brand {
@@ -235,7 +240,8 @@ onMounted(async () => {
   }
 
   .app-main {
-    padding-bottom: calc(var(--app-nav-height) + 0.5rem);
+    /* Platz für die feste Menüleiste inkl. iOS-Home-Indikator */
+    padding-bottom: calc(var(--app-nav-height) + env(safe-area-inset-bottom) + 0.5rem);
   }
 }
 </style>

@@ -10,6 +10,7 @@ import { usePlantsStore } from '../plants/plantsStore'
 import { useBedsStore } from '../beds/bedsStore'
 import { useWeatherStore } from '../weather/weatherStore'
 import { useTasksStore, type TaskDraft } from './tasksStore'
+import { downloadTasksIcs } from './taskCalendar'
 import TaskFormDialog from './TaskFormDialog.vue'
 
 const store = useTasksStore()
@@ -83,6 +84,16 @@ function context(task: Task): string {
   if (task.intervalDays) parts.push(`alle ${task.intervalDays} Tage`)
   return parts.join(' · ')
 }
+
+function exportCalendar() {
+  downloadTasksIcs(store.openTasks, context)
+  toast.add({
+    severity: 'success',
+    summary: 'Kalender exportiert',
+    detail: 'Die .ics-Datei kann in Google/Apple Kalender importiert werden.',
+    life: 3500,
+  })
+}
 </script>
 
 <template>
@@ -101,6 +112,15 @@ function context(task: Task): string {
           :class="{ 'rain-highlight': weather.rainToday }"
           :title="weather.rainToday ? 'Es regnet – der Garten ist gewässert' : undefined"
           @click="waterAll"
+        />
+        <Button
+          v-if="store.openTasks.length"
+          label="Kalender"
+          icon="pi pi-calendar"
+          severity="secondary"
+          outlined
+          title="Aufgaben als .ics für Google/Apple Kalender exportieren"
+          @click="exportCalendar"
         />
         <Button label="Neue Aufgabe" icon="pi pi-plus" @click="openNew" />
       </div>
