@@ -5,10 +5,12 @@
 // große Kreise liegen unten, kleine oben.
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
+import InputText from 'primevue/inputtext'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
-import type { Bed, Plant, Planting } from '../../data'
+import type { Bed, Plant, PlantCategory, Planting } from '../../data'
 import { categoryColors, categoryLabels, plantSpreadM } from '../../shared/texts'
 import { todayIso } from '../../shared/dates'
 import { shareOrDownload } from '../../shared/shareFile'
@@ -219,46 +221,37 @@ function circlePos(item: { planting: Planting }): { x: number; y: number } {
   return { x: item.planting.posX ?? 0, y: item.planting.posY ?? 0 }
 }
 
-// ---- Aus der Palette ziehen (neue Pflanze einsetzen) ----
-const paletteDrag = ref<{ plant: Plant; x: number; y: number; over: boolean; moved: boolean } | null>(null)
+// ---- Palette: Kategorien → Auswahl-Dialog (übersichtlich bei vielen Pflanzen) ----
+const pickerCategory = ref<PlantCategory | null>(null)
+const pickerVisible = ref(false)
+const pickerFilter = ref('')
 
-function onPaletteDown(plant: Plant, e: PointerEvent) {
-  e.preventDefault()
-  paletteDrag.value = { plant, x: 0, y: 0, over: false, moved: false }
-  document.addEventListener('pointermove', onPaletteMove)
-  document.addEventListener('pointerup', onPaletteUp)
+/** Nur Kategorien mit Pflanzen, samt Anzahl */
+const categoriesInLibrary = computed(() => {
+  const counts = new Map<PlantCategory, number>()
+  for (const p of plantsStore.plants) counts.set(p.category, (counts.get(p.category) ?? 0) + 1)
+  return (Object.keys(categoryLabels) as PlantCategory[])
+    .filter((c) => counts.has(c))
+    .map((c) => ({ category: c, count: counts.get(c)! }))
+})
+
+const pickerPlants = computed(() => {
+  const q = pickerFilter.value.trim().toLowerCase()
+  return plantsStore.plants
+    .filter((p) => p.category === pickerCategory.value)
+    .filter((p) => !q || p.name.toLowerCase().includes(q))
+})
+
+function openPicker(category: PlantCategory) {
+  pickerCategory.value = category
+  pickerFilter.value = ''
+  pickerVisible.value = true
 }
 
-function onPaletteMove(e: PointerEvent) {
-  if (!paletteDrag.value) return
-  const pos = metersFromEvent(e)
-  const rect = canvasEl.value?.getBoundingClientRect()
-  const over =
-    !!rect &&
-    e.clientX >= rect.left &&
-    e.clientX <= rect.right &&
-    e.clientY >= rect.top &&
-    e.clientY <= rect.bottom
-  paletteDrag.value = {
-    ...paletteDrag.value,
-    ...(pos ?? {}),
-    over,
-    moved: true,
-  }
-}
-
-async function onPaletteUp() {
-  document.removeEventListener('pointermove', onPaletteMove)
-  document.removeEventListener('pointerup', onPaletteUp)
-  const drag = paletteDrag.value
-  paletteDrag.value = null
-  if (!drag) return
-  if (drag.moved && drag.over) {
-    await placePlant(drag.plant, snap(drag.x), snap(drag.y))
-  } else if (!drag.moved) {
-    // Antippen ohne Ziehen = mittig platzieren
-    await placePlant(drag.plant, snap((props.bed.widthM ?? 0) / 2), snap((props.bed.heightM ?? 0) / 2))
-  }
+/** Pflanze aus dem Dialog mittig einsetzen — danach zurechtziehen */
+async function pickPlant(plant: Plant) {
+  pickerVisible.value = false
+  await placePlant(plant, snap((props.bed.widthM ?? 0) / 2), snap((props.bed.heightM ?? 0) / 2))
 }
 
 async function placePlant(plant: Plant, x: number, y: number) {
@@ -310,29 +303,28 @@ function removeSelected() {
         „{{ bed.name }}" hat noch keine Metermaße. Lege Breite und Länge fest, um zu planen.
       </p>
       <div class="dim-row">
-        <InputNumber v-model="widthInput" :min="0.2" :max="50" :step="0.1" :max-fraction-digits="2" suffix=" m" placeholder="Breite" />
+        <InputNumber v-model="widthInput" :min="0.2" :max="50" :step="0.1" :min-fraction-digits="1" :max-fraction-digits="2" suffix=" m" placeholder="Breite" />
         <span class="muted">×</span>
-        <InputNumber v-model="heightInput" :min="0.2" :max="50" :step="0.1" :max-fraction-digits="2" suffix=" m" placeholder="Länge" />
+        <InputNumber v-model="heightInput" :min="0.2" :max="50" :step="0.1" :min-fraction-digits="1" :max-fraction-digits="2" suffix=" m" placeholder="Länge" />
         <Button label="Übernehmen" :disabled="!widthInput || !heightInput" @click="saveDimensions" />
       </div>
     </div>
 
     <template v-else>
-      <!-- Palette: Pflanzen ins Beet ziehen -->
+      <!-- Palette: Kategorie antippen → Pflanze wählen → mittig eingesetzt -->
       <div class="palette">
-        <span class="muted palette-hint">Pflanze ins Raster ziehen (oder antippen = mittig):</span>
+        <span class="muted palette-hint">Kategorie antippen → Pflanze wählen → Kreis zurechtziehen:</span>
         <div class="palette-chips">
           <button
-            v-for="plant in plantsStore.plants"
-            :key="plant.id"
+            v-for="entry in categoriesInLibrary"
+            :key="entry.category"
             class="chip"
-            :style="{ borderColor: categoryColors[plant.category] }"
-            :title="`${categoryLabels[plant.category]} · ${fmtM(plantSpreadM(plant))} m breit`"
-            @pointerdown="onPaletteDown(plant, $event)"
+            :style="{ borderColor: categoryColors[entry.category] }"
+            @click="openPicker(entry.category)"
           >
-            <span class="chip-dot" :style="{ background: categoryColors[plant.category] }" />
-            {{ plant.name }}
-            <span class="muted">{{ fmtM(plantSpreadM(plant)) }} m</span>
+            <span class="chip-dot" :style="{ background: categoryColors[entry.category] }" />
+            {{ categoryLabels[entry.category] }}
+            <span class="muted">{{ entry.count }}</span>
           </button>
           <p v-if="!plantsStore.plants.length" class="muted">
             Die Bibliothek ist leer — lege zuerst unter „Pflanzen" welche an.
@@ -362,12 +354,6 @@ function removeSelected() {
             <span v-if="showLabel(item.plant)" class="circle-label">{{ item.plant.name }}</span>
           </button>
 
-          <!-- Geister-Kreis beim Ziehen aus der Palette -->
-          <div
-            v-if="paletteDrag && paletteDrag.over"
-            class="circle ghost"
-            :style="circleStyle(paletteDrag.plant, paletteDrag.x, paletteDrag.y)"
-          />
         </div>
         <div class="canvas-footer">
           <span class="canvas-meta muted">
@@ -410,6 +396,33 @@ function removeSelected() {
           @click="placeUnplaced(item)"
         />
       </div>
+
+      <!-- Pflanzen-Auswahl je Kategorie -->
+      <Dialog
+        v-model:visible="pickerVisible"
+        modal
+        :header="pickerCategory ? categoryLabels[pickerCategory] : ''"
+        :style="{ width: 'min(420px, 95vw)' }"
+      >
+        <InputText
+          v-model="pickerFilter"
+          placeholder="Suchen …"
+          class="picker-filter"
+        />
+        <div class="picker-list">
+          <button
+            v-for="plant in pickerPlants"
+            :key="plant.id"
+            class="picker-row"
+            @click="pickPlant(plant)"
+          >
+            <span class="chip-dot" :style="{ background: categoryColors[plant.category] }" />
+            <span class="picker-name">{{ plant.name }}</span>
+            <span class="muted">{{ fmtM(plantSpreadM(plant)) }} m</span>
+          </button>
+          <p v-if="!pickerPlants.length" class="muted">Keine Treffer.</p>
+        </div>
+      </Dialog>
     </template>
   </div>
 </template>
@@ -458,12 +471,8 @@ function removeSelected() {
   font: inherit;
   font-size: 0.85rem;
   cursor: grab;
-  touch-action: none; /* Drag am Touchscreen statt Scrollen */
   user-select: none;
-}
-
-.chip:active {
-  cursor: grabbing;
+  cursor: pointer;
 }
 
 .chip-dot {
@@ -521,10 +530,40 @@ function removeSelected() {
   max-width: 90%;
 }
 
-.ghost {
-  opacity: 0.6;
-  border-style: dashed;
-  pointer-events: none;
+.picker-filter {
+  width: 100%;
+  margin-bottom: 0.6rem;
+}
+
+.picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background: var(--app-surface);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.picker-row:hover {
+  border-color: var(--app-accent);
+}
+
+.picker-name {
+  flex: 1;
+  min-width: 0;
 }
 
 .canvas-footer {

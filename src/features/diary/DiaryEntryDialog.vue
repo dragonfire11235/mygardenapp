@@ -15,7 +15,12 @@ import PlantFormDialog from '../plants/PlantFormDialog.vue'
 import { useBedsStore } from '../beds/bedsStore'
 import type { DiaryDraft } from './diaryStore'
 
-const props = defineProps<{ initial?: DiaryEntry | null }>()
+const props = defineProps<{
+  initial?: DiaryEntry | null
+  /** Vorverknüpfung bei neuen Einträgen (z. B. von der Pflanzen-/Beet-Detailseite) */
+  presetPlantIds?: string[]
+  presetBedIds?: string[]
+}>()
 
 const emit = defineEmits<{
   save: [draft: DiaryDraft]
@@ -48,8 +53,8 @@ watch(visible, (open) => {
   date.value = e ? new Date(e.date) : new Date()
   title.value = e?.title ?? ''
   text.value = e?.text ?? ''
-  plantIds.value = e ? [...e.plantIds] : []
-  bedIds.value = e ? [...e.bedIds] : []
+  plantIds.value = e ? [...e.plantIds] : [...(props.presetPlantIds ?? [])]
+  bedIds.value = e ? [...e.bedIds] : [...(props.presetBedIds ?? [])]
   photoIds.value = e ? [...e.photoIds] : []
 })
 

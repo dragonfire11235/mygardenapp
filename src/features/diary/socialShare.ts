@@ -9,6 +9,7 @@
 import type { DiaryEntry } from '../../data'
 import { formatDate } from '../../shared/dates'
 import { getPhotoFile } from '../../shared/photos'
+import { renderDiaryCard } from './diaryCard'
 
 export interface SharePayload {
   title: string
@@ -52,12 +53,27 @@ class WebSharePublisher implements SocialPublisher {
 // SocialPublisher und werden nur hier registriert, die App bleibt unverändert.
 export const publishers: SocialPublisher[] = [new WebSharePublisher()]
 
-/** Baut aus einem Tagebucheintrag das Teilen-Paket (Titel, Text, Fotos). */
-export async function diaryEntryToPayload(entry: DiaryEntry): Promise<SharePayload> {
+/**
+ * Baut aus einem Tagebucheintrag das Teilen-Paket.
+ * Erste Datei ist die gerenderte Share-Card (Bild mit Titel, Text, Foto,
+ * Verknüpfungen) — Instagram & Co. zeigen beim Teilen nur Bilder, so kommt
+ * trotzdem „alles" an. Danach folgen die Original-Fotos; der Text bleibt
+ * für Messenger erhalten.
+ */
+export async function diaryEntryToPayload(
+  entry: DiaryEntry,
+  tagNames: string[] = [],
+): Promise<SharePayload> {
   const files: File[] = []
   for (const [i, photoId] of entry.photoIds.entries()) {
     const file = await getPhotoFile(photoId, `garten-${entry.date}-${i + 1}.jpg`)
     if (file) files.push(file)
+  }
+  try {
+    const card = await renderDiaryCard(entry, files[0] ?? null, tagNames)
+    files.unshift(new File([card], `gartentagebuch-${entry.date}.png`, { type: 'image/png' }))
+  } catch {
+    // Karte optional — ohne sie werden weiterhin Text + Fotos geteilt
   }
   const title = entry.title || `Gartentagebuch vom ${formatDate(entry.date)}`
   const text = [entry.text, '🌱 Aus meinem Gartentagebuch'].filter(Boolean).join('\n\n')

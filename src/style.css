@@ -125,3 +125,14 @@ h1, h2, h3 {
   color: var(--app-danger);
   font-weight: 600;
 }
+
+/* Dialoge dürfen nie höher als der sichtbare Bereich werden (iPhone!):
+   dvh berücksichtigt die iOS-Leisten, vh davor ist der Fallback. */
+.p-dialog {
+  max-height: 90vh;
+  max-height: 90dvh;
+}
+
+.p-dialog .p-dialog-content {
+  overflow-y: auto;
+}

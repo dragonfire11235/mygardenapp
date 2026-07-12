@@ -8,7 +8,9 @@ import { categoryLabels, formatMonths, plantSpreadM, sunlightLabels } from '../.
 import { formatDate } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
 import { useBedsStore } from '../beds/bedsStore'
-import { useDiaryStore } from '../diary/diaryStore'
+import { useDiaryStore, type DiaryDraft } from '../diary/diaryStore'
+import DiaryEntryDialog from '../diary/DiaryEntryDialog.vue'
+import type { DiaryEntry } from '../../data'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
 import PlantFormDialog from './PlantFormDialog.vue'
 
@@ -31,6 +33,23 @@ const pastPlantings = computed(() => plantings.value.filter((p) => p.removedAt !
 const diaryEntries = computed(() =>
   diaryStore.sortedEntries.filter((e) => e.plantIds.includes(plantId.value)),
 )
+
+// Tagebuch: neuer Eintrag (vorverknüpft) oder bestehenden bearbeiten
+const diaryDialogVisible = ref(false)
+const editingEntry = ref<DiaryEntry | null>(null)
+
+function openDiaryEntry(entry: DiaryEntry | null) {
+  editingEntry.value = entry
+  diaryDialogVisible.value = true
+}
+
+async function saveDiaryEntry(draft: DiaryDraft) {
+  if (editingEntry.value) {
+    await diaryStore.update({ ...editingEntry.value, ...draft })
+  } else {
+    await diaryStore.create(draft)
+  }
+}
 
 function bedName(id: string): string {
   return bedsStore.bedById.get(id)?.name ?? 'Unbekanntes Beet'
@@ -138,17 +157,28 @@ function removePlant() {
       </section>
 
       <!-- Tagebuch -->
-      <section v-if="diaryEntries.length" class="card">
-        <h2 class="section-title">Tagebuch</h2>
-        <ul class="link-list">
+      <section class="card">
+        <div class="section-head">
+          <h2 class="section-title">Tagebuch</h2>
+          <Button label="Eintrag" icon="pi pi-plus" size="small" severity="secondary" outlined @click="openDiaryEntry(null)" />
+        </div>
+        <ul v-if="diaryEntries.length" class="link-list">
           <li v-for="entry in diaryEntries" :key="entry.id">
-            <RouterLink to="/tagebuch" class="row-link">
+            <button class="row-link row-btn" @click="openDiaryEntry(entry)">
               <span>📖 {{ entry.title || entry.text || 'Eintrag' }}</span>
               <span class="muted">{{ formatDate(entry.date) }}</span>
-            </RouterLink>
+            </button>
           </li>
         </ul>
+        <p v-else class="muted">Noch keine Einträge zu dieser Pflanze.</p>
       </section>
+
+      <DiaryEntryDialog
+        v-model:visible="diaryDialogVisible"
+        :initial="editingEntry"
+        :preset-plant-ids="[plantId]"
+        @save="saveDiaryEntry"
+      />
 
       <PlantFormDialog
         v-model:visible="editVisible"
@@ -279,5 +309,27 @@ function removePlant() {
 
 .row-link:hover {
   color: var(--app-accent);
+}
+
+.row-btn {
+  width: 100%;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.section-head .section-title {
+  margin-bottom: 0;
 }
 </style>

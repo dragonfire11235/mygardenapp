@@ -85,6 +85,20 @@ function context(task: Task): string {
   return parts.join(' · ')
 }
 
+function removeAllDone() {
+  confirm.require({
+    message: `Alle ${store.doneTasks.length} erledigten Aufgaben löschen?`,
+    header: 'Erledigte löschen',
+    icon: 'pi pi-exclamation-triangle',
+    acceptProps: { label: 'Löschen', severity: 'danger' },
+    rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
+    accept: async () => {
+      const count = await store.removeDone()
+      toast.add({ severity: 'success', summary: `${count} erledigte Aufgaben gelöscht`, life: 2500 })
+    },
+  })
+}
+
 function exportCalendar() {
   downloadTasksIcs(store.openTasks, context)
   toast.add({
@@ -163,13 +177,24 @@ function exportCalendar() {
     </div>
 
     <div v-if="store.doneTasks.length" class="done-section">
-      <Button
-        :label="showDone ? 'Erledigte ausblenden' : `Erledigte anzeigen (${store.doneTasks.length})`"
-        text
-        severity="secondary"
-        :icon="showDone ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-        @click="showDone = !showDone"
-      />
+      <div class="done-header">
+        <Button
+          :label="showDone ? 'Erledigte ausblenden' : `Erledigte anzeigen (${store.doneTasks.length})`"
+          text
+          severity="secondary"
+          :icon="showDone ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+          @click="showDone = !showDone"
+        />
+        <Button
+          v-if="showDone"
+          label="Alle erledigten löschen"
+          icon="pi pi-trash"
+          text
+          size="small"
+          severity="danger"
+          @click="removeAllDone"
+        />
+      </div>
       <div v-if="showDone" class="task-list">
         <div v-for="task in store.doneTasks" :key="task.id" class="card task task-done">
           <i class="pi pi-check-circle task-done-icon" />
@@ -177,6 +202,15 @@ function exportCalendar() {
             <span class="task-title">{{ taskTypeIcons[task.type] }} {{ task.title }}</span>
             <span class="muted">erledigt am {{ new Date(task.doneAt!).toLocaleDateString('de-DE') }}</span>
           </div>
+          <Button
+            icon="pi pi-trash"
+            text
+            rounded
+            size="small"
+            severity="secondary"
+            aria-label="Löschen"
+            @click="store.remove(task.id)"
+          />
         </div>
       </div>
     </div>
@@ -259,6 +293,14 @@ function exportCalendar() {
 
 .done-section {
   margin-top: 1.25rem;
+}
+
+.done-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .task-done {

@@ -48,6 +48,14 @@ export const useTasksStore = defineStore('tasks', () => {
     await load()
   }
 
+  /** Löscht alle erledigten Aufgaben. Gibt die Anzahl zurück. */
+  async function removeDone(): Promise<number> {
+    const done = tasks.value.filter((t) => t.doneAt !== null)
+    for (const t of done) await storage.tasks.softDelete(t.id)
+    if (done.length) await load()
+    return done.length
+  }
+
   /** Schließt ab und legt bei Wiederholung die Folgeaufgabe an. Gibt sie zurück (für Toast). */
   async function complete(task: Task): Promise<Task | null> {
     const { done, next } = completeTask(task)
@@ -95,6 +103,7 @@ export const useTasksStore = defineStore('tasks', () => {
     create,
     update,
     remove,
+    removeDone,
     complete,
     completeAllWatering,
     syncCareTasks,

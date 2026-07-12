@@ -12,26 +12,38 @@ import PhotoPicker from '../../shared/PhotoPicker.vue'
 import type { PlantCategory, Sunlight } from '../../data'
 import { categoryLabels, categorySpreadM, monthOptions, sunlightLabels } from '../../shared/texts'
 import { toIsoDate } from '../../shared/dates'
+import { useBedsStore } from '../beds/bedsStore'
 import { emptyPlantDraft, type PlantDraft } from './plantsStore'
 
 const props = defineProps<{
   /** Vorbelegung (bei Bearbeiten oder Trefle-Import) */
   initial?: PlantDraft | null
   editing?: boolean
+  /** Nur beim Neu-Anlegen sinnvoll: „In Beete einsetzen"-Auswahl anzeigen */
+  showBedAssign?: boolean
 }>()
 
 const emit = defineEmits<{
-  save: [draft: PlantDraft]
+  /** bedIds nur gefüllt, wenn showBedAssign aktiv ist */
+  save: [draft: PlantDraft, bedIds: string[]]
   delete: []
 }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
 
+const bedsStore = useBedsStore()
+
 const draft = ref<PlantDraft>(emptyPlantDraft())
+const assignBedIds = ref<string[]>([])
 
 watch(visible, (open) => {
-  if (open) draft.value = props.initial ? { ...props.initial } : emptyPlantDraft()
+  if (open) {
+    draft.value = props.initial ? { ...props.initial } : emptyPlantDraft()
+    assignBedIds.value = []
+  }
 })
+
+const bedOptions = computed(() => bedsStore.beds.map((b) => ({ label: b.name, value: b.id })))
 
 const categoryOptions = (Object.keys(categoryLabels) as PlantCategory[]).map((value) => ({
   value,
@@ -53,7 +65,7 @@ const wateringStart = computed<Date | null>({
 
 function save() {
   if (!draft.value.name.trim()) return
-  emit('save', { ...draft.value, name: draft.value.name.trim() })
+  emit('save', { ...draft.value, name: draft.value.name.trim() }, [...assignBedIds.value])
   visible.value = false
 }
 </script>
@@ -130,7 +142,7 @@ function save() {
             :min="0.1"
             :max="15"
             :step="0.1"
-            :min-fraction-digits="0"
+            :min-fraction-digits="1"
             :max-fraction-digits="2"
             suffix=" m"
             :placeholder="`Standard: ${categorySpreadM[draft.category].toLocaleString('de-DE')} m`"
@@ -161,6 +173,18 @@ function save() {
             placeholder="wählen"
           />
         </div>
+      </div>
+
+      <div v-if="showBedAssign && !editing && bedOptions.length" class="form-field">
+        <label for="plant-beds">In Beete einsetzen (optional)</label>
+        <MultiSelect
+          id="plant-beds"
+          v-model="assignBedIds"
+          :options="bedOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="direkt einpflanzen"
+        />
       </div>
 
       <div class="form-field">

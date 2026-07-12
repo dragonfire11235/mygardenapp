@@ -26,7 +26,7 @@ const sharePublisher = publishers.find((p) => p.isAvailable()) ?? null
 async function share(entry: DiaryEntry) {
   if (!sharePublisher) return
   try {
-    await sharePublisher.publish(await diaryEntryToPayload(entry))
+    await sharePublisher.publish(await diaryEntryToPayload(entry, tagNames(entry)))
   } catch (e) {
     // Abbruch durch den User ist kein Fehler
     if (e instanceof DOMException && e.name === 'AbortError') return

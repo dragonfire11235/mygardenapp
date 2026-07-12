@@ -7,12 +7,17 @@ import Tag from 'primevue/tag'
 import type { Plant } from '../../data'
 import Select from 'primevue/select'
 import { categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
+import { todayIso } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
+import { useBedsStore } from '../beds/bedsStore'
+import { useTasksStore } from '../tasks/tasksStore'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
 import PlantFormDialog from './PlantFormDialog.vue'
 import TrefleSearchDialog from './TrefleSearchDialog.vue'
 
 const store = usePlantsStore()
+const bedsStore = useBedsStore()
+const tasksStore = useTasksStore()
 const router = useRouter()
 
 const filter = ref('')
@@ -64,9 +69,16 @@ function openTrefleImport(draft: PlantDraft) {
   dialogVisible.value = true
 }
 
-async function save(draft: PlantDraft) {
+async function save(draft: PlantDraft, bedIds: string[]) {
   // Auf dieser Seite wird nur neu angelegt; Bearbeiten passiert auf der Detailseite.
-  await store.create(draft)
+  const plant = await store.create(draft)
+  // Optional gleich in Beete einsetzen (inkl. automatischer Pflegeaufgaben)
+  for (const bedId of bedIds) {
+    await bedsStore.addPlanting({ plantId: plant.id, bedId, quantity: 1, plantedAt: todayIso(), notes: '' })
+  }
+  if (bedIds.length) {
+    await tasksStore.syncCareTasks(store.plants, bedsStore.activePlantings)
+  }
 }
 </script>
 
@@ -134,6 +146,7 @@ async function save(draft: PlantDraft) {
       v-model:visible="dialogVisible"
       :initial="initialDraft"
       :editing="false"
+      show-bed-assign
       @save="save"
     />
     <TrefleSearchDialog v-model:visible="trefleVisible" @import="openTrefleImport" />

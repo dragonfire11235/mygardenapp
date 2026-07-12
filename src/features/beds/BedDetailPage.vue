@@ -6,7 +6,9 @@ import { useConfirm } from 'primevue/useconfirm'
 import { formatDate } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
 import { usePlantsStore } from '../plants/plantsStore'
-import { useDiaryStore } from '../diary/diaryStore'
+import { useDiaryStore, type DiaryDraft } from '../diary/diaryStore'
+import DiaryEntryDialog from '../diary/DiaryEntryDialog.vue'
+import type { DiaryEntry } from '../../data'
 import { useBedsStore } from './bedsStore'
 import BedFormDialog, { type BedDraft } from './BedFormDialog.vue'
 import BedPlanner from './BedPlanner.vue'
@@ -32,6 +34,23 @@ const pastPlantings = computed(() => plantings.value.filter((p) => p.removedAt !
 const diaryEntries = computed(() =>
   diaryStore.sortedEntries.filter((e) => e.bedIds.includes(bedId.value)),
 )
+
+// Tagebuch: neuer Eintrag (vorverknüpft) oder bestehenden bearbeiten
+const diaryDialogVisible = ref(false)
+const editingEntry = ref<DiaryEntry | null>(null)
+
+function openDiaryEntry(entry: DiaryEntry | null) {
+  editingEntry.value = entry
+  diaryDialogVisible.value = true
+}
+
+async function saveDiaryEntry(draft: DiaryDraft) {
+  if (editingEntry.value) {
+    await diaryStore.update({ ...editingEntry.value, ...draft })
+  } else {
+    await diaryStore.create(draft)
+  }
+}
 
 function plantName(id: string): string {
   return plantsStore.byId.get(id)?.name ?? 'Unbekannte Pflanze'
@@ -147,17 +166,28 @@ function endPlanting(plantingId: string, name: string) {
       </section>
 
       <!-- Tagebuch -->
-      <section v-if="diaryEntries.length" class="card">
-        <h2 class="section-title">Tagebuch</h2>
-        <ul class="link-list">
+      <section class="card">
+        <div class="section-head">
+          <h2 class="section-title">Tagebuch</h2>
+          <Button label="Eintrag" icon="pi pi-plus" size="small" severity="secondary" outlined @click="openDiaryEntry(null)" />
+        </div>
+        <ul v-if="diaryEntries.length" class="link-list">
           <li v-for="entry in diaryEntries" :key="entry.id">
-            <RouterLink to="/tagebuch" class="row-link">
+            <button class="row-link row-btn" @click="openDiaryEntry(entry)">
               <span>📖 {{ entry.title || entry.text || 'Eintrag' }}</span>
               <span class="muted">{{ formatDate(entry.date) }}</span>
-            </RouterLink>
+            </button>
           </li>
         </ul>
+        <p v-else class="muted">Noch keine Einträge zu diesem Beet.</p>
       </section>
+
+      <DiaryEntryDialog
+        v-model:visible="diaryDialogVisible"
+        :initial="editingEntry"
+        :preset-bed-ids="[bedId]"
+        @save="saveDiaryEntry"
+      />
 
       <BedFormDialog v-model:visible="editVisible" :initial="bed" @save="saveEdit" @delete="removeBed" />
       <PlantingDialog v-model:visible="plantingVisible" @save="savePlanting" />
@@ -278,5 +308,15 @@ function endPlanting(plantingId: string, name: string) {
 
 .row-link:hover {
   color: var(--app-accent);
+}
+
+.row-btn {
+  width: 100%;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font: inherit;
+  cursor: pointer;
 }
 </style>
