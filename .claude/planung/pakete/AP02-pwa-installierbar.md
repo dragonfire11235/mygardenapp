@@ -35,4 +35,11 @@ vite preview (4173) + Browser-Prüfung:
 ## Selbstcheck vor Abgabe
 - [ ] Alle Abnahme-Kriterien selbst verifiziert — nicht „sollte gehen"
 - [ ] Nichts außerhalb des Auftrags geändert
-- [ ] Offene Punkte (z. B. „echtes Handy nicht testbar") ehrlich benannt
+- [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` aktualisiert
+
+## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
+- Geänderte/neue Dateien: <…>
+- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): <…>
+- Offene Punkte/Überraschungen: <ehrlich, auch Fehlschläge; z. B. „echtes Handy nicht testbar">
+
+Setze danach in `../PLAN.md` dein AP in der Status-Tabelle auf `umgesetzt`.

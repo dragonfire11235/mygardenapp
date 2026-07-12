@@ -44,4 +44,11 @@ vite preview (4173) → Einstellungen öffnen:
 ## Selbstcheck vor Abgabe
 - [ ] Alle Abnahme-Kriterien selbst verifiziert — nicht „sollte gehen"
 - [ ] Nichts außerhalb des Auftrags geändert
-- [ ] Offene Punkte ehrlich benannt
+- [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` aktualisiert
+
+## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
+- Geänderte/neue Dateien: <…>
+- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): <…>
+- Offene Punkte/Überraschungen: <ehrlich, auch Fehlschläge>
+
+Setze danach in `../PLAN.md` dein AP in der Status-Tabelle auf `umgesetzt`.

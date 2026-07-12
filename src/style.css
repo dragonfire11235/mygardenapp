@@ -107,6 +107,18 @@ h1, h2, h3 {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  min-width: 0; /* erlaubt Schrumpfen in Grid-Spalten (sonst Überbreite) */
+}
+
+/* PrimeVue-Felder füllen die volle Feldbreite, laufen nicht über */
+.form-field .p-inputtext,
+.form-field .p-inputnumber,
+.form-field .p-inputnumber-input,
+.form-field .p-select,
+.form-field .p-multiselect,
+.form-field .p-datepicker,
+.form-field .p-textarea {
+  width: 100%;
 }
 
 .form-field > label {
@@ -119,6 +131,13 @@ h1, h2, h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
+}
+
+/* Am Handy einspaltig — zwei Spalten passen nicht in die schmale Dialogbreite */
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .overdue {
@@ -135,4 +154,5 @@ h1, h2, h3 {
 
 .p-dialog .p-dialog-content {
   overflow-y: auto;
+  overflow-x: hidden; /* Sicherheitsnetz gegen horizontales Scrollen */
 }

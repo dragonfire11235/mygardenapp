@@ -36,4 +36,11 @@ cloudflared --version           → Version ODER „nicht installiert" im Berich
 ## Selbstcheck vor Abgabe
 - [ ] Alle Abnahme-Kriterien selbst verifiziert — nicht „sollte gehen"
 - [ ] Nichts außerhalb des Auftrags geändert
-- [ ] Offene Punkte und Überraschungen ehrlich im Abschlussbericht genannt
+- [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` aktualisiert
+
+## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
+- Geänderte/neue Dateien: <…>
+- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): <…>
+- Offene Punkte/Überraschungen: <ehrlich, auch Fehlschläge; z. B. „cloudflared nicht installiert">
+
+Setze danach in `../PLAN.md` dein AP in der Status-Tabelle auf `umgesetzt`.
