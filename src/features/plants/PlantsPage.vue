@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Tag from 'primevue/tag'
-import type { Plant } from '../../data'
+import type { Plant, PlantCategory } from '../../data'
 import Select from 'primevue/select'
-import { categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
+import { categoryColors, categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
 import { todayIso } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
 import { useBedsStore } from '../beds/bedsStore'
@@ -21,14 +21,17 @@ const tasksStore = useTasksStore()
 const router = useRouter()
 
 const filter = ref('')
-const sortBy = ref<'name' | 'category' | 'standort'>('name')
+const sortBy = ref<'name' | 'standort'>('name')
 const dialogVisible = ref(false)
 const trefleVisible = ref(false)
 const initialDraft = ref<PlantDraft | null>(null)
 
+// Zugeklappte Kategorien: modul-lokal, damit der Zustand beim Zurückkommen
+// von der Detailseite erhalten bleibt. Standard: alles zugeklappt.
+const collapsed = ref(new Set<PlantCategory>(Object.keys(categoryLabels) as PlantCategory[]))
+
 const sortOptions = [
   { label: 'Name', value: 'name' },
-  { label: 'Kategorie', value: 'category' },
   { label: 'Standort', value: 'standort' },
 ]
 
@@ -41,10 +44,7 @@ const filteredPlants = computed(() => {
     : [...store.plants]
 
   return list.sort((a, b) => {
-    if (sortBy.value === 'category') {
-      const cmp = categoryLabels[a.category].localeCompare(categoryLabels[b.category], 'de')
-      if (cmp !== 0) return cmp
-    } else if (sortBy.value === 'standort') {
+    if (sortBy.value === 'standort') {
       // Ohne Standort ans Ende
       const sa = a.sunlight ? sunlightLabels[a.sunlight] : 'zzz'
       const sb = b.sunlight ? sunlightLabels[b.sunlight] : 'zzz'
@@ -54,6 +54,33 @@ const filteredPlants = computed(() => {
     return a.name.localeCompare(b.name, 'de')
   })
 })
+
+// Nach Kategorie gruppiert (feste Reihenfolge), nur Kategorien mit Treffern
+const groupedPlants = computed(() => {
+  const order = Object.keys(categoryLabels) as PlantCategory[]
+  return order
+    .map((category) => ({
+      category,
+      label: categoryLabels[category],
+      color: categoryColors[category],
+      plants: filteredPlants.value.filter((p) => p.category === category),
+    }))
+    .filter((g) => g.plants.length > 0)
+})
+
+const searching = computed(() => filter.value.trim().length > 0)
+
+// Beim Suchen sind alle Treffer-Kategorien offen; sonst nach collapsed-Set
+function isOpen(category: PlantCategory): boolean {
+  return searching.value || !collapsed.value.has(category)
+}
+
+function toggle(category: PlantCategory) {
+  const next = new Set(collapsed.value)
+  if (next.has(category)) next.delete(category)
+  else next.add(category)
+  collapsed.value = next
+}
 
 function openNew() {
   initialDraft.value = null
@@ -109,28 +136,44 @@ async function save(draft: PlantDraft, bedIds: string[]) {
       </div>
     </div>
 
-    <div v-if="filteredPlants.length" class="card-grid">
-      <button v-for="plant in filteredPlants" :key="plant.id" class="card plant-card" @click="openDetail(plant)">
-        <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="plant-img" />
-        <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="plant-img" loading="lazy" />
-        <div v-else class="plant-img plant-img-empty">🌿</div>
-        <div class="plant-info">
-          <div class="plant-title">
-            <strong>{{ plant.name }}</strong>
-            <Tag :value="categoryLabels[plant.category]" severity="success" />
-          </div>
-          <span v-if="plant.botanicalName" class="muted plant-botanical">{{ plant.botanicalName }}</span>
-          <div class="plant-care muted">
-            <span v-if="plant.wateringIntervalDays">💧 alle {{ plant.wateringIntervalDays }} Tage</span>
-            <span v-if="plant.fertilizingIntervalDays">🧪 alle {{ plant.fertilizingIntervalDays }} Tage</span>
-            <span v-if="plant.sunlight">☀️ {{ sunlightLabels[plant.sunlight] }}</span>
-          </div>
-          <div v-if="plant.sowingMonths.length || plant.harvestMonths.length" class="plant-care muted">
-            <span v-if="plant.sowingMonths.length">🌱 {{ formatMonths(plant.sowingMonths) }}</span>
-            <span v-if="plant.harvestMonths.length">🧺 {{ formatMonths(plant.harvestMonths) }}</span>
-          </div>
+    <div v-if="groupedPlants.length" class="groups">
+      <section v-for="group in groupedPlants" :key="group.category" class="category-group">
+        <button
+          class="category-banner"
+          :style="{ borderLeftColor: group.color }"
+          :aria-expanded="isOpen(group.category)"
+          @click="toggle(group.category)"
+        >
+          <span class="cat-dot" :style="{ background: group.color }" />
+          <span class="cat-label">{{ group.label }}</span>
+          <span class="cat-count muted">{{ group.plants.length }}</span>
+          <i class="pi cat-chevron" :class="isOpen(group.category) ? 'pi-chevron-down' : 'pi-chevron-right'" />
+        </button>
+
+        <div v-show="isOpen(group.category)" class="card-grid category-cards">
+          <button v-for="plant in group.plants" :key="plant.id" class="card plant-card" @click="openDetail(plant)">
+            <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="plant-img" />
+            <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="plant-img" loading="lazy" />
+            <div v-else class="plant-img plant-img-empty">🌿</div>
+            <div class="plant-info">
+              <div class="plant-title">
+                <strong>{{ plant.name }}</strong>
+                <Tag :value="categoryLabels[plant.category]" severity="success" />
+              </div>
+              <span v-if="plant.botanicalName" class="muted plant-botanical">{{ plant.botanicalName }}</span>
+              <div class="plant-care muted">
+                <span v-if="plant.wateringIntervalDays">💧 alle {{ plant.wateringIntervalDays }} Tage</span>
+                <span v-if="plant.fertilizingIntervalDays">🧪 alle {{ plant.fertilizingIntervalDays }} Tage</span>
+                <span v-if="plant.sunlight">☀️ {{ sunlightLabels[plant.sunlight] }}</span>
+              </div>
+              <div v-if="plant.sowingMonths.length || plant.harvestMonths.length" class="plant-care muted">
+                <span v-if="plant.sowingMonths.length">🌱 {{ formatMonths(plant.sowingMonths) }}</span>
+                <span v-if="plant.harvestMonths.length">🧺 {{ formatMonths(plant.harvestMonths) }}</span>
+              </div>
+            </div>
+          </button>
         </div>
-      </button>
+      </section>
     </div>
 
     <div v-else class="empty-state">
@@ -181,6 +224,58 @@ async function save(draft: PlantDraft, bedIds: string[]) {
 
 .sort-field label {
   font-size: 0.8rem;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-left: 4px solid;
+  border-radius: var(--app-radius);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.category-banner:hover {
+  border-color: var(--app-accent);
+}
+
+.cat-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-label {
+  font-weight: 650;
+}
+
+.cat-count {
+  background: var(--app-bg);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.cat-chevron {
+  margin-left: auto;
+  color: var(--app-text-muted);
+}
+
+.category-cards {
+  margin-top: 0.6rem;
 }
 
 .plant-card {
