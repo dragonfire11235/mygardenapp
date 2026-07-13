@@ -13,6 +13,8 @@ import { useBedsStore } from './bedsStore'
 import BedFormDialog, { type BedDraft } from './BedFormDialog.vue'
 import BedPlanner from './BedPlanner.vue'
 import PlantingDialog from './PlantingDialog.vue'
+import { useBedBeneficials } from './useBedBeneficials'
+import { levelLabel, scoreLabel } from '../plants/beneficials'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +28,10 @@ const bed = computed(() => store.bedById.get(bedId.value) ?? null)
 
 const editVisible = ref(false)
 const plantingVisible = ref(false)
+
+// Nützlingswert des Beets (aus den enthaltenen Pflanzen)
+const { forBed } = useBedBeneficials()
+const bedBeneficials = computed(() => forBed(bedId.value))
 
 const plantings = computed(() => store.plantings.filter((p) => p.bedId === bedId.value))
 const activePlantings = computed(() => plantings.value.filter((p) => p.removedAt === null))
@@ -165,6 +171,26 @@ function endPlanting(plantingId: string, name: string) {
         </template>
       </section>
 
+      <!-- Nützlinge im Beet (aus den Pflanzen) -->
+      <section v-if="bedBeneficials" class="card">
+        <h2 class="section-title">
+          Nützlinge im Beet
+          <span class="ben-badge">{{ scoreLabel(bedBeneficials.score) }} · {{ bedBeneficials.score }}/5</span>
+        </h2>
+        <ul class="ben-list">
+          <li v-for="g in bedBeneficials.groups" :key="g.group.key">
+            <span class="ben-ico">{{ g.group.icon }}</span>
+            <span class="ben-name">{{ g.group.label }}</span>
+            <span class="muted">{{ levelLabel(g.score) }}</span>
+          </li>
+        </ul>
+        <p v-if="bedBeneficials.gaps.length" class="muted ben-note">
+          Lücke: {{ bedBeneficials.gaps.map((g) => g.icon + ' ' + g.label).join(' · ') }}
+          — hier fehlt Angebot; passende Pflanze nachsetzen.
+        </p>
+        <p class="muted ben-note">Bestes je Gruppe aus den Pflanzen im Beet · Schätzung (GloBI).</p>
+      </section>
+
       <!-- Tagebuch -->
       <section class="card">
         <div class="section-head">
@@ -204,6 +230,48 @@ function endPlanting(plantingId: string, name: string) {
 .back-btn {
   margin-bottom: 0.5rem;
   padding-left: 0;
+}
+
+.ben-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  background: #16a34a;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.ben-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ben-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ben-ico {
+  font-size: 1.1rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.ben-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.ben-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
 }
 
 .detail-head {

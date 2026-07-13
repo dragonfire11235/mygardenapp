@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
@@ -13,6 +13,9 @@ import DiaryEntryDialog from '../diary/DiaryEntryDialog.vue'
 import type { DiaryEntry } from '../../data'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
 import PlantFormDialog from './PlantFormDialog.vue'
+import { getCatalogByBotanical } from './catalogApi'
+import type { CatalogPlant } from './catalogTypes'
+import { activeGroups, levelLabel, scoreLabel } from './beneficials'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +28,17 @@ const plantId = computed(() => route.params.id as string)
 const plant = computed(() => plantsStore.byId.get(plantId.value) ?? null)
 
 const editVisible = ref(false)
+
+// Nützlinge aus dem Katalog (per botanischem Namen nachgeschlagen)
+const catalogEntry = ref<CatalogPlant | null>(null)
+watch(
+  () => plant.value?.botanicalName,
+  async (name) => {
+    catalogEntry.value = name ? await getCatalogByBotanical(name).catch(() => null) : null
+  },
+  { immediate: true },
+)
+const beneficialGroups = computed(() => activeGroups(catalogEntry.value?.beneficials))
 
 const plantings = computed(() => bedsStore.plantings.filter((p) => p.plantId === plantId.value))
 const activePlantings = computed(() => plantings.value.filter((p) => p.removedAt === null))
@@ -125,9 +139,30 @@ function removePlant() {
           <template v-if="plant.harvestMonths.length">
             <dt>Ernte</dt><dd>🧺 {{ formatMonths(plant.harvestMonths) }}</dd>
           </template>
+          <template v-if="plant.bloomMonths?.length">
+            <dt>Blüte</dt><dd>🌸 {{ formatMonths(plant.bloomMonths) }}</dd>
+          </template>
           <dt>Wuchsbreite</dt><dd>↔️ {{ plantSpreadM(plant).toLocaleString('de-DE') }} m</dd>
         </dl>
         <p v-if="plant.notes" class="notes">{{ plant.notes }}</p>
+      </section>
+
+      <!-- Nützlinge (aus dem Katalog) -->
+      <section v-if="catalogEntry?.beneficialScore" class="card">
+        <h2 class="section-title">
+          Nützlinge
+          <span class="ben-badge">{{ scoreLabel(catalogEntry.beneficialScore) }} · {{ catalogEntry.beneficialScore }}/5</span>
+        </h2>
+        <ul class="ben-list">
+          <li v-for="g in beneficialGroups" :key="g.group.key">
+            <span class="ben-ico">{{ g.group.icon }}</span>
+            <span class="ben-name">{{ g.group.label }}</span>
+            <span class="muted">{{ levelLabel(g.score) }}</span>
+          </li>
+        </ul>
+        <p class="muted ben-note">
+          Schätzung aus Interaktionsdaten (GloBI) — je nach Art unterschiedlich gut belegt.
+        </p>
       </section>
 
       <!-- In welchen Beeten -->
@@ -286,6 +321,48 @@ function removePlant() {
 .notes {
   margin: 0.75rem 0 0;
   white-space: pre-wrap;
+}
+
+.ben-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  background: #16a34a;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.ben-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ben-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ben-ico {
+  font-size: 1.1rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.ben-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.ben-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
 }
 
 .link-list {

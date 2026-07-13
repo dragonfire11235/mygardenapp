@@ -14,6 +14,7 @@ import { useTasksStore } from '../tasks/tasksStore'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
 import PlantFormDialog from './PlantFormDialog.vue'
 import TrefleSearchDialog from './TrefleSearchDialog.vue'
+import CatalogSearchDialog from './CatalogSearchDialog.vue'
 
 const store = usePlantsStore()
 const bedsStore = useBedsStore()
@@ -24,6 +25,7 @@ const filter = ref('')
 const sortBy = ref<'name' | 'standort'>('name')
 const dialogVisible = ref(false)
 const trefleVisible = ref(false)
+const catalogVisible = ref(false)
 const initialDraft = ref<PlantDraft | null>(null)
 
 // Zugeklappte Kategorien: modul-lokal, damit der Zustand beim Zurückkommen
@@ -91,7 +93,8 @@ function openDetail(plant: Plant) {
   router.push(`/pflanzen/${plant.id}`)
 }
 
-function openTrefleImport(draft: PlantDraft) {
+// Von Trefle- UND Katalog-Dialog genutzt: Entwurf ins Formular übernehmen
+function openImport(draft: PlantDraft) {
   initialDraft.value = draft
   dialogVisible.value = true
 }
@@ -117,6 +120,7 @@ async function save(draft: PlantDraft, bedIds: string[]) {
         <span class="muted">{{ store.plants.length }} in der Bibliothek</span>
       </div>
       <div class="header-actions">
+        <Button label="Katalog" icon="pi pi-book" severity="secondary" outlined @click="catalogVisible = true" />
         <Button label="Online suchen" icon="pi pi-globe" severity="secondary" outlined @click="trefleVisible = true" />
         <Button label="Neue Pflanze" icon="pi pi-plus" @click="openNew" />
       </div>
@@ -192,7 +196,8 @@ async function save(draft: PlantDraft, bedIds: string[]) {
       show-bed-assign
       @save="save"
     />
-    <TrefleSearchDialog v-model:visible="trefleVisible" @import="openTrefleImport" />
+    <TrefleSearchDialog v-model:visible="trefleVisible" @import="openImport" />
+    <CatalogSearchDialog v-model:visible="catalogVisible" @import="openImport" />
   </div>
 </template>
 

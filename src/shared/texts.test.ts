@@ -15,6 +15,7 @@ function makePlant(overrides: Partial<Plant> = {}): Plant {
     spreadM: null,
     sowingMonths: [],
     harvestMonths: [],
+    bloomMonths: [],
     sunlight: null,
     notes: '',
     trefleId: null,

@@ -11,10 +11,12 @@ import InputText from 'primevue/inputtext'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import type { Bed, Plant, PlantCategory, Planting } from '../../data'
-import { categoryColors, categoryLabels, plantSpreadM } from '../../shared/texts'
+import { categoryColors, categoryLabels, formatMonths, monthNamesShort, plantSpreadM } from '../../shared/texts'
 import { todayIso } from '../../shared/dates'
 import { shareOrDownload } from '../../shared/shareFile'
 import { renderPlannerImage } from './plannerImage'
+import { bloomsInRange } from '../plants/bloomCalendar'
+import BedBeneficialBadge from './BedBeneficialBadge.vue'
 import { usePlantsStore } from '../plants/plantsStore'
 import { useTasksStore } from '../tasks/tasksStore'
 import { useBedsStore } from './bedsStore'
@@ -112,6 +114,53 @@ const unplaced = computed(() =>
 
 const selectedId = ref<string | null>(null)
 const selected = computed(() => placed.value.find((x) => x.planting.id === selectedId.value) ?? null)
+
+// ---- Blüh-Timeline (hebt Pflanzen hervor, die im gewählten Zeitraum blühen) ----
+const months = monthNamesShort.map((label, i) => ({ label, value: i + 1 }))
+const bloomFrom = ref<number | null>(new Date().getMonth() + 1) // Default: aktueller Monat
+const bloomTo = ref<number | null>(new Date().getMonth() + 1)
+// pending = erster Monat gewählt, wartet auf zweiten Klick fürs Bereichsende
+const pending = ref(false)
+
+const rangeActive = computed(() => bloomFrom.value !== null && bloomTo.value !== null)
+const rangeLo = computed(() => Math.min(bloomFrom.value ?? 1, bloomTo.value ?? 1))
+const rangeHi = computed(() => Math.max(bloomFrom.value ?? 1, bloomTo.value ?? 1))
+
+const rangeLabel = computed(() => {
+  if (!rangeActive.value) return ''
+  const list = []
+  for (let m = rangeLo.value; m <= rangeHi.value; m++) list.push(m)
+  return formatMonths(list)
+})
+
+function clickMonth(m: number) {
+  if (!rangeActive.value || !pending.value) {
+    // Neuer Bereich: erster Monat
+    bloomFrom.value = m
+    bloomTo.value = m
+    pending.value = true
+  } else {
+    // Zweiter Klick: Bereichsende
+    bloomTo.value = m
+    pending.value = false
+  }
+}
+
+function clearRange() {
+  bloomFrom.value = null
+  bloomTo.value = null
+  pending.value = false
+}
+
+function isMonthActive(m: number): boolean {
+  return rangeActive.value && m >= rangeLo.value && m <= rangeHi.value
+}
+
+/** Blüh-Zustand einer Pflanze im gewählten Zeitraum → CSS-Klasse. */
+function bloomClass(plant: Plant): string {
+  if (!rangeActive.value) return ''
+  return bloomsInRange(plant.bloomMonths, rangeLo.value, rangeHi.value) ? 'circle-blooming' : 'circle-dimmed'
+}
 
 // ---- Geometrie-Helfer ----
 function snap(v: number): number {
@@ -311,6 +360,29 @@ function removeSelected() {
     </div>
 
     <template v-else>
+      <BedBeneficialBadge :bed-id="bed.id" class="planner-ben" />
+
+      <!-- Blüh-Timeline: Zeitraum antippen → blühende Pflanzen heben sich hervor -->
+      <div class="timeline">
+        <div class="timeline-head">
+          <span class="muted timeline-hint">
+            🌸 Blüte im Zeitraum
+            <template v-if="rangeActive"> · <strong>{{ rangeLabel }}</strong></template>
+            <template v-else> · alle sichtbar</template>
+          </span>
+          <button v-if="rangeActive" class="timeline-clear" @click="clearRange">Alle zeigen</button>
+        </div>
+        <div class="timeline-months">
+          <button
+            v-for="m in months"
+            :key="m.value"
+            class="month"
+            :class="{ active: isMonthActive(m.value) }"
+            @click="clickMonth(m.value)"
+          >{{ m.label }}</button>
+        </div>
+      </div>
+
       <!-- Palette: Kategorie antippen → Pflanze wählen → mittig eingesetzt -->
       <div class="palette">
         <span class="muted palette-hint">Kategorie antippen → Pflanze wählen → Kreis zurechtziehen:</span>
@@ -344,7 +416,7 @@ function removeSelected() {
             v-for="item in placed"
             :key="item.planting.id"
             class="circle"
-            :class="{ 'circle-selected': item.planting.id === selectedId }"
+            :class="[{ 'circle-selected': item.planting.id === selectedId }, bloomClass(item.plant)]"
             :style="circleStyle(item.plant, circlePos(item).x, circlePos(item).y)"
             :title="item.plant.name"
             @pointerdown.prevent="onCircleDown(item, $event)"
@@ -445,6 +517,66 @@ function removeSelected() {
   flex-wrap: wrap;
 }
 
+.planner-ben {
+  margin-bottom: 0.6rem;
+}
+
+.timeline {
+  margin-bottom: 0.75rem;
+}
+
+.timeline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.timeline-hint {
+  font-size: 0.85rem;
+}
+
+.timeline-clear {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--app-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.timeline-months {
+  display: flex;
+  gap: 3px;
+}
+
+.month {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  border-radius: 6px;
+  padding: 0.3rem 0;
+  font: inherit;
+  font-size: 0.7rem;
+  color: var(--app-text-muted);
+  cursor: pointer;
+}
+
+.month:hover {
+  border-color: var(--app-accent);
+}
+
+.month.active {
+  background: #f472b6;
+  border-color: #f472b6;
+  color: #fff;
+  font-weight: 600;
+}
+
 .palette {
   margin-bottom: 0.75rem;
 }
@@ -516,6 +648,19 @@ function removeSelected() {
 
 .circle-selected {
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.5);
+}
+
+/* Blüh-Timeline: blühende Pflanzen leuchten, andere treten zurück */
+.circle {
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+
+.circle-dimmed {
+  opacity: 0.22;
+}
+
+.circle-blooming {
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.55), 0 0 12px rgba(244, 114, 182, 0.6);
 }
 
 .circle-label {

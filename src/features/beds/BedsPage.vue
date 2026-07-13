@@ -9,6 +9,7 @@ import { usePlantsStore } from '../plants/plantsStore'
 import { useBedsStore } from './bedsStore'
 import BedFormDialog, { type BedDraft } from './BedFormDialog.vue'
 import BedMapView from './BedMapView.vue'
+import BedBeneficialBadge from './BedBeneficialBadge.vue'
 
 const store = useBedsStore()
 const plantsStore = usePlantsStore()
@@ -87,6 +88,7 @@ async function saveBed(draft: BedDraft) {
               ? '🌿 ' + plantNames(bed.id)
               : 'Noch nichts eingepflanzt.' }}
           </div>
+          <BedBeneficialBadge :bed-id="bed.id" class="bed-ben" />
         </div>
       </button>
     </div>
@@ -140,5 +142,9 @@ async function saveBed(draft: BedDraft) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.bed-ben {
+  margin-top: 0.4rem;
 }
 </style>

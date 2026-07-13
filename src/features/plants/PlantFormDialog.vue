@@ -38,7 +38,9 @@ const assignBedIds = ref<string[]>([])
 
 watch(visible, (open) => {
   if (open) {
-    draft.value = props.initial ? { ...props.initial } : emptyPlantDraft()
+    // emptyPlantDraft als Basis: sichert Defaults für Felder, die ältere
+    // Datensätze noch nicht haben (z. B. bloomMonths).
+    draft.value = props.initial ? { ...emptyPlantDraft(), ...props.initial } : emptyPlantDraft()
     assignBedIds.value = []
   }
 })
@@ -173,6 +175,18 @@ function save() {
             placeholder="wählen"
           />
         </div>
+      </div>
+
+      <div class="form-field">
+        <label for="plant-bloom">Blüte-Monate</label>
+        <MultiSelect
+          id="plant-bloom"
+          v-model="draft.bloomMonths"
+          :options="monthOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="wählen"
+        />
       </div>
 
       <div v-if="showBedAssign && !editing && bedOptions.length" class="form-field">
