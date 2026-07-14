@@ -9,7 +9,15 @@ const store = usePlantsStore()
 const router = useRouter()
 const currentMonth = new Date().getMonth() + 1
 
+const MAX_ROWS = 7
 const rows = computed(() => bloomRows(store.plants))
+// Aktuell blühende zuerst, damit das Wesentliche im gedeckelten Widget sichtbar ist
+const sortedRows = computed(() =>
+  [...rows.value].sort(
+    (a, b) => Number(b.months[currentMonth - 1]) - Number(a.months[currentMonth - 1]) || a.firstMonth - b.firstMonth,
+  ),
+)
+const visibleRows = computed(() => sortedRows.value.slice(0, MAX_ROWS))
 const gaps = computed(() => bloomGaps(store.plants))
 const bloomingNow = computed(() => rows.value.filter((r) => r.months[currentMonth - 1]))
 
@@ -37,9 +45,9 @@ const monthInitials = monthNamesShort.map((m) => m[0])
         >{{ ini }}</span>
       </div>
 
-      <!-- Eine Zeile je blühender Pflanze -->
+      <!-- Eine Zeile je blühender Pflanze (gedeckelt) -->
       <RouterLink
-        v-for="row in rows"
+        v-for="row in visibleRows"
         :key="row.plant.id"
         class="row"
         role="row"
@@ -55,6 +63,10 @@ const monthInitials = monthNamesShort.map((m) => m[0])
         />
       </RouterLink>
     </div>
+
+    <RouterLink to="/kalender" class="more">
+      <template v-if="rows.length > MAX_ROWS">+ {{ rows.length - MAX_ROWS }} weitere · </template>Ganzer Kalender →
+    </RouterLink>
 
     <p v-if="gaps.length" class="gaps muted">
       🕳️ Blühlücke: {{ formatMonths(gaps) }} — hier fehlt Nahrung für Insekten.
@@ -141,6 +153,17 @@ const monthInitials = monthNamesShort.map((m) => m[0])
 .gaps {
   margin: 0;
   font-size: 0.8rem;
+}
+
+.more {
+  font-size: 0.82rem;
+  color: var(--app-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.more:hover {
+  text-decoration: underline;
 }
 
 .link-btn {

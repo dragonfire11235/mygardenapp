@@ -9,7 +9,14 @@ const store = usePlantsStore()
 const router = useRouter()
 const currentMonth = new Date().getMonth() + 1
 
+const MAX_ROWS = 7
 const rows = computed(() => monthRows(store.plants, (p) => p.pruningMonths))
+const sortedRows = computed(() =>
+  [...rows.value].sort(
+    (a, b) => Number(b.months[currentMonth - 1]) - Number(a.months[currentMonth - 1]) || a.firstMonth - b.firstMonth,
+  ),
+)
+const visibleRows = computed(() => sortedRows.value.slice(0, MAX_ROWS))
 const pruneNow = computed(() => rows.value.filter((r) => r.months[currentMonth - 1]))
 
 const monthInitials = monthNamesShort.map((m) => m[0])
@@ -35,7 +42,7 @@ const monthInitials = monthNamesShort.map((m) => m[0])
       </div>
 
       <RouterLink
-        v-for="row in rows"
+        v-for="row in visibleRows"
         :key="row.plant.id"
         class="row"
         role="row"
@@ -51,6 +58,10 @@ const monthInitials = monthNamesShort.map((m) => m[0])
         />
       </RouterLink>
     </div>
+
+    <RouterLink to="/kalender" class="more">
+      <template v-if="rows.length > MAX_ROWS">+ {{ rows.length - MAX_ROWS }} weitere · </template>Ganzer Kalender →
+    </RouterLink>
   </div>
 
   <p v-else class="muted">
@@ -123,6 +134,17 @@ const monthInitials = monthNamesShort.map((m) => m[0])
 .head-cell.now {
   color: var(--app-accent);
   font-weight: 700;
+}
+
+.more {
+  font-size: 0.82rem;
+  color: var(--app-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.more:hover {
+  text-decoration: underline;
 }
 
 .link-btn {

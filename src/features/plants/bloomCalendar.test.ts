@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEntity, type Plant } from '../../data'
-import { bloomCountByMonth, bloomGaps, bloomRows, bloomsInRange, monthRows } from './bloomCalendar'
+import { bloomCountByMonth, bloomGaps, bloomRows, bloomsInRange, monthRows, monthsCovered } from './bloomCalendar'
 
 function makePlant(name: string, bloomMonths: number[], pruningMonths: number[] = []): Plant {
   return createEntity<Plant>({
@@ -85,6 +85,17 @@ describe('bloomsInRange', () => {
   it('false ohne Blütemonate', () => {
     expect(bloomsInRange([], 1, 12)).toBe(false)
     expect(bloomsInRange(undefined, 1, 12)).toBe(false)
+  })
+})
+
+describe('monthsCovered', () => {
+  it('12 Bools, true wo mindestens eine Pflanze aktiv ist', () => {
+    const cov = monthsCovered([makePlant('A', [3, 4]), makePlant('B', [4, 10])], (p) => p.bloomMonths)
+    expect(cov.length).toBe(12)
+    expect(cov[2]).toBe(true) // März (A)
+    expect(cov[3]).toBe(true) // April (A+B)
+    expect(cov[9]).toBe(true) // Oktober (B)
+    expect(cov[0]).toBe(false) // Januar
   })
 })
 

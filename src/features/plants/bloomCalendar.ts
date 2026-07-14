@@ -35,6 +35,11 @@ export function monthCountByMonth(plants: Plant[], get: MonthSelector): number[]
   return counts
 }
 
+/** 12 Bool-Werte (Index 0 = Januar): true, wo ≥1 Pflanze aktiv ist (Übersichtsleiste). */
+export function monthsCovered(plants: Plant[], get: MonthSelector): boolean[] {
+  return monthCountByMonth(plants, get).map((n) => n > 0)
+}
+
 /** Monate (1–12) ohne einzige Pflanze — Lücken. */
 export function monthGaps(plants: Plant[], get: MonthSelector): number[] {
   const counts = monthCountByMonth(plants, get)
