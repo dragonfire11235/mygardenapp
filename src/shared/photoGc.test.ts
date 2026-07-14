@@ -60,19 +60,21 @@ describe('deleteOrphanPhotos', () => {
     expect(await provider.photos.getById(orphan.id)).toBeUndefined()
   })
 
-  it('zählt Tagebuch-Fotos und Settings-Bilder als Referenzen', async () => {
+  it('zählt Tagebuch-Fotos und Settings-Bilder (inkl. Kartenbild) als Referenzen', async () => {
     const diaryPhoto = makePhoto()
     const headerPhoto = makePhoto()
     const backgroundPhoto = makePhoto()
-    await provider.photos.bulkPut([diaryPhoto, headerPhoto, backgroundPhoto])
+    const mapPhoto = makePhoto()
+    await provider.photos.bulkPut([diaryPhoto, headerPhoto, backgroundPhoto, mapPhoto])
     await provider.diary.put(makeDiaryEntry([diaryPhoto.id]))
     await provider.setSetting('dashboardHeaderPhotoId', headerPhoto.id)
     await provider.setSetting('dashboardBackgroundPhotoId', backgroundPhoto.id)
+    await provider.setSetting('gardenMapPhotoId', mapPhoto.id)
 
     const deleted = await deleteOrphanPhotos(provider)
 
     expect(deleted).toBe(0)
-    expect(await provider.photos.getAll()).toHaveLength(3)
+    expect(await provider.photos.getAll()).toHaveLength(4)
   })
 
   it('behält Fotos soft-gelöschter Entitäten (für Sync/Restore)', async () => {
