@@ -18,6 +18,7 @@ export function emptyPlantDraft(): PlantDraft {
     sowingMonths: [],
     harvestMonths: [],
     bloomMonths: [],
+    pruningMonths: [],
     sunlight: null,
     notes: '',
     trefleId: null,

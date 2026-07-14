@@ -39,6 +39,8 @@ export interface Plant extends BaseEntity {
   harvestMonths: number[]
   /** Blütemonate 1–12 (für den Blühkalender) */
   bloomMonths: number[]
+  /** Schnittmonate 1–12 (für den Schnittkalender) */
+  pruningMonths: number[]
   sunlight: Sunlight | null
   notes: string
   trefleId: number | null

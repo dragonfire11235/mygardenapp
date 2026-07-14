@@ -16,6 +16,7 @@ function makePlant(name: string): Plant {
     sowingMonths: [3, 4],
     harvestMonths: [8],
     bloomMonths: [],
+    pruningMonths: [],
     sunlight: 'sonne',
     notes: '',
     trefleId: null,

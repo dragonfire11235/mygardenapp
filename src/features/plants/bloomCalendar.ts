@@ -1,36 +1,59 @@
-// Reine Hilfsfunktionen für den Blühkalender (testbar, framework-frei).
+// Reine Hilfsfunktionen für Monatskalender (Blüte/Schnitt), testbar & framework-frei.
 import type { Plant } from '../../data'
 
-export interface BloomRow {
+/** Wählt das relevante Monatsfeld einer Pflanze (z. B. bloomMonths, pruningMonths). */
+export type MonthSelector = (plant: Plant) => number[] | undefined
+
+export interface MonthRow {
   plant: Plant
-  /** 12 Bool-Werte (Index 0 = Januar) — true = blüht in diesem Monat. */
+  /** 12 Bool-Werte (Index 0 = Januar) — true = Monat aktiv. */
   months: boolean[]
-  /** Erster Blütemonat (1–12) für die Sortierung. */
+  /** Erster aktiver Monat (1–12) für die Sortierung. */
   firstMonth: number
 }
+/** @deprecated Alias für MonthRow. */
+export type BloomRow = MonthRow
 
-/** Pflanzen mit hinterlegten Blütemonaten, als Kalenderzeilen (nach Blühbeginn, dann Name). */
-export function bloomRows(plants: Plant[]): BloomRow[] {
-  const rows: BloomRow[] = []
+/** Pflanzen mit hinterlegten Monaten, als Kalenderzeilen (nach erstem Monat, dann Name). */
+export function monthRows(plants: Plant[], get: MonthSelector): MonthRow[] {
+  const rows: MonthRow[] = []
   for (const plant of plants) {
-    const set = new Set(plant.bloomMonths ?? [])
+    const set = new Set(get(plant) ?? [])
     if (set.size === 0) continue
     const months = Array.from({ length: 12 }, (_, i) => set.has(i + 1))
-    const firstMonth = Math.min(...set)
-    rows.push({ plant, months, firstMonth })
+    rows.push({ plant, months, firstMonth: Math.min(...set) })
   }
   return rows.sort((a, b) => a.firstMonth - b.firstMonth || a.plant.name.localeCompare(b.plant.name, 'de'))
 }
 
-/** Anzahl blühender Pflanzen je Monat (Index 0 = Januar). */
-export function bloomCountByMonth(plants: Plant[]): number[] {
+/** Anzahl Pflanzen je Monat (Index 0 = Januar). */
+export function monthCountByMonth(plants: Plant[], get: MonthSelector): number[] {
   const counts = new Array(12).fill(0)
   for (const plant of plants) {
-    for (const m of plant.bloomMonths ?? []) {
-      if (m >= 1 && m <= 12) counts[m - 1]++
-    }
+    for (const m of get(plant) ?? []) if (m >= 1 && m <= 12) counts[m - 1]++
   }
   return counts
+}
+
+/** Monate (1–12) ohne einzige Pflanze — Lücken. */
+export function monthGaps(plants: Plant[], get: MonthSelector): number[] {
+  const counts = monthCountByMonth(plants, get)
+  const gaps: number[] = []
+  for (let i = 0; i < 12; i++) if (counts[i] === 0) gaps.push(i + 1)
+  return gaps
+}
+
+// --- Blüte-spezifische Wrapper (Rückwärtskompatibilität) ---
+const bloomSel: MonthSelector = (p) => p.bloomMonths
+
+/** Pflanzen mit hinterlegten Blütemonaten, als Kalenderzeilen. */
+export function bloomRows(plants: Plant[]): MonthRow[] {
+  return monthRows(plants, bloomSel)
+}
+
+/** Anzahl blühender Pflanzen je Monat. */
+export function bloomCountByMonth(plants: Plant[]): number[] {
+  return monthCountByMonth(plants, bloomSel)
 }
 
 /**
@@ -46,8 +69,5 @@ export function bloomsInRange(bloomMonths: number[] | undefined, from: number, t
 
 /** Monate (1–12) ohne einzige Blüte — Blühlücken für die Bepflanzungsplanung. */
 export function bloomGaps(plants: Plant[]): number[] {
-  const counts = bloomCountByMonth(plants)
-  const gaps: number[] = []
-  for (let i = 0; i < 12; i++) if (counts[i] === 0) gaps.push(i + 1)
-  return gaps
+  return monthGaps(plants, bloomSel)
 }

@@ -177,16 +177,29 @@ function save() {
         </div>
       </div>
 
-      <div class="form-field">
-        <label for="plant-bloom">Blüte-Monate</label>
-        <MultiSelect
-          id="plant-bloom"
-          v-model="draft.bloomMonths"
-          :options="monthOptions"
-          option-label="label"
-          option-value="value"
-          placeholder="wählen"
-        />
+      <div class="form-row">
+        <div class="form-field">
+          <label for="plant-bloom">Blüte-Monate</label>
+          <MultiSelect
+            id="plant-bloom"
+            v-model="draft.bloomMonths"
+            :options="monthOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="wählen"
+          />
+        </div>
+        <div class="form-field">
+          <label for="plant-pruning">Schnitt-Monate</label>
+          <MultiSelect
+            id="plant-pruning"
+            v-model="draft.pruningMonths"
+            :options="monthOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="wählen"
+          />
+        </div>
       </div>
 
       <div v-if="showBedAssign && !editing && bedOptions.length" class="form-field">

@@ -118,6 +118,7 @@ export function catalogPlantToDraft(entry: CatalogPlant): PlantDraft {
     sowingMonths: entry.sowingMonths ?? [],
     harvestMonths: entry.harvestMonths ?? [],
     bloomMonths: entry.bloomMonths ?? [],
+    pruningMonths: entry.pruningMonths ?? [],
     notes: familyNote,
   }
 }

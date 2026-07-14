@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createEntity, type Plant } from '../../data'
-import { bloomCountByMonth, bloomGaps, bloomRows, bloomsInRange } from './bloomCalendar'
+import { bloomCountByMonth, bloomGaps, bloomRows, bloomsInRange, monthRows } from './bloomCalendar'
 
-function makePlant(name: string, bloomMonths: number[]): Plant {
+function makePlant(name: string, bloomMonths: number[], pruningMonths: number[] = []): Plant {
   return createEntity<Plant>({
     name,
     botanicalName: '',
@@ -16,6 +16,7 @@ function makePlant(name: string, bloomMonths: number[]): Plant {
     sowingMonths: [],
     harvestMonths: [],
     bloomMonths,
+    pruningMonths,
     sunlight: null,
     notes: '',
     trefleId: null,
@@ -84,5 +85,18 @@ describe('bloomsInRange', () => {
   it('false ohne Blütemonate', () => {
     expect(bloomsInRange([], 1, 12)).toBe(false)
     expect(bloomsInRange(undefined, 1, 12)).toBe(false)
+  })
+})
+
+describe('monthRows (generisch, z. B. Schnittmonate)', () => {
+  it('nutzt das gewählte Monatsfeld (pruningMonths)', () => {
+    const rows = monthRows(
+      [makePlant('Apfel', [], [1, 2]), makePlant('Rose', [6], [])],
+      (p) => p.pruningMonths,
+    )
+    expect(rows.map((r) => r.plant.name)).toEqual(['Apfel']) // nur mit Schnittmonaten
+    expect(rows[0].months[0]).toBe(true) // Januar
+    expect(rows[0].months[1]).toBe(true) // Februar
+    expect(rows[0].months[5]).toBe(false)
   })
 })

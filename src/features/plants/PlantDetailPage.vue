@@ -150,6 +150,9 @@ function removePlant() {
           <template v-if="plant.bloomMonths?.length">
             <dt>Blüte</dt><dd>🌸 {{ formatMonths(plant.bloomMonths) }}</dd>
           </template>
+          <template v-if="plant.pruningMonths?.length">
+            <dt>Schnitt</dt><dd>✂️ {{ formatMonths(plant.pruningMonths) }}</dd>
+          </template>
           <dt>Wuchsbreite</dt><dd>↔️ {{ plantSpreadM(plant).toLocaleString('de-DE') }} m</dd>
         </dl>
         <p v-if="plant.notes" class="notes">{{ plant.notes }}</p>
