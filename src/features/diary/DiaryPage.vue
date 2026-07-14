@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import { useConfirm } from 'primevue/useconfirm'
@@ -18,6 +19,7 @@ const plantsStore = usePlantsStore()
 const bedsStore = useBedsStore()
 const confirm = useConfirm()
 const toast = useToast()
+const router = useRouter()
 
 // Aktuell nur Web-Share (Teilen-Menü des Geräts); Backend-Publisher docken
 // später in socialShare.ts an.
@@ -47,9 +49,8 @@ function openNew() {
   dialogVisible.value = true
 }
 
-function openEdit(entry: DiaryEntry) {
-  editingEntry.value = entry
-  dialogVisible.value = true
+function openDetail(entry: DiaryEntry) {
+  router.push(`/tagebuch/${entry.id}`)
 }
 
 async function save(draft: DiaryDraft) {
@@ -92,7 +93,7 @@ function tagNames(entry: DiaryEntry): string[] {
     </div>
 
     <div v-if="store.sortedEntries.length" class="timeline">
-      <article v-for="entry in store.sortedEntries" :key="entry.id" class="card entry" @click="openEdit(entry)">
+      <article v-for="entry in store.sortedEntries" :key="entry.id" class="card entry" @click="openDetail(entry)">
         <header class="entry-header">
           <strong>{{ entry.title || formatDate(entry.date) }}</strong>
           <span class="entry-header-right">

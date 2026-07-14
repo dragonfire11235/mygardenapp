@@ -11,6 +11,7 @@ export const router = createRouter({
     { path: '/beete/:id', name: 'bed-detail', component: () => import('./features/beds/BedDetailPage.vue'), meta: { title: 'Beet' } },
     { path: '/aufgaben', name: 'tasks', component: () => import('./features/tasks/TasksPage.vue'), meta: { title: 'Aufgaben' } },
     { path: '/tagebuch', name: 'diary', component: () => import('./features/diary/DiaryPage.vue'), meta: { title: 'Tagebuch' } },
+    { path: '/tagebuch/:id', name: 'diary-detail', component: () => import('./features/diary/DiaryDetailPage.vue'), meta: { title: 'Eintrag' } },
     { path: '/geraete', name: 'devices', component: () => import('./features/devices/DevicesPage.vue'), meta: { title: 'Geräte' } },
     { path: '/einstellungen', name: 'settings', component: () => import('./features/settings/SettingsPage.vue'), meta: { title: 'Einstellungen' } },
   ],

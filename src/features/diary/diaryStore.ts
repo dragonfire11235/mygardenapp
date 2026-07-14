@@ -13,6 +13,8 @@ export const useDiaryStore = defineStore('diary', () => {
     [...entries.value].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)),
   )
 
+  const byId = computed(() => new Map(entries.value.map((e) => [e.id, e])))
+
   async function load() {
     entries.value = await storage.diary.getAll()
     loaded.value = true
@@ -35,5 +37,5 @@ export const useDiaryStore = defineStore('diary', () => {
     await load()
   }
 
-  return { entries, sortedEntries, loaded, load, create, update, remove }
+  return { entries, sortedEntries, byId, loaded, load, create, update, remove }
 })

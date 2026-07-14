@@ -22,7 +22,7 @@ Mitgelieferter, durchsuchbarer Katalog (`public/catalog/garten-de.json`, 657 Pfl
 |---|---|---|
 | 1 | Katalog-Schema (`catalogTypes.ts`), Ingest + Pflege-/Kategorie-Overlay (170 mit Pflege) + Wikidata-Bilder (553), Suchdialog (`CatalogSearchDialog.vue`) + Tests | ✅ erledigt |
 | 2 | Nützlinge & Score ✅ via GloBI (`enrich-beneficials-globi.mjs`, 544/650 mit Daten) — Teil-Scores 0–3 + Gesamt-Score 0–5; Anzeige im Katalog-Dialog + Nützlinge-Sektion auf `PlantDetailPage` | erledigt |
-| 3 | Blühkalender ✅ (`Plant.bloomMonths` + Formularfeld + Katalog-Mapping + `BloomCalendarWidget` mit Blühlücken-Erkennung). Schnittkalender (`pruningMonths`-Ansicht) noch offen | teilweise |
+| 3 | Blühkalender ✅ + **Schnittkalender ✅** (`Plant.bloomMonths`/`pruningMonths` + Formularfelder + Katalog-Mapping + `BloomCalendarWidget`/`PruningCalendarWidget`; Helfer `monthRows`/`monthGaps` generalisiert) | erledigt |
 | 4 | Mischkultur + Assistent/Empfehlungen (`companionsGood/Bad`) | offen |
 
 **Zusätzlich erledigt (13.07.):** Blüh-Timeline im Beetplaner (Monats-Range hebt blühende Kreise hervor) · Beet-Nützlings-Score (aus den enthaltenen Pflanzen aggregiert: bestes je Gruppe + Lücken; angezeigt auf Beet-Detailseite, Beete-Karten und im Beetplaner via `useBedBeneficials`/`BedBeneficialBadge`).

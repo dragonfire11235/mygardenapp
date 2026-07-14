@@ -7,7 +7,7 @@ const store = useDiaryStore()
 
 <template>
   <div v-if="store.sortedEntries.length" class="widget-list">
-    <RouterLink v-for="entry in store.sortedEntries.slice(0, 4)" :key="entry.id" to="/tagebuch" class="widget-row">
+    <RouterLink v-for="entry in store.sortedEntries.slice(0, 4)" :key="entry.id" :to="`/tagebuch/${entry.id}`" class="widget-row">
       <span class="widget-row-text">{{ entry.title || entry.text || 'Foto-Eintrag' }}</span>
       <span class="muted">{{ formatDate(entry.date) }}</span>
     </RouterLink>

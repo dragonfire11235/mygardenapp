@@ -223,7 +223,7 @@ function removePlant() {
         </div>
         <ul v-if="diaryEntries.length" class="link-list">
           <li v-for="entry in diaryEntries" :key="entry.id">
-            <button class="row-link row-btn" @click="openDiaryEntry(entry)">
+            <button class="row-link row-btn" @click="router.push(`/tagebuch/${entry.id}`)">
               <span>📖 {{ entry.title || entry.text || 'Eintrag' }}</span>
               <span class="muted">{{ formatDate(entry.date) }}</span>
             </button>
