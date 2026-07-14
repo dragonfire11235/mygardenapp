@@ -140,6 +140,25 @@ h1, h2, h3 {
   }
 }
 
+/* iOS-Safari zoomt beim Fokussieren einer Eingabe mit Schriftgröße < 16px
+   automatisch hinein und springt nicht zurück (body ist 15px). Deshalb am
+   Handy alle Formularfelder inkl. PrimeVue-Trigger/Overlays auf 16px anheben —
+   verhindert das Auto-Zoom, ohne Pinch-Zoom zu deaktivieren. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  .p-inputtext,
+  .p-inputnumber-input,
+  .p-multiselect,
+  .p-multiselect-label,
+  .p-select,
+  .p-select-label,
+  .p-datepicker-input {
+    font-size: 16px;
+  }
+}
+
 .overdue {
   color: var(--app-danger);
   font-weight: 600;
