@@ -13,9 +13,10 @@ import DiaryEntryDialog from '../diary/DiaryEntryDialog.vue'
 import type { DiaryEntry } from '../../data'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
 import PlantFormDialog from './PlantFormDialog.vue'
-import { getCatalogByBotanical } from './catalogApi'
+import { getCatalogByBotanical, getCatalogMapByBotanical } from './catalogApi'
 import type { CatalogPlant } from './catalogTypes'
 import { activeGroups, levelLabel, scoreLabel } from './beneficials'
+import { resolveCompanions } from './companions'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,6 +40,13 @@ watch(
   { immediate: true },
 )
 const beneficialGroups = computed(() => activeGroups(catalogEntry.value?.beneficials))
+
+// Mischkultur (gute/schlechte Nachbarn) — Referenznamen aus dem Katalog auflösen
+const catalogMap = ref<Map<string, CatalogPlant> | null>(null)
+getCatalogMapByBotanical().then((m) => { catalogMap.value = m }).catch(() => {})
+const companions = computed(() =>
+  catalogMap.value ? resolveCompanions(catalogEntry.value ?? undefined, catalogMap.value) : { good: [], bad: [] },
+)
 
 const plantings = computed(() => bedsStore.plantings.filter((p) => p.plantId === plantId.value))
 const activePlantings = computed(() => plantings.value.filter((p) => p.removedAt === null))
@@ -163,6 +171,19 @@ function removePlant() {
         <p class="muted ben-note">
           Schätzung aus Interaktionsdaten (GloBI) — je nach Art unterschiedlich gut belegt.
         </p>
+      </section>
+
+      <!-- Mischkultur (aus dem Katalog) -->
+      <section v-if="companions.good.length || companions.bad.length" class="card">
+        <h2 class="section-title">Mischkultur</h2>
+        <div v-if="companions.good.length" class="comp-row">
+          <span class="comp-tag comp-good">✓ Gute Nachbarn</span>
+          <span>{{ companions.good.map((c) => c.name).join(', ') }}</span>
+        </div>
+        <div v-if="companions.bad.length" class="comp-row">
+          <span class="comp-tag comp-bad">✗ Lieber nicht neben</span>
+          <span>{{ companions.bad.map((c) => c.name).join(', ') }}</span>
+        </div>
       </section>
 
       <!-- In welchen Beeten -->
@@ -363,6 +384,32 @@ function removePlant() {
 .ben-note {
   margin: 0.6rem 0 0;
   font-size: 0.78rem;
+}
+
+.comp-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.comp-tag {
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  white-space: nowrap;
+}
+
+.comp-good {
+  background: rgba(22, 163, 74, 0.15);
+  color: #16a34a;
+}
+
+.comp-bad {
+  background: rgba(220, 38, 38, 0.15);
+  color: #dc2626;
 }
 
 .link-list {

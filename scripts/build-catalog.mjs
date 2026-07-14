@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { readSourceList, normalize, OUT_JSON, IMAGE_CACHE } from './lib.mjs'
 import { careOverlay, genusCategory } from './care-overlay.mjs'
+import { companionsOverlay } from './companions-overlay.mjs'
 
 const BENEFICIALS_CACHE = 'scripts/.cache/globi-beneficials.json'
 
@@ -51,7 +52,7 @@ function build() {
   const beneficials = loadCacheFile(BENEFICIALS_CACHE)
   const errors = []
   const catCount = {}
-  let withCare = 0, withLink = 0, withImage = 0, withBeneficials = 0
+  let withCare = 0, withLink = 0, withImage = 0, withBeneficials = 0, withCompanions = 0
 
   const entries = base.map((rec) => {
     const entry = { ...rec }
@@ -81,6 +82,15 @@ function build() {
       withBeneficials++
     }
 
+    const comp = companionsOverlay[rec.botanicalName]
+    if (comp) {
+      const good = comp.good.filter((n) => n !== rec.botanicalName)
+      const bad = comp.bad.filter((n) => n !== rec.botanicalName)
+      if (good.length) entry.companionsGood = good
+      if (bad.length) entry.companionsBad = bad
+      if (good.length || bad.length) { sources.companions = 'kuratiert'; withCompanions++ }
+    }
+
     if (Object.keys(sources).length) entry.sources = sources
     catCount[entry.category] = (catCount[entry.category] ?? 0) + 1
     validateEntry(entry, errors)
@@ -104,6 +114,7 @@ function build() {
   console.log(`   mit Info-Link: ${withLink}`)
   console.log(`   mit Bild:      ${withImage}`)
   console.log(`   mit Nützlingen:${withBeneficials}`)
+  console.log(`   mit Mischkultur:${withCompanions}`)
   console.log(`   Größe:         ${(json.length / 1024).toFixed(1)} KB`)
   console.log(`   Kategorien:    ${JSON.stringify(catCount)}`)
 }

@@ -14,6 +14,7 @@ import BedFormDialog, { type BedDraft } from './BedFormDialog.vue'
 import BedPlanner from './BedPlanner.vue'
 import PlantingDialog from './PlantingDialog.vue'
 import { useBedBeneficials } from './useBedBeneficials'
+import { useBedCompanions } from './useBedCompanions'
 import { levelLabel, scoreLabel } from '../plants/beneficials'
 
 const route = useRoute()
@@ -32,6 +33,10 @@ const plantingVisible = ref(false)
 // Nützlingswert des Beets (aus den enthaltenen Pflanzen)
 const { forBed } = useBedBeneficials()
 const bedBeneficials = computed(() => forBed(bedId.value))
+
+// Mischkultur-Check: gute/schlechte Nachbarschaften im Beet
+const { forBed: companionsForBed } = useBedCompanions()
+const bedCompanions = computed(() => companionsForBed(bedId.value))
 
 const plantings = computed(() => store.plantings.filter((p) => p.bedId === bedId.value))
 const activePlantings = computed(() => plantings.value.filter((p) => p.removedAt === null))
@@ -171,6 +176,22 @@ function endPlanting(plantingId: string, name: string) {
         </template>
       </section>
 
+      <!-- Mischkultur-Check -->
+      <section v-if="bedCompanions" class="card">
+        <h2 class="section-title">Mischkultur-Check</h2>
+        <ul v-if="bedCompanions.conflicts.length" class="comp-list">
+          <li v-for="(p, i) in bedCompanions.conflicts" :key="'c' + i" class="comp-bad">
+            ✗ {{ p.a }} neben {{ p.b }} — ungünstig
+          </li>
+        </ul>
+        <ul v-if="bedCompanions.matches.length" class="comp-list">
+          <li v-for="(p, i) in bedCompanions.matches" :key="'m' + i" class="comp-good">
+            ✓ {{ p.a }} &amp; {{ p.b }} — gute Nachbarn
+          </li>
+        </ul>
+        <p class="muted ben-note">Nach gängigen Mischkultur-Regeln · nur Pflanzen aus dem Katalog.</p>
+      </section>
+
       <!-- Nützlinge im Beet (aus den Pflanzen) -->
       <section v-if="bedBeneficials" class="card">
         <h2 class="section-title">
@@ -272,6 +293,24 @@ function endPlanting(plantingId: string, name: string) {
 .ben-note {
   margin: 0.6rem 0 0;
   font-size: 0.78rem;
+}
+
+.comp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.comp-list .comp-bad {
+  color: #dc2626;
+}
+
+.comp-list .comp-good {
+  color: #16a34a;
 }
 
 .detail-head {

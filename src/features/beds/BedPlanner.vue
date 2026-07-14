@@ -17,6 +17,7 @@ import { shareOrDownload } from '../../shared/shareFile'
 import { renderPlannerImage } from './plannerImage'
 import { bloomsInRange } from '../plants/bloomCalendar'
 import BedBeneficialBadge from './BedBeneficialBadge.vue'
+import { useBedCompanions } from './useBedCompanions'
 import { usePlantsStore } from '../plants/plantsStore'
 import { useTasksStore } from '../tasks/tasksStore'
 import { useBedsStore } from './bedsStore'
@@ -160,6 +161,15 @@ function isMonthActive(m: number): boolean {
 function bloomClass(plant: Plant): string {
   if (!rangeActive.value) return ''
   return bloomsInRange(plant.bloomMonths, rangeLo.value, rangeHi.value) ? 'circle-blooming' : 'circle-dimmed'
+}
+
+// Mischkultur: beim Auswählen einer Pflanze Nachbarn grün/rot markieren
+const { relation } = useBedCompanions()
+function companionClass(plant: Plant): string {
+  const sel = selected.value
+  if (!sel || sel.plant.id === plant.id) return ''
+  const rel = relation(sel.plant, plant)
+  return rel === 'good' ? 'circle-good' : rel === 'bad' ? 'circle-bad' : ''
 }
 
 // ---- Geometrie-Helfer ----
@@ -416,7 +426,7 @@ function removeSelected() {
             v-for="item in placed"
             :key="item.planting.id"
             class="circle"
-            :class="[{ 'circle-selected': item.planting.id === selectedId }, bloomClass(item.plant)]"
+            :class="[{ 'circle-selected': item.planting.id === selectedId }, bloomClass(item.plant), companionClass(item.plant)]"
             :style="circleStyle(item.plant, circlePos(item).x, circlePos(item).y)"
             :title="item.plant.name"
             @pointerdown.prevent="onCircleDown(item, $event)"
@@ -451,6 +461,7 @@ function removeSelected() {
           {{ fmtM(plantSpreadM(selected.plant)) }} m breit ·
           Position {{ fmtM(selected.planting.posX!) }} / {{ fmtM(selected.planting.posY!) }} m
         </span>
+        <span class="muted comp-legend">🟢 gute · 🔴 ungünstige Nachbarn</span>
         <Button label="Entfernen" icon="pi pi-trash" severity="danger" text size="small" @click="removeSelected" />
       </div>
 
@@ -661,6 +672,17 @@ function removeSelected() {
 
 .circle-blooming {
   box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.55), 0 0 12px rgba(244, 114, 182, 0.6);
+}
+
+/* Mischkultur beim Auswählen: gute/schlechte Nachbarn */
+.circle-good {
+  outline: 3px solid #16a34a;
+  outline-offset: -1px;
+}
+
+.circle-bad {
+  outline: 3px solid #dc2626;
+  outline-offset: -1px;
 }
 
 .circle-label {
