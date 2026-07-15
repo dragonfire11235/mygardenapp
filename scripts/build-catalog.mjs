@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { readSourceList, normalize, OUT_JSON, IMAGE_CACHE } from './lib.mjs'
 import { careOverlay, genusCategory } from './care-overlay.mjs'
+import { ornamentalOverlay } from './ornamental-overlay.mjs'
 import { companionsOverlay } from './companions-overlay.mjs'
 
 const BENEFICIALS_CACHE = 'scripts/.cache/globi-beneficials.json'
@@ -56,7 +57,7 @@ function build() {
 
   const entries = base.map((rec) => {
     const entry = { ...rec }
-    const overlay = careOverlay[rec.botanicalName]
+    const overlay = careOverlay[rec.botanicalName] ?? ornamentalOverlay[rec.botanicalName]
     const sources = {}
 
     if (overlay) {
