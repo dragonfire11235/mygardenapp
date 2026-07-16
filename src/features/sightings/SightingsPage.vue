@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import { useConfirm } from 'primevue/useconfirm'
 import type { Sighting } from '../../data'
@@ -8,9 +8,11 @@ import { formatDate } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
 import { useSightingsStore, type SightingDraft } from './sightingsStore'
 import SightingDialog from './SightingDialog.vue'
+import { earnedAchievements } from './achievements'
 
 const store = useSightingsStore()
 const confirm = useConfirm()
+const badges = computed(() => earnedAchievements(store.sightings))
 
 onMounted(() => {
   if (!store.loaded) store.load()
@@ -61,6 +63,12 @@ function removeCurrent() {
       <Button label="Neue Sichtung" icon="pi pi-plus" @click="openNew" />
     </div>
 
+    <div v-if="badges.length" class="badges">
+      <span v-for="badge in badges" :key="badge.id" class="badge" :title="badge.description">
+        {{ badge.icon }} {{ badge.label }}
+      </span>
+    </div>
+
     <div v-if="store.byGroup.size" class="groups">
       <section v-for="[group, sightings] in store.byGroup" :key="group" class="card group-card">
         <h2 class="group-title">{{ sightingGroupIcons[group] }} {{ sightingGroupLabels[group] }} ({{ sightings.length }})</h2>
@@ -89,6 +97,22 @@ function removeCurrent() {
 </template>
 
 <style scoped>
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.badge {
+  background: var(--app-accent-soft, rgba(22, 163, 74, 0.12));
+  color: var(--app-accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .groups {
   display: flex;
   flex-direction: column;
