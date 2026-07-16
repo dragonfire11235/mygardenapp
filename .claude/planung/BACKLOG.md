@@ -23,11 +23,23 @@ Mitgelieferter, durchsuchbarer Katalog (`public/catalog/garten-de.json`, 657 Pfl
 | 1 | Katalog-Schema (`catalogTypes.ts`), Ingest + Pflege-/Kategorie-Overlay (170 mit Pflege) + Wikidata-Bilder (553), Suchdialog (`CatalogSearchDialog.vue`) + Tests | ✅ erledigt |
 | 2 | Nützlinge & Score ✅ via GloBI (`enrich-beneficials-globi.mjs`, 544/650 mit Daten) — Teil-Scores 0–3 + Gesamt-Score 0–5; Anzeige im Katalog-Dialog + Nützlinge-Sektion auf `PlantDetailPage` | erledigt |
 | 3 | Blühkalender ✅ + **Schnittkalender ✅** (`Plant.bloomMonths`/`pruningMonths` + Formularfelder + Katalog-Mapping + `BloomCalendarWidget`/`PruningCalendarWidget`; Helfer `monthRows`/`monthGaps` generalisiert) | erledigt |
-| 4 | Mischkultur + Assistent/Empfehlungen (`companionsGood/Bad`) | offen |
+| 4 | Mischkultur + Assistent/Empfehlungen ✅ (`companionsGood/Bad` + `companions.ts`; Anzeige: Mischkultur-Sektion Pflanzen-Detail, Beet-Check auf Beet-Detail, Grün/Rot-Markierung im Beetplaner) | erledigt |
 
-**Zusätzlich erledigt (13.07.):** Blüh-Timeline im Beetplaner (Monats-Range hebt blühende Kreise hervor) · Beet-Nützlings-Score (aus den enthaltenen Pflanzen aggregiert: bestes je Gruppe + Lücken; angezeigt auf Beet-Detailseite, Beete-Karten und im Beetplaner via `useBedBeneficials`/`BedBeneficialBadge`).
+**Zusätzlich erledigt (13.–15.07.):**
+- Blüh-Timeline im Beetplaner (Monats-Range hebt blühende Kreise hervor) · Beet-Nützlings-Score (`useBedBeneficials`/`BedBeneficialBadge`, 3 Anzeigeorte).
+- **Kalender-Seite** `/kalender` (Umschalter Blüte/Schnitt, nach Beeten gruppiert + aufklappbar) · Blüh-/Schnitt-Widget auf 7 Zeilen gedeckelt mit „Ganzer Kalender"-Link.
+- **Tagebuch-Detailseite** `/tagebuch/:id` (Ansehen statt sofort Bearbeiten).
+- **iOS-Zoom-Bugfix** (Formularfelder 16px) · **Foto-GC-Fix** (`gardenMapPhotoId` wurde vom Aufräum-Sweep gelöscht → Kartenbild verschwand).
+- **Zierpflanzen-Ausbau** ✅ (`scripts/ornamental-overlay.mjs`): ~100 Stauden/Zierpflanzen aus „sonstiges" angereichert → blumen 40→132, mit Blütezeit 102→204.
 
-**Nächster Schritt (offen, Nutzerwunsch):** Blumen-/Zierpflanzen-Abdeckung ausbauen — die Quell-Liste ist wildflora-/zimmerpflanzenlastig, echte Gartenblumen sind dünn. Overlay erweitern oder Perenual als 2. Quelle prüfen.
-Pipeline-Befehle: `npm run catalog:build`, `npm run catalog:images`.
+**Garten-Entdeckungen (16.–17.07., `PLAN.md`) ✅ komplett umgesetzt (AP01–08):** Foto-Sammelspiel für Insekten & Vögel — Sichtungs-Entität + Storage/Backup/GC, Erfassungs-Dialog (`SightingDialog.vue`) mit austauschbarer Identifikations-Naht (`SpeciesIdentifier`, aktuell `ManualIdentifier`), Sammelalbum `/entdeckungen` + Dashboard-Widget, Abzeichen (`achievements.ts`), Biodiversitäts-Score (`biodiversity.ts`), Nützlings-Tipps aus den eigenen Pflanzen (`tips.ts`/`useSightingTip.ts`), GloBI-Vogelwert je Pflanze (`beneficials.birds`, Gruppe 🐦 in `beneficials.ts`) + kuratierte Artenlisten für alle 5 Gruppen (`speciesCatalog.ts`, ~78 Arten) mit Autocomplete im Dialog. Vorgänger (Handy/Supabase) archiviert in `PLAN-handy-supabase.md`.
 
-Parallel weiterhin offen aus PLAN.md: Block A (Handy/Tunnel + Installieren, AP01 in Arbeit), Block B (Supabase-Sync), Home Assistant (Adapter-Naht liegt bereit).
+**Zusätzlich erledigt (17.07.):**
+- **Nützlings-/Vogel-Icons auf der Pflanzenkarte** (`PlantBeneficialBadge.vue`, Katalog-Lookup per botanischem Namen, Muster wie `BedBeneficialBadge`) — nicht erst auf der Detailseite sichtbar.
+- **Referenzfotos für die "noch zu entdecken"-Artenliste**: `speciesCatalog.data.json` um `scientificName` je Art ergänzt; neues Build-Script `scripts/build-species-photos.mjs` lädt Fotos aus Wikidata (Taxon-Name → Bild, gleiches Muster wie `enrich-images-wikidata.mjs`) nach `public/catalog/species-photos.json` (77/78 Arten mit Foto). `SpeciesPhotoChip.vue` zeigt das Foto bei Hover (Desktop, reines CSS) oder Antippen (Handy, JS-State, schließt bei Klick außerhalb). Neuer npm-Befehl `species:photos`.
+
+**Roadmap (zurückgestellt):**
+- **KI-Arterkennung für Entdeckungen** — Foto → Art automatisch (iNaturalist o. ä. via Proxy). Die Naht (`SpeciesIdentifier` + `source`) wird im aktiven Plan gebaut; die KI-Implementierung selbst ist Folge-Idee. Status: offen.
+- **Gardena smart system** — Entschieden: Cloudflare Worker als Proxy (CORS + Secret → kein Direktzugriff aus dem Browser). Nötig: Application Key + Secret vom Husqvarna-Dev-Portal (beide APIs verbunden). Details im Plan-File. `GardenaAdapter` an der bestehenden `DeviceAdapter`-Naht, `AdapterId 'gardena'`.
+- **Home Assistant** (Adapter-Naht bereit), **Supabase-Sync** (PLAN.md Block B), Aussaat-/Ernte-Kalender, Ernte-Tracking, Perenual als 2. Datenquelle.
+Pipeline-Befehle: `npm run catalog:build`, `npm run catalog:images`, `catalog:beneficials`, `species:photos`.

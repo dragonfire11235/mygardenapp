@@ -13,6 +13,7 @@ import { biodiversityScore } from './biodiversity'
 import { useSightingTip } from './useSightingTip'
 import { usePlantsStore } from '../plants/plantsStore'
 import { speciesForGroup, undiscoveredSpecies } from './speciesCatalog'
+import SpeciesPhotoChip from './SpeciesPhotoChip.vue'
 
 const GROUPS_WITH_CATALOG: SightingGroup[] = ['wildbee', 'butterfly', 'hoverfly', 'beetle', 'bird']
 
@@ -132,7 +133,7 @@ function removeCurrent() {
         noch zu entdecken
       </summary>
       <div class="chip-list">
-        <span v-for="s in entry.species" :key="s.name" class="chip" :title="s.hint">{{ s.name }}</span>
+        <SpeciesPhotoChip v-for="s in entry.species" :key="s.name" :species="s" />
       </div>
     </details>
 
@@ -218,14 +219,7 @@ function removeCurrent() {
 .chip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.5rem;
   margin-top: 0.6rem;
-}
-
-.chip {
-  background: var(--app-surface-muted, rgba(100, 116, 139, 0.12));
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.8rem;
 }
 </style>

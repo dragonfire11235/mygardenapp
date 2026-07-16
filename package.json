@@ -11,7 +11,8 @@
     "test": "vitest run",
     "catalog:build": "node scripts/build-catalog.mjs",
     "catalog:images": "node scripts/enrich-images-wikidata.mjs",
-    "catalog:beneficials": "node scripts/enrich-beneficials-globi.mjs"
+    "catalog:beneficials": "node scripts/enrich-beneficials-globi.mjs",
+    "species:photos": "node scripts/build-species-photos.mjs"
   },
   "dependencies": {
     "@primeuix/themes": "^2.0.3",
