@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import AutoComplete from 'primevue/autocomplete'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
@@ -14,6 +15,7 @@ import { getPhotoFile } from '../../shared/photos'
 import PlantSelect from '../plants/PlantSelect.vue'
 import { useBedsStore } from '../beds/bedsStore'
 import { ManualIdentifier } from './identify/ManualIdentifier'
+import { searchGardenBirds } from './birds'
 import type { SightingDraft } from './sightingsStore'
 
 const props = defineProps<{
@@ -54,6 +56,11 @@ watch(visible, (open) => {
 })
 
 const bedOptions = computed(() => bedsStore.beds.map((b) => ({ label: b.name, value: b.id })))
+
+const birdSuggestions = ref<string[]>([])
+function onBirdSearch(event: { query: string }) {
+  birdSuggestions.value = searchGardenBirds(event.query).map((b) => b.name)
+}
 
 async function onPhotoChanged(id: string | null) {
   photoId.value = id
@@ -116,7 +123,15 @@ function save() {
 
       <div class="form-field">
         <label for="sighting-species">Art</label>
-        <InputText id="sighting-species" v-model="species" placeholder="z. B. Erdhummel (optional)" />
+        <AutoComplete
+          v-if="group === 'bird'"
+          id="sighting-species"
+          v-model="species"
+          :suggestions="birdSuggestions"
+          placeholder="z. B. Amsel (optional)"
+          @complete="onBirdSearch"
+        />
+        <InputText v-else id="sighting-species" v-model="species" placeholder="z. B. Erdhummel (optional)" />
       </div>
 
       <div class="form-row">

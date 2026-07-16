@@ -105,7 +105,7 @@ Eine kleine Gamification: Tiere, die den Garten besuchen (Wildbienen, Schmetterl
 | 05 | Biodiversitäts-Score | umgesetzt | — |
 | 06 | Tipps/Aufträge | umgesetzt | — |
 | 07 | GloBI-Vogelwert je Pflanze | umgesetzt | — |
-| 08 | Kuratierte Gartenvogel-Liste | offen | — |
+| 08 | Kuratierte Gartenvogel-Liste | umgesetzt | — |
 
 Status-Werte: `offen` → `in Arbeit` → `umgesetzt` → `abgenommen` (nur durch Review).
 

@@ -12,6 +12,7 @@ import { earnedAchievements } from './achievements'
 import { biodiversityScore } from './biodiversity'
 import { useSightingTip } from './useSightingTip'
 import { usePlantsStore } from '../plants/plantsStore'
+import { undiscoveredGardenBirds } from './birds'
 
 const store = useSightingsStore()
 const plantsStore = usePlantsStore()
@@ -19,6 +20,12 @@ const confirm = useConfirm()
 const badges = computed(() => earnedAchievements(store.sightings))
 const score = computed(() => biodiversityScore(store.sightings))
 const { tip } = useSightingTip()
+
+const undiscoveredBirds = computed(() =>
+  undiscoveredGardenBirds(
+    store.sightings.filter((s) => s.group === 'bird' && s.species.trim()).map((s) => s.species),
+  ),
+)
 
 onMounted(() => {
   if (!store.loaded) store.load()
@@ -104,6 +111,13 @@ function removeCurrent() {
       <p>Noch keine Entdeckungen. Fotografiere Insekten oder Vögel in deinem Garten und sammle sie hier.</p>
     </div>
 
+    <details class="card undiscovered">
+      <summary>🐦 {{ undiscoveredBirds.length }} Gartenvögel noch zu entdecken</summary>
+      <div class="chip-list">
+        <span v-for="bird in undiscoveredBirds" :key="bird.name" class="chip">{{ bird.name }}</span>
+      </div>
+    </details>
+
     <SightingDialog v-model:visible="dialogVisible" :initial="editingSighting" @save="save" @delete="removeCurrent" />
   </div>
 </template>
@@ -171,5 +185,29 @@ function removeCurrent() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.undiscovered {
+  max-width: 640px;
+  margin-top: 0.9rem;
+}
+
+.undiscovered summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.chip {
+  background: var(--app-surface-muted, rgba(100, 116, 139, 0.12));
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
 }
 </style>
