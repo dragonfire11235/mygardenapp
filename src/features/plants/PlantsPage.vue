@@ -9,6 +9,7 @@ import Select from 'primevue/select'
 import { categoryColors, categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
 import { todayIso } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
+import PlantBeneficialBadge from './PlantBeneficialBadge.vue'
 import { useBedsStore } from '../beds/bedsStore'
 import { useTasksStore } from '../tasks/tasksStore'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
@@ -174,6 +175,7 @@ async function save(draft: PlantDraft, bedIds: string[]) {
                 <span v-if="plant.sowingMonths.length">🌱 {{ formatMonths(plant.sowingMonths) }}</span>
                 <span v-if="plant.harvestMonths.length">🧺 {{ formatMonths(plant.harvestMonths) }}</span>
               </div>
+              <PlantBeneficialBadge v-if="plant.botanicalName" :botanical-name="plant.botanicalName" />
             </div>
           </button>
         </div>
