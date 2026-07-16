@@ -100,6 +100,20 @@ export interface DiaryEntry extends BaseEntity {
   photoIds: string[]
 }
 
+export type SightingGroup = 'wildbee' | 'butterfly' | 'hoverfly' | 'beetle' | 'bird' | 'other'
+export type SightingSource = 'manual' | 'ai'
+
+export interface Sighting extends BaseEntity {
+  date: string // ISO-Datum (yyyy-mm-dd)
+  group: SightingGroup
+  species: string
+  photoId: string | null
+  plantId: string | null
+  bedId: string | null
+  notes: string
+  source: SightingSource
+}
+
 /** Foto-Blobs liegen in einer eigenen Tabelle, damit der JSON-Export sie ausschließen kann. */
 export interface Photo extends BaseEntity {
   blob: Blob

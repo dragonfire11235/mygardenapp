@@ -11,6 +11,7 @@ import type {
   Photo,
   Plant,
   Planting,
+  Sighting,
   Task,
 } from './models'
 
@@ -36,6 +37,7 @@ export interface BackupData {
   tasks: Task[]
   diary: DiaryEntry[]
   devices: Device[]
+  sightings: Sighting[]
   settings: Record<string, unknown>
   /** Fotos optional als Base64 (kann den Export groß machen) */
   photos: { id: string; createdAt: string; updatedAt: string; deletedAt: string | null; mimeType: string; base64: string }[]
@@ -49,6 +51,7 @@ export interface StorageProvider {
   diary: Repository<DiaryEntry>
   photos: Repository<Photo>
   devices: Repository<Device>
+  sightings: Repository<Sighting>
 
   getSetting<T>(key: string): Promise<T | undefined>
   setSetting(key: string, value: unknown): Promise<void>

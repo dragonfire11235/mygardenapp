@@ -7,6 +7,7 @@ import type {
   Photo,
   Plant,
   Planting,
+  Sighting,
   Task,
 } from '../models'
 import type { BackupData, Repository, StorageProvider } from '../storage'
@@ -26,6 +27,7 @@ class GardenDatabase extends Dexie {
   diary!: Table<DiaryEntry, string>
   photos!: Table<Photo, string>
   devices!: Table<Device, string>
+  sightings!: Table<Sighting, string>
   settings!: Table<SettingRow, string>
 
   constructor(name = 'mygarden') {
@@ -39,6 +41,9 @@ class GardenDatabase extends Dexie {
       photos: 'id',
       devices: 'id, adapter',
       settings: 'key',
+    })
+    this.version(2).stores({
+      sightings: 'id, date, group, plantId, bedId',
     })
   }
 }
@@ -89,6 +94,7 @@ export class DexieProvider implements StorageProvider {
   diary: Repository<DiaryEntry>
   photos: Repository<Photo>
   devices: Repository<Device>
+  sightings: Repository<Sighting>
 
   constructor(dbName = 'mygarden') {
     this.db = new GardenDatabase(dbName)
@@ -99,6 +105,7 @@ export class DexieProvider implements StorageProvider {
     this.diary = new DexieRepository(this.db.diary)
     this.photos = new DexieRepository(this.db.photos)
     this.devices = new DexieRepository(this.db.devices)
+    this.sightings = new DexieRepository(this.db.sightings)
   }
 
   async getSetting<T>(key: string): Promise<T | undefined> {
@@ -138,6 +145,7 @@ export class DexieProvider implements StorageProvider {
       tasks: await this.db.tasks.toArray(),
       diary: await this.db.diary.toArray(),
       devices: await this.db.devices.toArray(),
+      sightings: await this.db.sightings.toArray(),
       settings,
       photos,
     }
@@ -155,7 +163,7 @@ export class DexieProvider implements StorageProvider {
 
     await this.db.transaction(
       'rw',
-      [this.db.plants, this.db.beds, this.db.plantings, this.db.tasks, this.db.diary, this.db.photos, this.db.devices, this.db.settings],
+      [this.db.plants, this.db.beds, this.db.plantings, this.db.tasks, this.db.diary, this.db.photos, this.db.devices, this.db.sightings, this.db.settings],
       async () => {
         await Promise.all([
           this.db.plants.clear(),
@@ -165,6 +173,7 @@ export class DexieProvider implements StorageProvider {
           this.db.diary.clear(),
           this.db.photos.clear(),
           this.db.devices.clear(),
+          this.db.sightings.clear(),
           this.db.settings.clear(),
         ])
         await this.db.plants.bulkPut(data.plants)
@@ -173,6 +182,7 @@ export class DexieProvider implements StorageProvider {
         await this.db.tasks.bulkPut(data.tasks)
         await this.db.diary.bulkPut(data.diary)
         await this.db.devices.bulkPut(data.devices)
+        await this.db.sightings.bulkPut(data.sightings)
         await this.db.photos.bulkPut(photos)
         await this.db.settings.bulkPut(
           Object.entries(data.settings).map(([key, value]) => ({ key, value })),

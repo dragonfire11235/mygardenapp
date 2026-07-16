@@ -21,6 +21,7 @@ async function collectReferencedPhotoIds(storage: StorageProvider): Promise<Set<
   for (const plant of data.plants) if (plant.photoId) ids.add(plant.photoId)
   for (const bed of data.beds) if (bed.photoId) ids.add(bed.photoId)
   for (const entry of data.diary) for (const id of entry.photoIds) ids.add(id)
+  for (const sighting of data.sightings) if (sighting.photoId) ids.add(sighting.photoId)
 
   for (const key of ['dashboardHeaderPhotoId', 'dashboardBackgroundPhotoId', 'gardenMapPhotoId']) {
     const value = data.settings[key]

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DexieProvider } from '../data/dexie/DexieProvider'
-import { createEntity, type DiaryEntry, type Photo, type Plant } from '../data'
+import { createEntity, type DiaryEntry, type Photo, type Plant, type Sighting } from '../data'
 import { deleteOrphanPhotos } from './photoGc'
 
 function makePhoto(): Photo {
@@ -36,6 +36,19 @@ function makeDiaryEntry(photoIds: string[]): DiaryEntry {
     plantIds: [],
     bedIds: [],
     photoIds,
+  })
+}
+
+function makeSighting(photoId: string | null): Sighting {
+  return createEntity<Sighting>({
+    date: '2026-07-07',
+    group: 'wildbee',
+    species: 'Erdhummel',
+    photoId,
+    plantId: null,
+    bedId: null,
+    notes: '',
+    source: 'manual',
   })
 }
 
@@ -75,6 +88,19 @@ describe('deleteOrphanPhotos', () => {
 
     expect(deleted).toBe(0)
     expect(await provider.photos.getAll()).toHaveLength(4)
+  })
+
+  it('behält Fotos referenzierter Sichtungen', async () => {
+    const kept = makePhoto()
+    const orphan = makePhoto()
+    await provider.photos.bulkPut([kept, orphan])
+    await provider.sightings.put(makeSighting(kept.id))
+
+    const deleted = await deleteOrphanPhotos(provider)
+
+    expect(deleted).toBe(1)
+    expect(await provider.photos.getById(kept.id)).toBeDefined()
+    expect(await provider.photos.getById(orphan.id)).toBeUndefined()
   })
 
   it('behält Fotos soft-gelöschter Entitäten (für Sync/Restore)', async () => {

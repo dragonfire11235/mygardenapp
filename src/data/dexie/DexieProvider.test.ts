@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createEntity, type Plant } from '../models'
+import { createEntity, type Plant, type Sighting } from '../models'
 import { DexieProvider } from './DexieProvider'
 
 function makePlant(name: string): Plant {
@@ -20,6 +20,19 @@ function makePlant(name: string): Plant {
     sunlight: 'sonne',
     notes: '',
     trefleId: null,
+  })
+}
+
+function makeSighting(): Sighting {
+  return createEntity<Sighting>({
+    date: '2026-07-16',
+    group: 'wildbee',
+    species: 'Erdhummel',
+    photoId: null,
+    plantId: null,
+    bedId: null,
+    notes: '',
+    source: 'manual',
   })
 }
 
@@ -93,6 +106,18 @@ describe('DexieProvider', () => {
     expect(backup.plants).toHaveLength(0)
   })
 
+  it('legt Sichtungen an, liest sie zurück und löscht sie soft', async () => {
+    const sighting = makeSighting()
+    await provider.sightings.put(sighting)
+
+    const all = await provider.sightings.getAll()
+    expect(all).toHaveLength(1)
+    expect(all[0].species).toBe('Erdhummel')
+
+    await provider.sightings.softDelete(sighting.id)
+    expect(await provider.sightings.getAll()).toHaveLength(0)
+  })
+
   it('speichert und liest Einstellungen', async () => {
     await provider.setSetting('trefleToken', 'abc123')
     expect(await provider.getSetting<string>('trefleToken')).toBe('abc123')
@@ -110,6 +135,7 @@ describe('DexieProvider', () => {
 
   it('Export → Import stellt den Datenbestand wieder her', async () => {
     await provider.plants.put(makePlant('Basilikum'))
+    await provider.sightings.put(makeSighting())
     await provider.setSetting('notificationsEnabled', true)
     const backup = await provider.exportAll(false)
 
@@ -120,6 +146,7 @@ describe('DexieProvider', () => {
     const plants = await target.plants.getAll()
     expect(plants).toHaveLength(1)
     expect(plants[0].name).toBe('Basilikum')
+    expect(await target.sightings.getAll()).toHaveLength(1)
     expect(await target.getSetting<boolean>('notificationsEnabled')).toBe(true)
   })
 
@@ -136,6 +163,7 @@ describe('DexieProvider', () => {
       tasks: [],
       diary: [],
       devices: [],
+      sightings: [],
       settings: { trefleToken: 'neu' },
       photos: [],
     })
