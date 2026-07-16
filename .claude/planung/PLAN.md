@@ -102,7 +102,7 @@ Eine kleine Gamification: Tiere, die den Garten besuchen (Wildbienen, Schmetterl
 | 02 | Erfassungs-Dialog + Store + Identifikations-Naht | umgesetzt | — |
 | 03 | Sammelalbum-Seite + Zugang | umgesetzt | — |
 | 04 | Erfolge/Abzeichen | umgesetzt | — |
-| 05 | Biodiversitäts-Score | offen | — |
+| 05 | Biodiversitäts-Score | umgesetzt | — |
 | 06 | Tipps/Aufträge | offen | — |
 | 07 | GloBI-Vogelwert je Pflanze | offen | — |
 | 08 | Kuratierte Gartenvogel-Liste | offen | — |

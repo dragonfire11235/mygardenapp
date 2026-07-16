@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useSightingsStore } from './sightingsStore'
+import { biodiversityScore } from './biodiversity'
 
 const store = useSightingsStore()
 
@@ -8,14 +9,13 @@ onMounted(() => {
   if (!store.loaded) store.load()
 })
 
-const distinctSpecies = computed(
-  () => new Set(store.sightings.map((s) => s.species || s.id)).size,
-)
+const score = computed(() => biodiversityScore(store.sightings))
 </script>
 
 <template>
   <div v-if="store.sightings.length" class="widget-summary">
-    <p>{{ distinctSpecies }} Arten in {{ store.byGroup.size }} Gruppen entdeckt.</p>
+    <p>{{ score.distinctSpecies }} Arten in {{ score.groups }} Gruppen entdeckt.</p>
+    <p class="muted">Biodiversitäts-Score: {{ score.score }}/100</p>
     <RouterLink to="/entdeckungen" class="more">→ Entdeckungen</RouterLink>
   </div>
   <p v-else class="muted">

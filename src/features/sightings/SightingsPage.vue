@@ -9,10 +9,12 @@ import PhotoImg from '../../shared/PhotoImg.vue'
 import { useSightingsStore, type SightingDraft } from './sightingsStore'
 import SightingDialog from './SightingDialog.vue'
 import { earnedAchievements } from './achievements'
+import { biodiversityScore } from './biodiversity'
 
 const store = useSightingsStore()
 const confirm = useConfirm()
 const badges = computed(() => earnedAchievements(store.sightings))
+const score = computed(() => biodiversityScore(store.sightings))
 
 onMounted(() => {
   if (!store.loaded) store.load()
@@ -58,7 +60,7 @@ function removeCurrent() {
     <div class="page-header">
       <div>
         <h1>Entdeckungen</h1>
-        <span class="muted">{{ store.sightings.length }} Sichtungen</span>
+        <span class="muted">{{ store.sightings.length }} Sichtungen · Biodiversitäts-Score {{ score.score }}/100</span>
       </div>
       <Button label="Neue Sichtung" icon="pi pi-plus" @click="openNew" />
     </div>
