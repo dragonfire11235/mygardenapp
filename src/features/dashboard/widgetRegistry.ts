@@ -13,6 +13,7 @@ import BloomCalendarWidget from '../plants/BloomCalendarWidget.vue'
 import PruningCalendarWidget from '../plants/PruningCalendarWidget.vue'
 import BedsWidget from '../beds/BedsWidget.vue'
 import RecentDiaryWidget from '../diary/RecentDiaryWidget.vue'
+import SightingsWidget from '../sightings/SightingsWidget.vue'
 import SensorsWidget from '../devices/SensorsWidget.vue'
 import SwitchesWidget from '../devices/SwitchesWidget.vue'
 import WeatherWidget from '../weather/WeatherWidget.vue'
@@ -31,6 +32,7 @@ export const widgetRegistry: WidgetDefinition[] = [
   { id: 'pruning', title: 'Schnittkalender', component: PruningCalendarWidget },
   { id: 'beds', title: 'Beete', component: BedsWidget },
   { id: 'diary', title: 'Tagebuch', component: RecentDiaryWidget },
+  { id: 'sightings', title: 'Entdeckungen', component: SightingsWidget },
   { id: 'sensors', title: 'Sensoren', component: SensorsWidget },
   { id: 'switches', title: 'Schalter', component: SwitchesWidget },
 ]

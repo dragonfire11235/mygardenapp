@@ -13,6 +13,7 @@ export const router = createRouter({
     { path: '/tagebuch', name: 'diary', component: () => import('./features/diary/DiaryPage.vue'), meta: { title: 'Tagebuch' } },
     { path: '/tagebuch/:id', name: 'diary-detail', component: () => import('./features/diary/DiaryDetailPage.vue'), meta: { title: 'Eintrag' } },
     { path: '/kalender', name: 'calendar', component: () => import('./features/plants/CalendarPage.vue'), meta: { title: 'Kalender' } },
+    { path: '/entdeckungen', name: 'sightings', component: () => import('./features/sightings/SightingsPage.vue'), meta: { title: 'Entdeckungen' } },
     { path: '/geraete', name: 'devices', component: () => import('./features/devices/DevicesPage.vue'), meta: { title: 'Geräte' } },
     { path: '/einstellungen', name: 'settings', component: () => import('./features/settings/SettingsPage.vue'), meta: { title: 'Einstellungen' } },
   ],

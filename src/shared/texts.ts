@@ -2,7 +2,7 @@
 // (UI-Texte stehen direkt in den Komponenten; hier liegt alles,
 // was an mehreren Stellen gebraucht wird.)
 
-import type { DeviceKind, Plant, PlantCategory, Sunlight, TaskType } from '../data'
+import type { DeviceKind, Plant, PlantCategory, SightingGroup, Sunlight, TaskType } from '../data'
 
 export const categoryLabels: Record<PlantCategory, string> = {
   gemuese: 'Gemüse',
@@ -43,6 +43,29 @@ export const deviceKindLabels: Record<DeviceKind, string> = {
   valve: 'Ventil',
   sensor: 'Sensor',
 }
+
+export const sightingGroupLabels: Record<SightingGroup, string> = {
+  wildbee: 'Wildbiene',
+  butterfly: 'Schmetterling',
+  hoverfly: 'Schwebfliege',
+  beetle: 'Käfer',
+  bird: 'Vogel',
+  other: 'Sonstiges',
+}
+
+export const sightingGroupIcons: Record<SightingGroup, string> = {
+  wildbee: '🐝',
+  butterfly: '🦋',
+  hoverfly: '🪰',
+  beetle: '🪲',
+  bird: '🐦',
+  other: '🔍',
+}
+
+export const sightingGroupOptions = (Object.keys(sightingGroupLabels) as SightingGroup[]).map((value) => ({
+  label: `${sightingGroupIcons[value]} ${sightingGroupLabels[value]}`,
+  value,
+}))
 
 /**
  * Durchschnittliche Wuchsbreite (Kreis-Durchmesser) in Metern je Kategorie.

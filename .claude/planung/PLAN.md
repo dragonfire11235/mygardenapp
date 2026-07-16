@@ -99,8 +99,8 @@ Eine kleine Gamification: Tiere, die den Garten besuchen (Wildbienen, Schmetterl
 | AP | Titel | Status | Review |
 |---|---|---|---|
 | 01 | Sighting-Entität + Storage/Backup/GC | umgesetzt | — |
-| 02 | Erfassungs-Dialog + Store + Identifikations-Naht | offen | — |
-| 03 | Sammelalbum-Seite + Zugang | offen | — |
+| 02 | Erfassungs-Dialog + Store + Identifikations-Naht | umgesetzt | — |
+| 03 | Sammelalbum-Seite + Zugang | umgesetzt | — |
 | 04 | Erfolge/Abzeichen | offen | — |
 | 05 | Biodiversitäts-Score | offen | — |
 | 06 | Tipps/Aufträge | offen | — |
