@@ -17,13 +17,15 @@ export type CatalogSourceArea =
   | 'image'
   | 'info'
 
-/** Nützlings-Teilwerte je Insektengruppe (je 0–3), plus aggregierter Score. */
+/** Nützlings-Teilwerte je Insekten-/Vogelgruppe (je 0–3), plus aggregierter Score. */
 export interface Beneficials {
   wildbees?: number
   butterflies?: number
   caterpillarHost?: number
   hoverflies?: number
   beetles?: number
+  /** Vögel, die die Pflanze laut GloBI nutzen (Beeren/Samen/Insekten daran) */
+  birds?: number
 }
 
 export interface CatalogPlant {

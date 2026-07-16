@@ -15,6 +15,7 @@ export const beneficialGroups: BeneficialGroup[] = [
   { key: 'caterpillarHost', label: 'Raupen-Futter', icon: '🐛' },
   { key: 'hoverflies', label: 'Schwebfliegen', icon: '🪰' },
   { key: 'beetles', label: 'Käfer', icon: '🪲' },
+  { key: 'birds', label: 'Vögel', icon: '🐦' },
 ]
 
 /** Teil-Score (0–3) → Text. */
@@ -50,7 +51,7 @@ export function gapGroups(b: Beneficials | undefined): BeneficialGroup[] {
   return beneficialGroups.filter((group) => !(b?.[group.key] ?? 0))
 }
 
-/** Gesamt-Score 0–5 aus den fünf Teil-Scores (spiegelt build-catalog.mjs). */
+/** Gesamt-Score 0–5 aus den Teil-Scores (spiegelt build-catalog.mjs). */
 export function overallScore(b: Beneficials): number {
   const sum = beneficialGroups.reduce((a, g) => a + (b[g.key] ?? 0), 0)
   return Math.min(5, Math.round(sum / 3))

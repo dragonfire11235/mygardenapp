@@ -33,12 +33,18 @@ describe('activeGroups', () => {
   it('leer bei fehlenden Daten', () => {
     expect(activeGroups(undefined)).toEqual([])
   })
+
+  it('führt Vögel als eigene Gruppe', () => {
+    const groups = activeGroups({ birds: 2 })
+    expect(groups.map((g) => g.group.key)).toEqual(['birds'])
+    expect(groups[0].group.icon).toBe('🐦')
+  })
 })
 
 describe('gapGroups', () => {
   it('liefert Gruppen mit Wert 0', () => {
     const gaps = gapGroups({ wildbees: 3, butterflies: 0, caterpillarHost: 2 })
-    expect(gaps.map((g) => g.key).sort()).toEqual(['beetles', 'butterflies', 'hoverflies'])
+    expect(gaps.map((g) => g.key).sort()).toEqual(['beetles', 'birds', 'butterflies', 'hoverflies'])
   })
 })
 

@@ -26,7 +26,7 @@ function loadCacheFile(path) {
   }
 }
 
-/** Gesamt-Score 0–5 aus den fünf Teil-Scores (0–3): Summe/3, gedeckelt auf 5. */
+/** Gesamt-Score 0–5 aus den Teil-Scores (0–3): Summe/3, gedeckelt auf 5. */
 function overallScore(sub) {
   const sum = Object.values(sub).reduce((a, b) => a + (b || 0), 0)
   return Math.min(5, Math.round(sum / 3))
@@ -53,7 +53,7 @@ function build() {
   const beneficials = loadCacheFile(BENEFICIALS_CACHE)
   const errors = []
   const catCount = {}
-  let withCare = 0, withLink = 0, withImage = 0, withBeneficials = 0, withCompanions = 0
+  let withCare = 0, withLink = 0, withImage = 0, withBeneficials = 0, withBirds = 0, withCompanions = 0
 
   const entries = base.map((rec) => {
     const entry = { ...rec }
@@ -81,6 +81,7 @@ function build() {
       entry.beneficialScore = overallScore(ben)
       sources.beneficials = 'globi'
       withBeneficials++
+      if (ben.birds > 0) withBirds++
     }
 
     const comp = companionsOverlay[rec.botanicalName]
@@ -115,6 +116,7 @@ function build() {
   console.log(`   mit Info-Link: ${withLink}`)
   console.log(`   mit Bild:      ${withImage}`)
   console.log(`   mit Nützlingen:${withBeneficials}`)
+  console.log(`   mit Vogelwert: ${withBirds}`)
   console.log(`   mit Mischkultur:${withCompanions}`)
   console.log(`   Größe:         ${(json.length / 1024).toFixed(1)} KB`)
   console.log(`   Kategorien:    ${JSON.stringify(catCount)}`)

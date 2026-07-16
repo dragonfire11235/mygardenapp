@@ -22,9 +22,10 @@ function saveCache(c) {
   writeFileSync(CACHE, JSON.stringify(c))
 }
 
-// Interaktionstypen: Blütenbesuch (Bestäuber) vs. Fraß (Raupenfutter)
+// Interaktionstypen: Blütenbesuch (Bestäuber) vs. Fraß (Raupenfutter) vs. Vogelnutzung
 const FLOWER = /pollinatedBy|flowersVisitedBy|visitedBy/i
 const HERBIVORY = /eatenBy|hasHost|hostOf|preyedUponBy/i
+const BIRD_INTERACTION = /eatenBy|interactsWith/i
 
 /** Distinkte Arten je Gruppe → Teil-Score 0–3. */
 function scoreFromCount(n) {
@@ -48,7 +49,7 @@ async function fetchBeneficials(name) {
   const json = await res.json()
   const rows = json.data ?? []
 
-  const g = { wildbees: new Set(), butterflies: new Set(), caterpillarHost: new Set(), hoverflies: new Set(), beetles: new Set() }
+  const g = { wildbees: new Set(), butterflies: new Set(), caterpillarHost: new Set(), hoverflies: new Set(), beetles: new Set(), birds: new Set() }
   for (const [itype, tname, path] of rows) {
     const p = path || ''
     if (FLOWER.test(itype)) {
@@ -58,6 +59,7 @@ async function fetchBeneficials(name) {
       if (p.includes('Coleoptera')) g.beetles.add(tname)
     }
     if (HERBIVORY.test(itype) && p.includes('Lepidoptera')) g.caterpillarHost.add(tname)
+    if (BIRD_INTERACTION.test(itype) && p.includes('Aves')) g.birds.add(tname) // Vögel (Beeren/Samen/Insekten an der Pflanze)
   }
   const sub = {}
   for (const k of Object.keys(g)) sub[k] = scoreFromCount(g[k].size)
@@ -67,7 +69,8 @@ async function fetchBeneficials(name) {
 async function main() {
   const names = [...new Set(readSourceList().map((r) => r.botanicalName).filter(Boolean))]
   const cache = loadCache()
-  const todo = names.filter((n) => !(n in cache))
+  // Fehlt ein Name ganz ODER hat der Cache-Eintrag noch kein "birds" (ältere Läufe vor AP07) → neu abfragen.
+  const todo = names.filter((n) => !(n in cache) || !('birds' in cache[n]))
   console.log(`${names.length} Namen, ${todo.length} offen (Rest im Cache). Concurrency ${CONCURRENCY}.`)
 
   let done = 0
