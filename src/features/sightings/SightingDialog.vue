@@ -15,7 +15,7 @@ import { getPhotoFile } from '../../shared/photos'
 import PlantSelect from '../plants/PlantSelect.vue'
 import { useBedsStore } from '../beds/bedsStore'
 import { ManualIdentifier } from './identify/ManualIdentifier'
-import { searchGardenBirds } from './birds'
+import { searchSpecies, speciesForGroup } from './speciesCatalog'
 import type { SightingDraft } from './sightingsStore'
 
 const props = defineProps<{
@@ -57,9 +57,11 @@ watch(visible, (open) => {
 
 const bedOptions = computed(() => bedsStore.beds.map((b) => ({ label: b.name, value: b.id })))
 
-const birdSuggestions = ref<string[]>([])
-function onBirdSearch(event: { query: string }) {
-  birdSuggestions.value = searchGardenBirds(event.query).map((b) => b.name)
+const hasSpeciesCatalog = computed(() => group.value !== null && speciesForGroup(group.value).length > 0)
+const speciesSuggestions = ref<string[]>([])
+function onSpeciesSearch(event: { query: string }) {
+  if (!group.value) return
+  speciesSuggestions.value = searchSpecies(group.value, event.query).map((s) => s.name)
 }
 
 async function onPhotoChanged(id: string | null) {
@@ -124,12 +126,12 @@ function save() {
       <div class="form-field">
         <label for="sighting-species">Art</label>
         <AutoComplete
-          v-if="group === 'bird'"
+          v-if="hasSpeciesCatalog"
           id="sighting-species"
           v-model="species"
-          :suggestions="birdSuggestions"
-          placeholder="z. B. Amsel (optional)"
-          @complete="onBirdSearch"
+          :suggestions="speciesSuggestions"
+          placeholder="Art wählen oder eintippen (optional)"
+          @complete="onSpeciesSearch"
         />
         <InputText v-else id="sighting-species" v-model="species" placeholder="z. B. Erdhummel (optional)" />
       </div>

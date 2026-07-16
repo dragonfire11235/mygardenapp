@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import { useConfirm } from 'primevue/useconfirm'
-import type { Sighting } from '../../data'
+import type { Sighting, SightingGroup } from '../../data'
 import { sightingGroupIcons, sightingGroupLabels } from '../../shared/texts'
 import { formatDate } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
@@ -12,7 +12,18 @@ import { earnedAchievements } from './achievements'
 import { biodiversityScore } from './biodiversity'
 import { useSightingTip } from './useSightingTip'
 import { usePlantsStore } from '../plants/plantsStore'
-import { undiscoveredGardenBirds } from './birds'
+import { speciesForGroup, undiscoveredSpecies } from './speciesCatalog'
+
+const GROUPS_WITH_CATALOG: SightingGroup[] = ['wildbee', 'butterfly', 'hoverfly', 'beetle', 'bird']
+
+/** Pluralform nur für die Überschrift der "noch zu entdecken"-Listen. */
+const groupPluralLabels: Partial<Record<SightingGroup, string>> = {
+  wildbee: 'Wildbienen-Arten',
+  butterfly: 'Schmetterlings-Arten',
+  hoverfly: 'Schwebfliegen-Arten',
+  beetle: 'Käfer-Arten',
+  bird: 'Gartenvögel',
+}
 
 const store = useSightingsStore()
 const plantsStore = usePlantsStore()
@@ -21,10 +32,14 @@ const badges = computed(() => earnedAchievements(store.sightings))
 const score = computed(() => biodiversityScore(store.sightings))
 const { tip } = useSightingTip()
 
-const undiscoveredBirds = computed(() =>
-  undiscoveredGardenBirds(
-    store.sightings.filter((s) => s.group === 'bird' && s.species.trim()).map((s) => s.species),
-  ),
+const undiscoveredByGroup = computed(() =>
+  GROUPS_WITH_CATALOG.filter((group) => speciesForGroup(group).length > 0).map((group) => ({
+    group,
+    species: undiscoveredSpecies(
+      group,
+      store.sightings.filter((s) => s.group === group && s.species.trim()).map((s) => s.species),
+    ),
+  })),
 )
 
 onMounted(() => {
@@ -111,10 +126,13 @@ function removeCurrent() {
       <p>Noch keine Entdeckungen. Fotografiere Insekten oder Vögel in deinem Garten und sammle sie hier.</p>
     </div>
 
-    <details class="card undiscovered">
-      <summary>🐦 {{ undiscoveredBirds.length }} Gartenvögel noch zu entdecken</summary>
+    <details v-for="entry in undiscoveredByGroup" :key="entry.group" class="card undiscovered">
+      <summary>
+        {{ sightingGroupIcons[entry.group] }} {{ entry.species.length }} {{ groupPluralLabels[entry.group] }}
+        noch zu entdecken
+      </summary>
       <div class="chip-list">
-        <span v-for="bird in undiscoveredBirds" :key="bird.name" class="chip">{{ bird.name }}</span>
+        <span v-for="s in entry.species" :key="s.name" class="chip" :title="s.hint">{{ s.name }}</span>
       </div>
     </details>
 
