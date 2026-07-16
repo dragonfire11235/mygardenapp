@@ -10,14 +10,19 @@ import { useSightingsStore, type SightingDraft } from './sightingsStore'
 import SightingDialog from './SightingDialog.vue'
 import { earnedAchievements } from './achievements'
 import { biodiversityScore } from './biodiversity'
+import { useSightingTip } from './useSightingTip'
+import { usePlantsStore } from '../plants/plantsStore'
 
 const store = useSightingsStore()
+const plantsStore = usePlantsStore()
 const confirm = useConfirm()
 const badges = computed(() => earnedAchievements(store.sightings))
 const score = computed(() => biodiversityScore(store.sightings))
+const { tip } = useSightingTip()
 
 onMounted(() => {
   if (!store.loaded) store.load()
+  if (!plantsStore.loaded) plantsStore.load()
 })
 
 const dialogVisible = ref(false)
@@ -65,6 +70,11 @@ function removeCurrent() {
       <Button label="Neue Sichtung" icon="pi pi-plus" @click="openNew" />
     </div>
 
+    <p v-if="tip" class="tip card">💡 {{ tip.text }}</p>
+    <p v-else-if="store.sightings.length" class="tip card muted">
+      💡 Du hast schon alles fotografiert, was deine Pflanzen anlocken — weiter so!
+    </p>
+
     <div v-if="badges.length" class="badges">
       <span v-for="badge in badges" :key="badge.id" class="badge" :title="badge.description">
         {{ badge.icon }} {{ badge.label }}
@@ -99,6 +109,11 @@ function removeCurrent() {
 </template>
 
 <style scoped>
+.tip {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.9rem;
+}
+
 .badges {
   display: flex;
   flex-wrap: wrap;
