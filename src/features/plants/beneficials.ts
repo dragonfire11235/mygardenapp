@@ -7,15 +7,17 @@ export interface BeneficialGroup {
   key: keyof Beneficials
   label: string
   icon: string
+  /** Phosphor-Icon-Klasse (lumi-Design-System; Handoff: bug/butterfly/bug-beetle/bird) */
+  phIcon: string
 }
 
 export const beneficialGroups: BeneficialGroup[] = [
-  { key: 'wildbees', label: 'Wildbienen', icon: '🐝' },
-  { key: 'butterflies', label: 'Schmetterlinge', icon: '🦋' },
-  { key: 'caterpillarHost', label: 'Raupen-Futter', icon: '🐛' },
-  { key: 'hoverflies', label: 'Schwebfliegen', icon: '🪰' },
-  { key: 'beetles', label: 'Käfer', icon: '🪲' },
-  { key: 'birds', label: 'Vögel', icon: '🐦' },
+  { key: 'wildbees', label: 'Wildbienen', icon: '🐝', phIcon: 'ph-bug' },
+  { key: 'butterflies', label: 'Schmetterlinge', icon: '🦋', phIcon: 'ph-butterfly' },
+  { key: 'caterpillarHost', label: 'Raupen-Futter', icon: '🐛', phIcon: 'ph-leaf' },
+  { key: 'hoverflies', label: 'Schwebfliegen', icon: '🪰', phIcon: 'ph-bug' },
+  { key: 'beetles', label: 'Käfer', icon: '🪲', phIcon: 'ph-bug-beetle' },
+  { key: 'birds', label: 'Vögel', icon: '🐦', phIcon: 'ph-bird' },
 ]
 
 /** Teil-Score (0–3) → Text. */

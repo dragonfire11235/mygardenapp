@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Button from 'primevue/button'
-import Tag from 'primevue/tag'
 import { useConfirm } from 'primevue/useconfirm'
-import { categoryLabels, formatMonths, plantSpreadM, sunlightLabels } from '../../shared/texts'
+import { categoryColors, categoryLabels, formatMonths, plantSpreadM, sunlightLabels } from '../../shared/texts'
 import { formatDate } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
 import { useBedsStore } from '../beds/bedsStore'
@@ -27,6 +25,10 @@ const confirm = useConfirm()
 
 const plantId = computed(() => route.params.id as string)
 const plant = computed(() => plantsStore.byId.get(plantId.value) ?? null)
+
+// Kategorie-Tönung (Kategorie-Farbe mit 13 % Alpha, wie im Design-System)
+const catColor = computed(() => (plant.value ? categoryColors[plant.value.category] : 'var(--accent)'))
+const catTint = computed(() => `${catColor.value}22`)
 
 const editVisible = ref(false)
 
@@ -51,6 +53,34 @@ const companions = computed(() =>
 const plantings = computed(() => bedsStore.plantings.filter((p) => p.plantId === plantId.value))
 const activePlantings = computed(() => plantings.value.filter((p) => p.removedAt === null))
 const pastPlantings = computed(() => plantings.value.filter((p) => p.removedAt !== null))
+
+// Pflege-Kacheln (nur befüllte Werte; Icons/Farben laut Handoff)
+const careTiles = computed(() => {
+  const p = plant.value
+  if (!p) return []
+  const tiles: { icon: string; color: string; label: string; value: string }[] = []
+  if (p.wateringIntervalDays)
+    tiles.push({ icon: 'ph-drop', color: 'var(--info)', label: 'Gießen', value: `alle ${p.wateringIntervalDays} Tage` })
+  if (p.fertilizingIntervalDays)
+    tiles.push({ icon: 'ph-flask', color: 'var(--accent)', label: 'Düngen', value: `alle ${p.fertilizingIntervalDays} Tage` })
+  if (p.sunlight)
+    tiles.push({ icon: 'ph-sun', color: 'var(--warning)', label: 'Standort', value: sunlightLabels[p.sunlight] })
+  tiles.push({
+    icon: 'ph-arrows-out-line-horizontal',
+    color: 'var(--lumi-bark-500)',
+    label: 'Wuchsbreite',
+    value: `${plantSpreadM(p).toLocaleString('de-DE')} m`,
+  })
+  if (p.sowingMonths.length)
+    tiles.push({ icon: 'ph-plant', color: '#10b981', label: 'Aussaat', value: formatMonths(p.sowingMonths) })
+  if (p.harvestMonths.length)
+    tiles.push({ icon: 'ph-basket', color: '#dba842', label: 'Ernte', value: formatMonths(p.harvestMonths) })
+  if (p.bloomMonths?.length)
+    tiles.push({ icon: 'ph-flower', color: '#d946ef', label: 'Blüte', value: formatMonths(p.bloomMonths) })
+  if (p.pruningMonths?.length)
+    tiles.push({ icon: 'ph-scissors', color: '#d95f4c', label: 'Schnitt', value: formatMonths(p.pruningMonths) })
+  return tiles
+})
 
 const diaryEntries = computed(() =>
   diaryStore.sortedEntries.filter((e) => e.plantIds.includes(plantId.value)),
@@ -100,63 +130,46 @@ function removePlant() {
 
 <template>
   <div class="page">
-    <Button
-      label="Pflanzen"
-      icon="pi pi-arrow-left"
-      text
-      severity="secondary"
-      class="back-btn"
-      @click="router.push('/pflanzen')"
-    />
+    <div class="detail-head">
+      <button type="button" class="circle-glass-btn" aria-label="Zurück zu Pflanzen" @click="router.push('/pflanzen')">
+        <i class="ph-bold ph-caret-left" />
+      </button>
+      <h1 class="page-title">{{ plant?.name ?? 'Pflanze' }}</h1>
+      <div v-if="plant" class="head-actions">
+        <button type="button" class="circle-glass-btn" aria-label="Bearbeiten" title="Bearbeiten" @click="editVisible = true">
+          <i class="ph-bold ph-pencil-simple" />
+        </button>
+        <button type="button" class="circle-glass-btn head-delete" aria-label="Löschen" title="Löschen" @click="removePlant">
+          <i class="ph-bold ph-trash" />
+        </button>
+      </div>
+    </div>
 
     <template v-if="plant">
-      <div class="detail-hero card">
-        <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="hero-img" />
-        <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="hero-img" />
-        <div v-else class="hero-img hero-img-empty">🌿</div>
+      <!-- Kopfkarte -->
+      <div class="head-card">
+        <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="head-img" />
+        <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="head-img" />
+        <div v-else class="head-img head-img-empty" :style="{ background: catTint }">🌿</div>
 
-        <div class="hero-info">
-          <div class="hero-title">
-            <h1>{{ plant.name }}</h1>
-            <Tag :value="categoryLabels[plant.category]" severity="success" />
-          </div>
-          <p v-if="plant.botanicalName" class="muted botanical">{{ plant.botanicalName }}</p>
-          <div class="hero-actions">
-            <Button label="Bearbeiten" icon="pi pi-pencil" size="small" @click="editVisible = true" />
-            <Button label="Löschen" icon="pi pi-trash" size="small" severity="danger" outlined @click="removePlant" />
+        <div class="head-info">
+          <div class="head-name">{{ plant.name }}</div>
+          <div v-if="plant.botanicalName" class="head-botanical">{{ plant.botanicalName }}</div>
+          <div class="head-chips">
+            <span class="head-chip" :style="{ background: catTint, color: catColor }">{{ categoryLabels[plant.category] }}</span>
+            <span v-for="pl in activePlantings" :key="pl.id" class="head-chip chip-bed">{{ bedName(pl.bedId) }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Pflegeinfos -->
-      <section class="card">
-        <h2 class="section-title">Pflege & Eigenschaften</h2>
-        <dl class="facts">
-          <template v-if="plant.sunlight">
-            <dt>Standort</dt><dd>☀️ {{ sunlightLabels[plant.sunlight] }}</dd>
-          </template>
-          <template v-if="plant.wateringIntervalDays">
-            <dt>Gießen</dt><dd>💧 alle {{ plant.wateringIntervalDays }} Tage<span v-if="plant.wateringStartDate"> (ab {{ formatDate(plant.wateringStartDate) }})</span></dd>
-          </template>
-          <template v-if="plant.fertilizingIntervalDays">
-            <dt>Düngen</dt><dd>🧪 alle {{ plant.fertilizingIntervalDays }} Tage</dd>
-          </template>
-          <template v-if="plant.sowingMonths.length">
-            <dt>Aussaat</dt><dd>🌱 {{ formatMonths(plant.sowingMonths) }}</dd>
-          </template>
-          <template v-if="plant.harvestMonths.length">
-            <dt>Ernte</dt><dd>🧺 {{ formatMonths(plant.harvestMonths) }}</dd>
-          </template>
-          <template v-if="plant.bloomMonths?.length">
-            <dt>Blüte</dt><dd>🌸 {{ formatMonths(plant.bloomMonths) }}</dd>
-          </template>
-          <template v-if="plant.pruningMonths?.length">
-            <dt>Schnitt</dt><dd>✂️ {{ formatMonths(plant.pruningMonths) }}</dd>
-          </template>
-          <dt>Wuchsbreite</dt><dd>↔️ {{ plantSpreadM(plant).toLocaleString('de-DE') }} m</dd>
-        </dl>
-        <p v-if="plant.notes" class="notes">{{ plant.notes }}</p>
-      </section>
+      <!-- Pflege-Kacheln -->
+      <div class="care-grid">
+        <div v-for="tile in careTiles" :key="tile.label" class="care-tile">
+          <div class="care-icon" :style="{ color: tile.color }"><i class="ph-fill" :class="tile.icon" /></div>
+          <div class="care-label">{{ tile.label }}</div>
+          <div class="care-value">{{ tile.value }}</div>
+        </div>
+      </div>
 
       <!-- Nützlinge (aus dem Katalog) -->
       <section v-if="catalogEntry?.beneficialScore" class="card">
@@ -164,13 +177,14 @@ function removePlant() {
           Nützlinge
           <span class="ben-badge">{{ scoreLabel(catalogEntry.beneficialScore) }} · {{ catalogEntry.beneficialScore }}/5</span>
         </h2>
-        <ul class="ben-list">
-          <li v-for="g in beneficialGroups" :key="g.group.key">
-            <span class="ben-ico">{{ g.group.icon }}</span>
-            <span class="ben-name">{{ g.group.label }}</span>
-            <span class="muted">{{ levelLabel(g.score) }}</span>
-          </li>
-        </ul>
+        <div class="ben-list">
+          <div v-for="g in beneficialGroups" :key="g.group.key" class="ben-row">
+            <div class="icon-tile ben-tile"><i class="ph-fill" :class="g.group.phIcon" /></div>
+            <div class="ben-name">{{ g.group.label }}</div>
+            <div class="ben-track"><div class="ben-fill" :style="{ width: `${Math.round((g.score / 3) * 100)}%` }" /></div>
+            <div class="ben-score">{{ levelLabel(g.score) }}</div>
+          </div>
+        </div>
         <p class="muted ben-note">
           Schätzung aus Interaktionsdaten (GloBI) — je nach Art unterschiedlich gut belegt.
         </p>
@@ -187,6 +201,12 @@ function removePlant() {
           <span class="comp-tag comp-bad">✗ Lieber nicht neben</span>
           <span>{{ companions.bad.map((c) => c.name).join(', ') }}</span>
         </div>
+      </section>
+
+      <!-- Notizen -->
+      <section v-if="plant.notes" class="card">
+        <h2 class="section-title">Notizen</h2>
+        <p class="notes">{{ plant.notes }}</p>
       </section>
 
       <!-- In welchen Beeten -->
@@ -219,7 +239,9 @@ function removePlant() {
       <section class="card">
         <div class="section-head">
           <h2 class="section-title">Tagebuch</h2>
-          <Button label="Eintrag" icon="pi pi-plus" size="small" severity="secondary" outlined @click="openDiaryEntry(null)" />
+          <button type="button" class="pill-btn-ghost" @click="openDiaryEntry(null)">
+            <i class="ph-bold ph-plus" /> Eintrag
+          </button>
         </div>
         <ul v-if="diaryEntries.length" class="link-list">
           <li v-for="entry in diaryEntries" :key="entry.id">
@@ -249,170 +271,209 @@ function removePlant() {
     </template>
 
     <div v-else-if="plantsStore.loaded" class="empty-state">
-      <i class="pi pi-book" />
+      <i class="ph-fill ph-potted-plant" />
       <p>Diese Pflanze gibt es nicht (mehr).</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.back-btn {
-  margin-bottom: 0.5rem;
-  padding-left: 0;
-}
-
-.detail-hero {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  margin-bottom: 0.85rem;
-}
-
-.detail-hero > .hero-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.hero-img-empty {
+.detail-head {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  background: var(--app-bg);
+  gap: 12px;
 }
-
-.hero-info {
-  min-width: 0;
+.detail-head .page-title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.head-actions {
+  display: flex;
+  gap: 8px;
+}
+.head-delete {
+  color: var(--danger);
 }
 
-.hero-title {
+/* Kopfkarte (Radius 32) */
+.head-card {
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  box-shadow: var(--shadow-glow), var(--shadow-card);
   display: flex;
+  gap: 18px;
   align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
 }
 
-.hero-title h1 {
-  font-size: 1.5rem;
+.head-card > .head-img {
+  width: 84px;
+  height: 84px;
+  border-radius: 28px;
+  object-fit: cover;
+  flex: none;
+}
+.head-img-empty {
+  display: grid;
+  place-items: center;
+  font-size: 46px;
 }
 
-.botanical {
+.head-info {
+  min-width: 0;
+}
+.head-name {
+  font-size: 19px;
+  font-weight: 800;
+}
+.head-botanical {
+  font-size: 13px;
+  color: var(--text-3);
   font-style: italic;
-  margin: 0.2rem 0 0.75rem;
 }
-
-.hero-actions {
+.head-chips {
   display: flex;
-  gap: 0.5rem;
+  gap: 6px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
-
-.card {
-  margin-bottom: 0.85rem;
+.head-chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+}
+.chip-bed {
+  background: var(--surface-tint);
+  color: var(--text-2);
 }
 
-.section-title {
-  font-size: 1rem;
-  margin-bottom: 0.6rem;
+/* Pflege-Kacheln */
+.care-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.care-tile {
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 20px;
+  padding: 14px;
+  box-shadow: var(--shadow-glow);
+}
+.care-icon {
+  font-size: 20px;
+}
+.care-label {
+  font-size: 13px;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.care-value {
+  font-weight: 800;
 }
 
 .sub-title {
-  font-size: 0.85rem;
-  color: var(--app-text-muted);
-  margin: 0.75rem 0 0.4rem;
-}
-
-.facts {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.35rem 1rem;
-  margin: 0;
-}
-
-.facts dt {
-  font-weight: 600;
-  color: var(--app-text-muted);
-}
-
-.facts dd {
-  margin: 0;
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 12px 0 6px;
 }
 
 .notes {
-  margin: 0.75rem 0 0;
+  margin: 0;
   white-space: pre-wrap;
+  font-size: 14px;
+  color: var(--text-2);
 }
 
 .ben-badge {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #fff;
-  background: #16a34a;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
-  margin-left: 0.5rem;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  margin-left: 8px;
   vertical-align: middle;
 }
 
 .ben-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 10px;
 }
-
-.ben-list li {
+.ben-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 12px;
 }
-
-.ben-ico {
-  font-size: 1.1rem;
-  width: 1.5rem;
-  text-align: center;
+.ben-tile {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 18px;
 }
-
 .ben-name {
   flex: 1;
   min-width: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+.ben-track {
+  width: 110px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--border-soft);
+  overflow: hidden;
+}
+.ben-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+}
+.ben-score {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-2);
+  min-width: 44px;
+  text-align: right;
 }
 
 .ben-note {
-  margin: 0.6rem 0 0;
-  font-size: 0.78rem;
+  margin: 10px 0 0;
+  font-size: 12px;
 }
 
 .comp-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: baseline;
-  margin-bottom: 0.4rem;
+  margin-bottom: 6px;
   flex-wrap: wrap;
+  font-size: 14px;
 }
-
 .comp-tag {
-  font-size: 0.78rem;
-  font-weight: 600;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
   white-space: nowrap;
 }
-
 .comp-good {
-  background: rgba(22, 163, 74, 0.15);
-  color: #16a34a;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
-
 .comp-bad {
-  background: rgba(220, 38, 38, 0.15);
-  color: #dc2626;
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .link-list {
@@ -421,21 +482,23 @@ function removePlant() {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
 }
 
 .row-link {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.35rem 0;
+  gap: 12px;
+  padding: 9px 2px;
   color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 14px;
 }
-
 .row-link:hover {
-  color: var(--app-accent);
+  color: var(--accent-strong);
+}
+.link-list li:last-child .row-link {
+  border-bottom: none;
 }
 
 .row-btn {
@@ -452,11 +515,6 @@ function removePlant() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
-}
-
-.section-head .section-title {
-  margin-bottom: 0;
+  gap: 8px;
 }
 </style>
