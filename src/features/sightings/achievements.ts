@@ -17,6 +17,9 @@ const DEFINITIONS: Badge[] = [
   { id: 'drei-gruppen', label: 'Vielfalt', icon: '🌈', description: 'Tiere aus drei verschiedenen Gruppen entdeckt.' },
 ]
 
+/** Alle definierten Abzeichen (für die Anzeige verdient/gesperrt). */
+export const allAchievements: Badge[] = DEFINITIONS
+
 /** Distinkte, nicht-leere Artennamen je Gruppe. */
 function speciesCountByGroup(sightings: Sighting[]): Map<string, number> {
   const map = new Map<string, Set<string>>()

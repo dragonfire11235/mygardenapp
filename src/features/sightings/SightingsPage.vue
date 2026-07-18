@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import Button from 'primevue/button'
 import { useConfirm } from 'primevue/useconfirm'
 import type { Sighting, SightingGroup } from '../../data'
 import { sightingGroupIcons, sightingGroupLabels } from '../../shared/texts'
@@ -8,7 +7,7 @@ import { formatDate } from '../../shared/dates'
 import PhotoImg from '../../shared/PhotoImg.vue'
 import { useSightingsStore, type SightingDraft } from './sightingsStore'
 import SightingDialog from './SightingDialog.vue'
-import { earnedAchievements } from './achievements'
+import { allAchievements, earnedAchievements } from './achievements'
 import { biodiversityScore } from './biodiversity'
 import { useSightingTip } from './useSightingTip'
 import { usePlantsStore } from '../plants/plantsStore'
@@ -32,6 +31,11 @@ const confirm = useConfirm()
 const badges = computed(() => earnedAchievements(store.sightings))
 const score = computed(() => biodiversityScore(store.sightings))
 const { tip } = useSightingTip()
+
+// Score-Ring: Umfang bei r=41 ≈ 258 (wie im Prototyp)
+const RING = 258
+const ringOffset = computed(() => Math.round(RING * (1 - score.value.score / 100)))
+const earnedIds = computed(() => new Set(badges.value.map((b) => b.id)))
 
 const undiscoveredByGroup = computed(() =>
   GROUPS_WITH_CATALOG.filter((group) => speciesForGroup(group).length > 0).map((group) => ({
@@ -87,21 +91,50 @@ function removeCurrent() {
   <div class="page">
     <div class="page-header">
       <div>
-        <h1>Entdeckungen</h1>
-        <span class="muted">{{ store.sightings.length }} Sichtungen · Biodiversitäts-Score {{ score.score }}/100</span>
+        <h1 class="page-title">Entdeckungen</h1>
+        <span class="muted">{{ store.sightings.length }} Sichtungen</span>
       </div>
-      <Button label="Neue Sichtung" icon="pi pi-plus" @click="openNew" />
+      <button type="button" class="camera-btn" @click="openNew">
+        <i class="ph-fill ph-camera" /> Entdeckung
+      </button>
     </div>
 
-    <p v-if="tip" class="tip card">💡 {{ tip.text }}</p>
-    <p v-else-if="store.sightings.length" class="tip card muted">
-      💡 Du hast schon alles fotografiert, was deine Pflanzen anlocken — weiter so!
-    </p>
+    <!-- Score-Hero (dunkles Glas) mit Fortschrittsring -->
+    <div class="score-hero deep-card">
+      <svg width="96" height="96" viewBox="0 0 96 96" class="score-ring">
+        <circle cx="48" cy="48" r="41" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="9" />
+        <circle
+          cx="48" cy="48" r="41" fill="none" stroke="#b5d49a" stroke-width="9"
+          stroke-linecap="round" :stroke-dasharray="RING" :stroke-dashoffset="ringOffset"
+          transform="rotate(-90 48 48)"
+        />
+        <text x="48" y="52" text-anchor="middle" font-size="24" font-weight="800" fill="#f4f8ee" font-family="Nunito">{{ score.score }}</text>
+        <text x="48" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="rgba(244,248,238,0.7)" font-family="Nunito">von 100</text>
+      </svg>
+      <div>
+        <div class="score-title">Biodiversitäts-Score</div>
+        <div class="score-sub">
+          {{ tip ? tip.text : score.score >= 50 ? 'Dein Garten summt!' : 'Fotografiere Insekten und Vögel — jede Entdeckung zählt.' }}
+        </div>
+      </div>
+    </div>
 
-    <div v-if="badges.length" class="badges">
-      <span v-for="badge in badges" :key="badge.id" class="badge" :title="badge.description">
-        {{ badge.icon }} {{ badge.label }}
-      </span>
+    <!-- Abzeichen: verdient in Farbe, gesperrt ausgegraut -->
+    <div>
+      <h2 class="section-title badge-head">Abzeichen</h2>
+      <div class="badge-grid">
+        <div
+          v-for="badge in allAchievements"
+          :key="badge.id"
+          class="badge-card"
+          :class="{ 'is-locked': !earnedIds.has(badge.id) }"
+          :title="badge.description"
+        >
+          <div class="badge-circle">{{ badge.icon }}</div>
+          <div class="badge-label">{{ badge.label }}</div>
+          <div class="badge-sub">{{ earnedIds.has(badge.id) ? 'verdient' : 'noch gesperrt' }}</div>
+        </div>
+      </div>
     </div>
 
     <div v-if="store.byGroup.size" class="groups">
@@ -123,7 +156,7 @@ function removeCurrent() {
     </div>
 
     <div v-else class="empty-state">
-      <i class="pi pi-camera" />
+      <i class="ph-fill ph-binoculars" />
       <p>Noch keine Entdeckungen. Fotografiere Insekten oder Vögel in deinem Garten und sammle sie hier.</p>
     </div>
 
@@ -142,37 +175,98 @@ function removeCurrent() {
 </template>
 
 <style scoped>
-.tip {
-  margin: 0 0 0.9rem;
-  padding: 0.6rem 0.9rem;
-}
-
-.badges {
+.camera-btn {
+  border: none;
+  cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 0.9rem;
+  align-items: center;
+  gap: 6px;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.camera-btn:hover {
+  filter: brightness(var(--hover-brightness));
+}
+.camera-btn i {
+  font-size: 16px;
 }
 
-.badge {
-  background: var(--app-accent-soft, rgba(22, 163, 74, 0.12));
-  color: var(--app-accent);
-  border-radius: 999px;
-  padding: 0.25rem 0.7rem;
-  font-size: 0.85rem;
+.score-hero {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.score-ring {
+  flex: none;
+}
+.score-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+.score-sub {
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.badge-head {
+  margin: 0 0 10px;
+}
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.badge-card {
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 20px;
+  padding: 14px 10px;
+  text-align: center;
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+}
+.badge-card.is-locked {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+}
+.badge-circle {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+}
+.badge-label {
+  font-size: 12px;
+  font-weight: 800;
+}
+.badge-sub {
+  font-size: 11px;
+  color: var(--text-3);
   font-weight: 600;
 }
 
 .groups {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 14px;
   max-width: 640px;
 }
 
 .group-title {
-  margin: 0 0 0.6rem;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .photo-grid {
@@ -196,11 +290,12 @@ function removeCurrent() {
 
 .photo-tile :deep(.photo-img) {
   height: 90px;
-  border-radius: var(--app-radius);
+  border-radius: 16px;
 }
 
 .photo-caption {
-  font-size: 0.8rem;
+  font-size: 12px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
