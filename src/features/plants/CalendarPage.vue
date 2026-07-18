@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import SelectButton from 'primevue/selectbutton'
 import type { Plant } from '../../data'
 import { categoryColors, monthNamesShort } from '../../shared/texts'
 import { usePlantsStore } from './plantsStore'
@@ -16,7 +15,7 @@ const mode = ref<'bloom' | 'pruning'>('bloom')
 const modeOptions = [
   { label: '🌸 Blüte', value: 'bloom' },
   { label: '✂️ Schnitt', value: 'pruning' },
-]
+] as const
 const selector = computed<MonthSelector>(() =>
   mode.value === 'bloom' ? (p) => p.bloomMonths : (p) => p.pruningMonths,
 )
@@ -79,8 +78,17 @@ function rows(plants: Plant[]) {
 <template>
   <div class="page">
     <div class="page-header">
-      <h1>Kalender</h1>
-      <SelectButton v-model="mode" :options="modeOptions" option-label="label" option-value="value" :allow-empty="false" aria-label="Modus" />
+      <h1 class="page-title">Kalender</h1>
+      <div class="segmented" role="group" aria-label="Modus">
+        <button
+          v-for="opt in modeOptions"
+          :key="opt.value"
+          type="button"
+          class="segment"
+          :class="{ 'is-active': mode === opt.value }"
+          @click="mode = opt.value"
+        >{{ opt.label }}</button>
+      </div>
     </div>
 
     <div v-if="groups.length" class="cal">
@@ -100,7 +108,7 @@ function rows(plants: Plant[]) {
         <!-- Beet-Balken: zugeklappt = Übersichtsleiste -->
         <button class="grid banner" :aria-expanded="isOpen(group.id)" @click="toggle(group.id)">
           <span class="namecol banner-name">
-            <i class="pi" :class="isOpen(group.id) ? 'pi-chevron-down' : 'pi-chevron-right'" />
+            <i class="ph-bold" :class="isOpen(group.id) ? 'ph-caret-down' : 'ph-caret-right'" />
             <span class="bed-name">{{ group.name }}</span>
             <span class="count muted">{{ group.plants.length }}</span>
           </span>
@@ -134,7 +142,7 @@ function rows(plants: Plant[]) {
     </div>
 
     <div v-else class="empty-state">
-      <i class="pi pi-calendar" />
+      <i class="ph-fill ph-calendar-blank" />
       <p v-if="mode === 'bloom'">Noch keine Blütezeiten hinterlegt. Übernimm Pflanzen aus dem Katalog oder trage „Blüte-Monate" ein.</p>
       <p v-else>Noch keine Schnittzeiten hinterlegt. Übernimm Gehölze aus dem Katalog oder trage „Schnitt-Monate" ein.</p>
     </div>
@@ -174,23 +182,23 @@ function rows(plants: Plant[]) {
 .head {
   position: sticky;
   top: 0;
-  background: var(--app-bg);
+  background: var(--bg-app);
   z-index: 1;
   padding-bottom: 2px;
 }
 
 .cell {
   height: 20px;
-  border-radius: 3px;
-  background: var(--app-surface);
+  border-radius: 6px;
+  background: var(--surface-tint);
 }
 
 .cell.on {
-  background: var(--app-accent);
+  background: var(--accent);
 }
 
 .cell.now {
-  outline: 1.5px solid var(--app-accent);
+  outline: 1.5px solid var(--accent);
   outline-offset: -1px;
 }
 
@@ -198,36 +206,41 @@ function rows(plants: Plant[]) {
   height: auto;
   background: none;
   text-align: center;
-  font-size: 0.72rem;
-  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-3);
 }
 
 .head-cell.now {
-  color: var(--app-accent);
-  font-weight: 700;
+  color: var(--accent-strong);
   outline: none;
 }
 
 .banner {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  padding: 0.4rem 0.5rem;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-glow);
+  padding: 0.5rem 0.6rem;
   font: inherit;
   color: inherit;
   cursor: pointer;
   text-align: left;
+  transition: filter var(--dur-fast) var(--ease-out);
 }
 
 .banner:hover {
-  border-color: var(--app-accent);
+  filter: brightness(var(--hover-brightness));
 }
 
 .banner-name {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 14px;
   overflow: hidden;
 }
 
@@ -238,11 +251,40 @@ function rows(plants: Plant[]) {
 }
 
 .count {
-  background: var(--app-bg);
-  border-radius: 999px;
-  padding: 0.02rem 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  background: var(--surface-tint);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Segmented Control (Glas-Pille) */
+.segmented {
+  display: flex;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  box-shadow: var(--shadow-glow);
+  border: 1px solid var(--border-soft);
+}
+.segment {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-2);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.segment.is-active {
+  background: var(--surface-raised);
+  color: var(--text-1);
+  box-shadow: var(--shadow-card);
 }
 
 .rows {
@@ -260,7 +302,7 @@ function rows(plants: Plant[]) {
 }
 
 .row:hover {
-  background: var(--app-surface);
+  background: var(--surface-tint);
 }
 
 .plant-name {
@@ -272,6 +314,6 @@ function rows(plants: Plant[]) {
 }
 
 .row:hover .plant-name {
-  color: var(--app-accent);
+  color: var(--accent-strong);
 }
 </style>
