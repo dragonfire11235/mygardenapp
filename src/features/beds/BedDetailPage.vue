@@ -115,34 +115,32 @@ function endPlanting(plantingId: string, name: string) {
 
 <template>
   <div class="page">
-    <Button
-      label="Beete"
-      icon="pi pi-arrow-left"
-      text
-      severity="secondary"
-      class="back-btn"
-      @click="router.push('/beete')"
-    />
+    <div class="detail-head-row">
+      <button type="button" class="circle-glass-btn" aria-label="Zurück zu Beeten" @click="router.push('/beete')">
+        <i class="ph-bold ph-caret-left" />
+      </button>
+      <div class="head-titles">
+        <h1 class="page-title">{{ bed?.name ?? 'Beet' }}</h1>
+        <div v-if="bed" class="muted head-sub">
+          {{ [bed.location, sizeLabel()].filter(Boolean).join(' · ') || 'Kreise = Wuchsbreite' }}
+        </div>
+      </div>
+      <div v-if="bed" class="head-actions">
+        <button type="button" class="circle-glass-btn" aria-label="Bearbeiten" title="Bearbeiten" @click="editVisible = true">
+          <i class="ph-bold ph-pencil-simple" />
+        </button>
+        <button type="button" class="circle-glass-btn head-delete" aria-label="Löschen" title="Löschen" @click="removeBed">
+          <i class="ph-bold ph-trash" />
+        </button>
+      </div>
+    </div>
 
     <template v-if="bed">
-      <div class="card detail-head">
-        <PhotoImg v-if="bed.photoId" :photo-id="bed.photoId" class="bed-banner" />
-        <div class="head-row">
-          <div>
-            <h1>{{ bed.name }}</h1>
-            <p class="muted">{{ [bed.location, sizeLabel()].filter(Boolean).join(' · ') || ' ' }}</p>
-          </div>
-          <div class="head-actions">
-            <Button label="Bearbeiten" icon="pi pi-pencil" size="small" @click="editVisible = true" />
-            <Button label="Löschen" icon="pi pi-trash" size="small" severity="danger" outlined @click="removeBed" />
-          </div>
-        </div>
-        <p v-if="bed.notes" class="notes">{{ bed.notes }}</p>
-      </div>
+      <PhotoImg v-if="bed.photoId" :photo-id="bed.photoId" class="bed-hero-img" />
+      <p v-if="bed.notes" class="card notes">{{ bed.notes }}</p>
 
       <!-- Beetplaner -->
       <section class="planner-block">
-        <h2 class="section-title"><i class="pi pi-th-large" /> Beetplaner</h2>
         <BedPlanner :bed="bed" />
       </section>
 
@@ -150,7 +148,9 @@ function endPlanting(plantingId: string, name: string) {
       <section class="card">
         <div class="section-head">
           <h2 class="section-title">Bepflanzung</h2>
-          <Button label="Pflanze einsetzen" icon="pi pi-plus" size="small" severity="secondary" outlined @click="plantingVisible = true" />
+          <button type="button" class="pill-btn-ghost" @click="plantingVisible = true">
+            <i class="ph-bold ph-plus" /> Pflanze einsetzen
+          </button>
         </div>
         <ul v-if="activePlantings.length" class="link-list">
           <li v-for="pl in activePlantings" :key="pl.id" class="planting-row">
@@ -216,7 +216,9 @@ function endPlanting(plantingId: string, name: string) {
       <section class="card">
         <div class="section-head">
           <h2 class="section-title">Tagebuch</h2>
-          <Button label="Eintrag" icon="pi pi-plus" size="small" severity="secondary" outlined @click="openDiaryEntry(null)" />
+          <button type="button" class="pill-btn-ghost" @click="openDiaryEntry(null)">
+            <i class="ph-bold ph-plus" /> Eintrag
+          </button>
         </div>
         <ul v-if="diaryEntries.length" class="link-list">
           <li v-for="entry in diaryEntries" :key="entry.id">
@@ -241,26 +243,49 @@ function endPlanting(plantingId: string, name: string) {
     </template>
 
     <div v-else-if="store.loaded" class="empty-state">
-      <i class="pi pi-table" />
+      <i class="ph-fill ph-grid-four" />
       <p>Dieses Beet gibt es nicht (mehr).</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-.back-btn {
-  margin-bottom: 0.5rem;
-  padding-left: 0;
+.detail-head-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.head-titles {
+  flex: 1;
+  min-width: 0;
+}
+.head-sub {
+  font-size: 13px;
+}
+.head-actions {
+  display: flex;
+  gap: 8px;
+}
+.head-delete {
+  color: var(--danger);
+}
+
+.bed-hero-img {
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius-l);
+  object-fit: cover;
+  box-shadow: var(--shadow-card);
 }
 
 .ben-badge {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #fff;
-  background: #16a34a;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
-  margin-left: 0.5rem;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  margin-left: 8px;
   vertical-align: middle;
 }
 
@@ -306,65 +331,24 @@ function endPlanting(plantingId: string, name: string) {
 }
 
 .comp-list .comp-bad {
-  color: #dc2626;
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .comp-list .comp-good {
-  color: #16a34a;
-}
-
-.detail-head {
-  margin-bottom: 0.85rem;
-}
-
-.card > .bed-banner {
-  margin: -1rem -1rem 0.75rem;
-  width: calc(100% + 2rem);
-  height: 160px;
-  border-radius: var(--app-radius) var(--app-radius) 0 0;
-}
-
-.head-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.head-row h1 {
-  font-size: 1.5rem;
-}
-
-.head-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  color: var(--accent-strong);
+  font-weight: 600;
 }
 
 .notes {
-  margin: 0.75rem 0 0;
+  margin: 0;
   white-space: pre-wrap;
-}
-
-.planner-block {
-  margin-bottom: 0.85rem;
-}
-
-.card {
-  margin-bottom: 0.85rem;
+  font-size: 14px;
+  color: var(--text-2);
 }
 
 .section-title {
-  font-size: 1rem;
-  margin-bottom: 0.6rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-title .pi {
-  color: var(--app-accent);
+  margin-bottom: 12px;
 }
 
 .section-head {
@@ -381,9 +365,9 @@ function endPlanting(plantingId: string, name: string) {
 }
 
 .sub-title {
-  font-size: 0.85rem;
-  color: var(--app-text-muted);
-  margin: 0.75rem 0 0.4rem;
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 12px 0 6px;
 }
 
 .link-list {
@@ -406,15 +390,16 @@ function endPlanting(plantingId: string, name: string) {
   min-width: 0;
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.35rem 0;
+  gap: 12px;
+  padding: 9px 2px;
   color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 14px;
 }
 
 .row-link:hover {
-  color: var(--app-accent);
+  color: var(--accent-strong);
 }
 
 .row-btn {

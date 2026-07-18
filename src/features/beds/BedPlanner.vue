@@ -80,14 +80,14 @@ const pxPerMeter = computed(() => {
 
 const canvasHeightPx = computed(() => (props.bed.heightM ?? 0) * pxPerMeter.value)
 
-/** Rasterlinien alle 0,5 m */
+/** Rasterlinien alle 0,5 m (lumi: dezente Linien in --border-soft-Optik) */
 const gridStyle = computed(() => {
   const step = 0.5 * pxPerMeter.value
   if (!step) return {}
   return {
     backgroundImage:
-      'linear-gradient(to right, rgba(22,163,74,0.18) 1px, transparent 1px), ' +
-      'linear-gradient(to bottom, rgba(22,163,74,0.18) 1px, transparent 1px)',
+      'linear-gradient(to right, rgba(74,107,58,0.14) 1px, transparent 1px), ' +
+      'linear-gradient(to bottom, rgba(74,107,58,0.14) 1px, transparent 1px)',
     backgroundSize: `${step}px ${step}px`,
   }
 })
@@ -201,7 +201,7 @@ function circleStyle(plant: Plant, x: number, y: number) {
     top: `${y * pxPerMeter.value - d / 2}px`,
     width: `${d}px`,
     height: `${d}px`,
-    background: `${color}55`,
+    background: `${color}cc`,
     borderColor: color,
   }
 }
@@ -567,18 +567,20 @@ function removeSelected() {
 .month {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--app-border);
-  background: var(--app-surface);
-  border-radius: 6px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-card);
+  border-radius: 8px;
   padding: 0.3rem 0;
   font: inherit;
   font-size: 0.7rem;
-  color: var(--app-text-muted);
+  font-weight: 700;
+  color: var(--text-3);
   cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
 }
 
 .month:hover {
-  border-color: var(--app-accent);
+  border-color: var(--accent);
 }
 
 .month.active {
@@ -608,14 +610,20 @@ function removeSelected() {
   align-items: center;
   gap: 0.4rem;
   border: 1.5px solid;
-  border-radius: 999px;
-  background: var(--app-surface);
-  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-glow);
+  padding: 0.3rem 0.8rem;
   font: inherit;
-  font-size: 0.85rem;
-  cursor: grab;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
   user-select: none;
   cursor: pointer;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.chip:hover {
+  filter: brightness(var(--hover-brightness));
 }
 
 .chip-dot {
@@ -632,9 +640,9 @@ function removeSelected() {
 .canvas {
   position: relative;
   width: 100%;
-  background-color: #f0f7ee;
-  border: 2px solid #a3b899;
-  border-radius: 8px;
+  background-color: var(--surface-tint);
+  border: 1px dashed var(--border-soft);
+  border-radius: 20px;
   overflow: hidden;
   touch-action: none;
   user-select: none;
@@ -643,7 +651,7 @@ function removeSelected() {
 .circle {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid;
+  border: 2.5px solid;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -651,6 +659,11 @@ function removeSelected() {
   font: inherit;
   cursor: grab;
   overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur-fast) var(--ease-spring), opacity 0.2s, box-shadow 0.2s;
+}
+.circle:hover {
+  transform: scale(1.06);
 }
 
 .circle:active {
@@ -658,14 +671,10 @@ function removeSelected() {
 }
 
 .circle-selected {
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.5);
+  box-shadow: 0 0 0 3px rgba(95, 140, 74, 0.55);
 }
 
 /* Blüh-Timeline: blühende Pflanzen leuchten, andere treten zurück */
-.circle {
-  transition: opacity 0.2s, box-shadow 0.2s;
-}
-
 .circle-dimmed {
   opacity: 0.22;
 }
@@ -686,10 +695,10 @@ function removeSelected() {
 }
 
 .circle-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--app-text);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   pointer-events: none;
   white-space: nowrap;
   overflow: hidden;
@@ -714,10 +723,10 @@ function removeSelected() {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--app-border);
-  border-radius: 10px;
-  background: var(--app-surface);
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: var(--surface-card);
   font: inherit;
   color: inherit;
   cursor: pointer;
@@ -725,7 +734,7 @@ function removeSelected() {
 }
 
 .picker-row:hover {
-  border-color: var(--app-accent);
+  border-color: var(--accent);
 }
 
 .picker-name {
@@ -751,9 +760,11 @@ function removeSelected() {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--app-border);
-  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-raised);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   margin-bottom: 0.5rem;
 }
 
