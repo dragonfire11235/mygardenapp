@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
-import Tag from 'primevue/tag'
 import type { Plant, PlantCategory } from '../../data'
 import Select from 'primevue/select'
 import { categoryColors, categoryLabels, formatMonths, sunlightLabels } from '../../shared/texts'
@@ -37,6 +35,11 @@ const sortOptions = [
   { label: 'Name', value: 'name' },
   { label: 'Standort', value: 'standort' },
 ]
+
+// Kategorie-Tönung wie im Design-System: Kategorie-Farbe mit 13 % Alpha
+function tint(category: PlantCategory): string {
+  return `${categoryColors[category]}22`
+}
 
 const filteredPlants = computed(() => {
   const q = filter.value.trim().toLowerCase()
@@ -117,18 +120,24 @@ async function save(draft: PlantDraft, bedIds: string[]) {
   <div class="page">
     <div class="page-header">
       <div>
-        <h1>Pflanzen</h1>
+        <h1 class="page-title">Pflanzen</h1>
         <span class="muted">{{ store.plants.length }} in der Bibliothek</span>
       </div>
       <div class="header-actions">
-        <Button label="Katalog" icon="pi pi-book" severity="secondary" outlined @click="catalogVisible = true" />
-        <Button label="Online suchen" icon="pi pi-globe" severity="secondary" outlined @click="trefleVisible = true" />
-        <Button label="Neue Pflanze" icon="pi pi-plus" @click="openNew" />
+        <button type="button" class="pill-btn-ghost" @click="trefleVisible = true">
+          <i class="ph-bold ph-globe" /> Online suchen
+        </button>
+        <button type="button" class="round-icon-btn" aria-label="Neue Pflanze" @click="openNew">
+          <i class="ph-bold ph-plus" />
+        </button>
       </div>
     </div>
 
     <div class="toolbar">
-      <InputText v-model="filter" placeholder="Bibliothek durchsuchen …" class="filter-input" />
+      <div class="search-field">
+        <i class="ph-bold ph-magnifying-glass" />
+        <InputText v-model="filter" placeholder="Pflanze suchen …" unstyled class="search-input" />
+      </div>
       <div class="sort-field">
         <label for="plant-sort" class="muted">Sortieren</label>
         <Select
@@ -145,51 +154,56 @@ async function save(draft: PlantDraft, bedIds: string[]) {
       <section v-for="group in groupedPlants" :key="group.category" class="category-group">
         <button
           class="category-banner"
-          :style="{ borderLeftColor: group.color }"
           :aria-expanded="isOpen(group.category)"
           @click="toggle(group.category)"
         >
           <span class="cat-dot" :style="{ background: group.color }" />
           <span class="cat-label">{{ group.label }}</span>
-          <span class="cat-count muted">{{ group.plants.length }}</span>
-          <i class="pi cat-chevron" :class="isOpen(group.category) ? 'pi-chevron-down' : 'pi-chevron-right'" />
+          <span class="cat-count">{{ group.plants.length }}</span>
+          <i class="ph-bold cat-chevron" :class="isOpen(group.category) ? 'ph-caret-down' : 'ph-caret-right'" />
         </button>
 
-        <div v-show="isOpen(group.category)" class="card-grid category-cards">
-          <button v-for="plant in group.plants" :key="plant.id" class="card plant-card" @click="openDetail(plant)">
+        <div v-show="isOpen(group.category)" class="plant-grid">
+          <button v-for="plant in group.plants" :key="plant.id" class="plant-card" @click="openDetail(plant)">
             <PhotoImg v-if="plant.photoId" :photo-id="plant.photoId" class="plant-img" />
             <img v-else-if="plant.imageUrl" :src="plant.imageUrl" alt="" class="plant-img" loading="lazy" />
-            <div v-else class="plant-img plant-img-empty">🌿</div>
-            <div class="plant-info">
-              <div class="plant-title">
-                <strong>{{ plant.name }}</strong>
-                <Tag :value="categoryLabels[plant.category]" severity="success" />
-              </div>
-              <span v-if="plant.botanicalName" class="muted plant-botanical">{{ plant.botanicalName }}</span>
-              <div class="plant-care muted">
-                <span v-if="plant.wateringIntervalDays">💧 alle {{ plant.wateringIntervalDays }} Tage</span>
-                <span v-if="plant.fertilizingIntervalDays">🧪 alle {{ plant.fertilizingIntervalDays }} Tage</span>
-                <span v-if="plant.sunlight">☀️ {{ sunlightLabels[plant.sunlight] }}</span>
-              </div>
-              <div v-if="plant.sowingMonths.length || plant.harvestMonths.length" class="plant-care muted">
-                <span v-if="plant.sowingMonths.length">🌱 {{ formatMonths(plant.sowingMonths) }}</span>
-                <span v-if="plant.harvestMonths.length">🧺 {{ formatMonths(plant.harvestMonths) }}</span>
-              </div>
-              <PlantBeneficialBadge v-if="plant.botanicalName" :botanical-name="plant.botanicalName" />
+            <div v-else class="plant-img plant-img-empty" :style="{ background: tint(plant.category) }">🌿</div>
+            <div class="plant-name">{{ plant.name }}</div>
+            <div v-if="plant.botanicalName" class="plant-botanical">{{ plant.botanicalName }}</div>
+            <div class="plant-care">
+              <span v-if="plant.wateringIntervalDays" class="plant-water">
+                <i class="ph-fill ph-drop" />alle {{ plant.wateringIntervalDays }} Tage
+              </span>
+              <span v-if="plant.sunlight">☀️ {{ sunlightLabels[plant.sunlight] }}</span>
             </div>
+            <div v-if="plant.sowingMonths.length || plant.harvestMonths.length" class="plant-care">
+              <span v-if="plant.sowingMonths.length">🌱 {{ formatMonths(plant.sowingMonths) }}</span>
+              <span v-if="plant.harvestMonths.length">🧺 {{ formatMonths(plant.harvestMonths) }}</span>
+            </div>
+            <PlantBeneficialBadge v-if="plant.botanicalName" :botanical-name="plant.botanicalName" />
           </button>
         </div>
       </section>
     </div>
 
     <div v-else class="empty-state">
-      <i class="pi pi-book" />
+      <i class="ph-fill ph-potted-plant" />
       <p v-if="store.plants.length">Keine Treffer für „{{ filter }}".</p>
       <p v-else>
         Noch keine Pflanzen in der Bibliothek.<br />
         Lege die erste an — oder suche online danach.
       </p>
     </div>
+
+    <!-- Katalog-Banner (dunkles Glas) -->
+    <button type="button" class="catalog-banner" @click="catalogVisible = true">
+      <i class="ph-fill ph-books banner-icon" />
+      <span class="banner-text">
+        <span class="banner-title">Pflanzenkatalog</span>
+        <span class="banner-sub">657 Pflanzen durchstöbern und hinzufügen</span>
+      </span>
+      <i class="ph-bold ph-caret-right" />
+    </button>
 
     <PlantFormDialog
       v-model:visible="dialogVisible"
@@ -206,56 +220,84 @@ async function save(draft: PlantDraft, bedIds: string[]) {
 <style scoped>
 .header-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 10px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .toolbar {
   display: flex;
-  gap: 0.75rem;
-  align-items: flex-end;
-  margin-bottom: 1rem;
+  gap: 10px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.filter-input {
+/* Glas-Suchfeld (16px Schrift: verhindert iOS-Zoom) */
+.search-field {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-m);
+  padding: 11px 14px;
+  box-shadow: var(--shadow-glow);
+  border: 1px solid var(--border-soft);
+}
+.search-field > i {
+  color: var(--text-3);
+  font-size: 17px;
+}
+.search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 16px;
+  flex: 1;
+  min-width: 0;
+  color: var(--text-1);
 }
 
 .sort-field {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  align-items: center;
+  gap: 8px;
 }
-
 .sort-field label {
-  font-size: 0.8rem;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .groups {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
+/* Kategorie-Zeile als Glas-Pille */
 .category-banner {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 0.9rem;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-left: 4px solid;
-  border-radius: var(--app-radius);
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-glow);
   font: inherit;
   color: inherit;
   cursor: pointer;
+  transition: filter var(--dur-fast) var(--ease-out);
 }
-
 .category-banner:hover {
-  border-color: var(--app-accent);
+  filter: brightness(var(--hover-brightness));
 }
 
 .cat-dot {
@@ -266,76 +308,136 @@ async function save(draft: PlantDraft, bedIds: string[]) {
 }
 
 .cat-label {
-  font-weight: 650;
+  font-weight: 800;
+  font-size: 15px;
 }
 
 .cat-count {
-  background: var(--app-bg);
-  border-radius: 999px;
-  padding: 0.05rem 0.5rem;
-  font-size: 0.8rem;
+  background: var(--surface-tint);
+  color: var(--text-2);
+  border-radius: var(--radius-pill);
+  padding: 1px 10px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .cat-chevron {
   margin-left: auto;
-  color: var(--app-text-muted);
+  color: var(--text-3);
 }
 
-.category-cards {
-  margin-top: 0.6rem;
+/* Pflanzenkarten: kompaktes Grid wie im Prototyp */
+.plant-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
 }
 
 .plant-card {
   display: flex;
-  gap: 0.85rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   text-align: left;
   cursor: pointer;
   font: inherit;
   color: inherit;
+  border: none;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-l);
+  padding: 16px;
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+  transition: all var(--dur-fast) var(--ease-out);
 }
-
 .plant-card:hover {
-  border-color: var(--app-accent);
+  filter: brightness(var(--hover-brightness));
+}
+.plant-card:active {
+  transform: scale(var(--press-scale));
 }
 
 /* Direktkind-Selektor überschreibt die Standardgröße von PhotoImg (.photo-img) */
 .plant-card > .plant-img {
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
   object-fit: cover;
   flex-shrink: 0;
+  margin-bottom: 8px;
 }
 
 .plant-img-empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  background: var(--app-bg);
+  font-size: 30px;
 }
 
-.plant-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.plant-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+.plant-name {
+  font-weight: 800;
+  font-size: 15px;
 }
 
 .plant-botanical {
+  font-size: 12px;
+  color: var(--text-3);
   font-style: italic;
 }
 
 .plant-care {
   display: flex;
-  gap: 0.75rem;
+  gap: 10px;
   flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-top: 6px;
+}
+.plant-water {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  color: var(--info);
+}
+
+/* Katalog-Banner (dunkles Glas) */
+.catalog-banner {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: var(--surface-deep);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-on-deep);
+  border: none;
+  border-radius: var(--radius-l);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-deep);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.catalog-banner:hover {
+  filter: brightness(1.08);
+}
+.banner-icon {
+  font-size: 26px;
+}
+.banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.banner-title {
+  font-weight: 800;
+}
+.banner-sub {
+  font-size: 13px;
+  opacity: 0.8;
 }
 </style>
