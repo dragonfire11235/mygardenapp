@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { getPhotoUrl } from './shared/photos'
@@ -19,16 +20,37 @@ const tasks = useTasksStore()
 const diary = useDiaryStore()
 const devices = useDevicesStore()
 const weather = useWeatherStore()
+const route = useRoute()
 
-const navItems = [
-  { to: '/', icon: 'pi-home', label: 'Start' },
-  { to: '/pflanzen', icon: 'pi-book', label: 'Pflanzen' },
-  { to: '/beete', icon: 'pi-table', label: 'Beete' },
-  { to: '/aufgaben', icon: 'pi-check-square', label: 'Aufgaben' },
-  { to: '/tagebuch', icon: 'pi-pencil', label: 'Tagebuch' },
-  { to: '/geraete', icon: 'pi-bolt', label: 'Geräte' },
-  { to: '/einstellungen', icon: 'pi-cog', label: 'Mehr' },
+// Logo aus public/ — BASE_URL beachten (GitHub Pages liegt unter /<repo>/)
+const logoUrl = `${import.meta.env.BASE_URL}lumi/logo-lumi-wordmark-alpha.png`
+
+// Navigation (Phosphor-Icons, Stil "fill" — siehe Design-Handoff)
+// Mobil: 7 Tabs; Desktop-Sidebar zusätzlich Entdeckungen + Kalender
+const tabItems = [
+  { to: '/', icon: 'ph-house', label: 'Start' },
+  { to: '/pflanzen', icon: 'ph-potted-plant', label: 'Pflanzen' },
+  { to: '/beete', icon: 'ph-grid-four', label: 'Beete' },
+  { to: '/aufgaben', icon: 'ph-list-checks', label: 'Aufgaben' },
+  { to: '/tagebuch', icon: 'ph-book-open', label: 'Tagebuch' },
+  { to: '/geraete', icon: 'ph-cpu', label: 'Geräte' },
+  { to: '/einstellungen', icon: 'ph-dots-three-circle', label: 'Mehr' },
 ]
+const sideItems = [
+  ...tabItems.slice(0, 6),
+  { to: '/entdeckungen', icon: 'ph-binoculars', label: 'Entdeckungen' },
+  { to: '/kalender', icon: 'ph-calendar-blank', label: 'Kalender' },
+  tabItems[6],
+]
+
+// Aktiv-Logik: Detailseiten zählen zum Hauptbereich (z. B. /pflanzen/42 → Pflanzen)
+function isActive(to: string): boolean {
+  if (to === '/') return route.path === '/'
+  return route.path === to || route.path.startsWith(`${to}/`)
+}
+
+const darkLabel = computed(() => (settings.darkMode ? 'Heller Modus' : 'Dunkelmodus'))
+const darkIcon = computed(() => (settings.darkMode ? 'ph-sun' : 'ph-moon'))
 
 // Hintergrundbild gilt für alle Seiten (nicht nur Dashboard)
 const backgroundUrl = ref<string | null>(null)
@@ -79,30 +101,55 @@ onMounted(async () => {
 
 <template>
   <div class="app-shell">
-    <aside class="app-nav">
-      <div class="app-brand">
-        <span class="app-brand-icon">🌱</span>
-        <span class="app-brand-name">Mein Garten</span>
-      </div>
-      <nav>
-        <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item">
-          <i class="pi" :class="item.icon" />
-          <span>{{ item.label }}</span>
-          <span
-            v-if="item.to === '/aufgaben' && tasks.dueTasks.length"
-            class="nav-badge"
-          >{{ tasks.dueTasks.length }}</span>
-        </RouterLink>
-      </nav>
-    </aside>
+    <!-- Desktop-Sidebar (≥1024px) -->
+    <nav class="side-nav">
+      <img :src="logoUrl" alt="lumi" data-logo="1" class="side-logo" />
+      <RouterLink
+        v-for="item in sideItems"
+        :key="item.to"
+        :to="item.to"
+        class="side-item"
+        :class="{ 'is-active': isActive(item.to) }"
+      >
+        <i class="ph-fill" :class="item.icon" />
+        <span>{{ item.label }}</span>
+        <span v-if="item.to === '/aufgaben' && tasks.dueTasks.length" class="nav-badge">{{ tasks.dueTasks.length }}</span>
+      </RouterLink>
+      <div class="side-spacer" />
+      <button type="button" class="side-dark-toggle" @click="settings.setDarkMode(!settings.darkMode)">
+        <i class="ph-fill" :class="darkIcon" />
+        <span>{{ darkLabel }}</span>
+      </button>
+    </nav>
 
     <main
       class="app-main"
       :class="{ 'has-bg': backgroundUrl }"
-      :style="backgroundUrl ? { backgroundImage: `linear-gradient(rgba(246, 248, 244, 0.6), rgba(246, 248, 244, 0.6)), url(${backgroundUrl})` } : undefined"
+      :style="backgroundUrl ? { backgroundImage: `linear-gradient(var(--bg-photo-veil), var(--bg-photo-veil)), url(${backgroundUrl})` } : undefined"
     >
-      <RouterView />
+      <div class="app-content">
+        <RouterView v-slot="{ Component }">
+          <Transition name="screen">
+            <component :is="Component" :key="route.path" />
+          </Transition>
+        </RouterView>
+      </div>
     </main>
+
+    <!-- Mobile Glas-Tab-Bar (<1024px) -->
+    <nav class="tab-bar">
+      <RouterLink
+        v-for="item in tabItems"
+        :key="item.to"
+        :to="item.to"
+        class="tab-item"
+        :class="{ 'is-active': isActive(item.to) }"
+      >
+        <i class="ph-fill" :class="item.icon" />
+        <span>{{ item.label }}</span>
+        <span v-if="item.to === '/aufgaben' && tasks.dueTasks.length" class="nav-badge tab-badge">{{ tasks.dueTasks.length }}</span>
+      </RouterLink>
+    </nav>
 
     <Toast position="bottom-center" />
     <ConfirmDialog />
@@ -112,6 +159,17 @@ onMounted(async () => {
 <style scoped>
 .app-shell {
   min-height: 100vh;
+  display: flex;
+  background: var(--bg-app-gradient);
+  --bg-photo-veil: rgba(247, 244, 238, 0.6);
+}
+:global(.app-dark) .app-shell {
+  --bg-photo-veil: rgba(16, 22, 15, 0.65);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Optionales Hintergrundbild hinter dem Seiteninhalt (alle Seiten) */
@@ -122,126 +180,179 @@ onMounted(async () => {
   min-height: 100vh; /* füllt den Bildschirm auch bei wenig Inhalt */
 }
 
-.app-brand {
+/* Inhalt: zentriert, Platz unten für die schwebende Tab-Bar */
+.app-content {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 20px 18px 140px;
+}
+
+/* Seitenwechsel: fadeUp nur beim Eintreten (wie im Prototyp) */
+.screen-enter-active {
+  animation: fadeUp var(--dur-slow, 300ms) var(--ease-out);
+}
+.screen-leave-active {
+  display: none;
+}
+
+/* ---- Desktop-Sidebar ---- */
+.side-nav {
+  width: 250px;
+  flex: none;
+  padding: 24px 16px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.side-logo {
+  height: 32px;
+  align-self: flex-start;
+  margin: 4px 8px 20px;
+}
+
+.side-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
+  font-size: 15px;
   font-weight: 700;
-  font-size: 1.05rem;
-  padding: 1rem 0.9rem;
-}
-
-.app-brand-icon {
-  font-size: 1.4rem;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.65rem 0.9rem;
-  border-radius: 10px;
-  color: var(--app-text);
-  text-decoration: none;
+  padding: 11px 14px;
+  border-radius: 16px;
+  color: var(--text-2);
+  transition: background var(--dur-fast) var(--ease-out);
   position: relative;
 }
-
-.nav-item:hover {
-  background: rgba(22, 163, 74, 0.08);
+.side-item i {
+  font-size: 20px;
+}
+.side-item:hover {
+  background: var(--surface-tint);
+  color: var(--text-2);
+}
+.side-item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
-.nav-item.router-link-active {
-  background: rgba(22, 163, 74, 0.12);
-  color: var(--app-accent);
-  font-weight: 600;
+.side-spacer {
+  flex: 1;
+}
+
+.side-dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 14px;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-2);
+  margin-top: 8px;
+  text-align: left;
+}
+.side-dark-toggle i {
+  font-size: 20px;
+}
+.side-dark-toggle:hover {
+  background: var(--surface-tint);
 }
 
 .nav-badge {
   margin-left: auto;
-  background: var(--app-danger);
+  background: var(--danger);
   color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   border-radius: 999px;
-  min-width: 1.3rem;
-  height: 1.3rem;
+  min-width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 0.3rem;
+  padding: 0 5px;
 }
 
-/* Desktop: Seitenleiste links */
-@media (min-width: 768px) {
-  .app-shell {
-    display: grid;
-    grid-template-columns: 215px 1fr;
-  }
-
-  .app-nav {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    background: var(--app-surface);
-    border-right: 1px solid var(--app-border);
-    padding: 0 0.5rem;
-  }
-
-  .app-main {
-    min-width: 0;
-  }
+/* ---- Mobile Glas-Tab-Bar ---- */
+.tab-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  gap: 2px;
+  background: var(--surface-deep);
+  backdrop-filter: var(--glass-blur-strong);
+  -webkit-backdrop-filter: var(--glass-blur-strong);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-pill);
+  padding: 8px 10px;
+  box-shadow: var(--shadow-deep);
+  max-width: calc(100vw - 16px);
 }
 
-/* Mobil: Navigationsleiste unten */
-@media (max-width: 767px) {
-  .app-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: var(--app-surface);
-    border-top: 1px solid var(--app-border);
-    /* iOS-Sicherheitsbereiche: Home-Indikator unten + abgerundete Ecken seitlich.
-       Auf Android/Desktop sind diese Insets 0 → keine Änderung. */
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: max(6px, env(safe-area-inset-left));
-    padding-right: max(6px, env(safe-area-inset-right));
-  }
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 11px;
+  border-radius: var(--radius-pill);
+  min-width: 48px;
+  color: rgba(244, 248, 238, 0.72);
+  transition: all var(--dur-fast) var(--ease-out);
+  position: relative;
+}
+.tab-item i {
+  font-size: 21px;
+}
+.tab-item span:not(.nav-badge) {
+  font-size: 10px;
+  font-weight: 800;
+}
+.tab-item:active {
+  transform: scale(var(--press-scale, 0.97));
+}
+.tab-item.is-active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
 
-  .app-brand {
+.tab-badge {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  margin-left: 0;
+  min-width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+
+/* Breakpoint 1024px: Sidebar ↔ Tab-Bar */
+@media (min-width: 1024px) {
+  .side-nav {
+    display: flex;
+  }
+  .tab-bar {
     display: none;
   }
+}
 
-  .app-nav nav {
-    display: flex;
-    justify-content: space-around;
-  }
-
-  .nav-item {
-    flex-direction: column;
-    gap: 0.15rem;
-    font-size: 0.62rem;
-    padding: 0.5rem 0.35rem;
-    flex: 1;
-    align-items: center;
-  }
-
-  .nav-item .pi {
-    font-size: 1.15rem;
-  }
-
-  .nav-badge {
-    position: absolute;
-    top: 2px;
-    right: 50%;
-    transform: translateX(1.2rem);
-    margin-left: 0;
-  }
-
-  .app-main {
-    /* Platz für die feste Menüleiste inkl. iOS-Home-Indikator */
-    padding-bottom: calc(var(--app-nav-height) + env(safe-area-inset-bottom) + 0.5rem);
+/* Schmale Handys: Tab-Bar kompakter, damit 7 Tabs passen */
+@media (max-width: 389px) {
+  .tab-item {
+    padding: 7px 7px;
+    min-width: 42px;
   }
 }
 </style>

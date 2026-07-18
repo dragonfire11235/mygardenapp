@@ -3,6 +3,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 export const router = createRouter({
   // BASE_URL: bei GitHub-Pages-Deployments liegt die App unter /<repo>/ statt /
   history: createWebHistory(import.meta.env.BASE_URL),
+  // Seitenwechsel starten oben (Zurück-Navigation behält die Scroll-Position)
+  scrollBehavior(_to, _from, savedPosition) {
+    return savedPosition ?? { top: 0 }
+  },
   routes: [
     { path: '/', name: 'dashboard', component: () => import('./features/dashboard/DashboardPage.vue'), meta: { title: 'Dashboard' } },
     { path: '/pflanzen', name: 'plants', component: () => import('./features/plants/PlantsPage.vue'), meta: { title: 'Pflanzen' } },
