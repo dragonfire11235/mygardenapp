@@ -1,0 +1,86 @@
+:root {
+  /* ---- Lumi-Markenpalette (aus dem Maskottchen-Board) ---- */
+  --lumi-green-900: #2e4426; /* tiefstes Blattgrün — Text auf hellen Flächen */
+  --lumi-green-800: #3c5a2f;
+  --lumi-green-700: #4a6b3a; /* Board-Swatch 1: dunkles Grün */
+  --lumi-green-600: #5f8c4a; /* Logo-Grün (Wortmarke) */
+  --lumi-green-500: #74a35b; /* Primär-Akzent */
+  --lumi-green-400: #8fbc6f; /* Board-Swatch 2: mittleres Grün */
+  --lumi-green-300: #b5d49a;
+  --lumi-green-200: #d8e7c6; /* Board-Swatch 3: helles Grün */
+  --lumi-green-100: #ecf3e2;
+  --lumi-sand-500: #dfc98f;  /* Board-Swatch 4: Sand */
+  --lumi-sand-300: #efe3c4;
+  --lumi-sand-100: #f9f4e6;
+  --lumi-bark-700: #6f5638;  /* Board-Swatch 5: Braun/Rinde */
+  --lumi-bark-500: #8a6d4a;
+  --lumi-bark-300: #c2ab8a;
+  --lumi-cream: #f7f4ee;     /* Logo-Hintergrund, App-Grundton */
+  --lumi-white: #ffffff;
+
+  /* ---- Semantik ---- */
+  --bg-app: var(--lumi-cream);
+  --bg-app-gradient: linear-gradient(165deg, #eef4e4 0%, #f7f4ee 45%, #f2efe4 100%);
+  --surface-card: rgba(255, 255, 255, 0.62);
+  --surface-card-solid: #ffffff;
+  --surface-raised: rgba(255, 255, 255, 0.8);
+  --surface-tint: rgba(143, 188, 111, 0.14);
+  --surface-deep: rgba(60, 90, 47, 0.82); /* dunkle Glasfläche (Hero, Tab-Pill) */
+  --border-glass: rgba(255, 255, 255, 0.65);
+  --border-soft: rgba(74, 107, 58, 0.14);
+  --text-1: #26302a;
+  --text-2: #5c6b5e;
+  --text-3: #8b988c;
+  --text-on-deep: #f4f8ee;
+  --text-brand: var(--lumi-green-600);
+  --accent: #5f8c4a;
+  --accent-strong: #4a6b3a;
+  --accent-soft: rgba(95, 140, 74, 0.14);
+  --danger: #d95f4c;
+  --danger-soft: rgba(217, 95, 76, 0.14);
+  --warning: #dba842;
+  --info: #6fa3c7; /* Wasser/Gießen */
+  --info-soft: rgba(111, 163, 199, 0.16);
+
+  /* ---- Kategorie-Farben (Pflanzentypen, Beetplaner-Kreise) ---- */
+  --cat-gemuese: #f59e0b;
+  --cat-obst: #ef4444;
+  --cat-kraeuter: #10b981;
+  --cat-blumen: #d946ef;
+  --cat-strauch: #8b5cf6;
+  --cat-baum: #15803d;
+  --cat-sonstiges: #64748b;
+
+  /* Legacy-Aliase (Bestandscode "Mein Garten") */
+  --app-bg: var(--bg-app);
+  --app-surface: var(--surface-card-solid);
+  --app-border: var(--border-soft);
+  --app-text: var(--text-1);
+  --app-text-muted: var(--text-2);
+  --app-accent: var(--accent);
+  --app-danger: var(--danger);
+}
+
+/* Dunkelmodus — Klasse .app-dark auf <html> (Konvention der App) */
+.app-dark {
+  --bg-app: #10160f;
+  --bg-app-gradient: linear-gradient(165deg, #131c11 0%, #10160f 45%, #151a10 100%);
+  --surface-card: rgba(32, 42, 30, 0.6);
+  --surface-card-solid: #1c241a;
+  --surface-raised: rgba(42, 54, 39, 0.78);
+  --surface-tint: rgba(143, 188, 111, 0.1);
+  --surface-deep: rgba(24, 34, 21, 0.82);
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-soft: rgba(213, 231, 198, 0.1);
+  --text-1: #e6ecdf;
+  --text-2: #a4b2a0;
+  --text-3: #74816f;
+  --text-on-deep: #f4f8ee;
+  --text-brand: #a8cc8c;
+  --accent: #8fbc6f;
+  --accent-strong: #a8cc8c;
+  --accent-soft: rgba(143, 188, 111, 0.16);
+  --danger: #e58877;
+  --info: #8db8d6;
+  color-scheme: dark;
+}

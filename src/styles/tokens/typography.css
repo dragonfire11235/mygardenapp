@@ -1,0 +1,21 @@
+:root {
+  --font-display: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --fs-hero: 1.75rem;   /* 28px — Dashboard-Begrüßung */
+  --fs-title: 1.375rem; /* 22px — Seitentitel */
+  --fs-h2: 1.0625rem;   /* 17px — Karten-/Widget-Titel */
+  --fs-body: 0.9375rem; /* 15px — Fließtext */
+  --fs-small: 0.8125rem;/* 13px — Meta, Labels */
+  --fs-tiny: 0.6875rem; /* 11px — Tab-Labels, Badges */
+  --fs-input: 1rem;     /* 16px — Formularfelder (iOS-Zoom-Schwelle!) */
+
+  --fw-regular: 400; /* @kind font */
+  --fw-medium: 600; /* @kind font */
+  --fw-bold: 700; /* @kind font */
+  --fw-heavy: 800; /* @kind font */
+
+  --lh-tight: 1.2; /* @kind font */
+  --lh-body: 1.5; /* @kind font */
+}

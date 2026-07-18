@@ -30,3 +30,4 @@ dist-ssr
 
 # Katalog-Build-Cache (Wikidata/GloBI-Zwischenstände)
 scripts/.cache/
+design_handoff_lumi_redesign/

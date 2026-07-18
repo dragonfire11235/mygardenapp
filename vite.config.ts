@@ -16,8 +16,8 @@ export default defineConfig({
         short_name: 'Garten',
         description: 'Pflanzen, Beete, Aufgaben, Tagebuch und Geräte für den eigenen Garten',
         lang: 'de',
-        theme_color: '#16a34a',
-        background_color: '#f6f8f4',
+        theme_color: '#5f8c4a',
+        background_color: '#f7f4ee',
         display: 'standalone',
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },

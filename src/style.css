@@ -1,25 +1,18 @@
-:root {
-  --app-bg: #f6f8f4;
-  --app-surface: #ffffff;
-  --app-border: #e2e8de;
-  --app-text: #26302a;
-  --app-text-muted: #6b7a70;
-  --app-accent: #16a34a;
-  --app-danger: #dc2626;
-  --app-radius: 12px;
-  --app-nav-height: 60px;
-}
+/* ============================================================
+   lumi — Design-System (Liquid Glass über warmem Grün/Creme)
+   Tokens aus src/styles/tokens/. Legacy-Aliase (--app-*) leben in
+   colors.css, damit Bestandskomponenten unverändert weiterlaufen.
+   ============================================================ */
+@import './styles/tokens/fonts.css';
+@import './styles/tokens/colors.css';
+@import './styles/tokens/typography.css';
+@import './styles/tokens/spacing.css';
+@import './styles/tokens/effects.css';
 
-/* Dunkelmodus — via .app-dark auf <html> (siehe App.vue) */
-.app-dark {
-  --app-bg: #0f1411;
-  --app-surface: #1a201b;
-  --app-border: #2c352d;
-  --app-text: #e3e8e2;
-  --app-text-muted: #9aa79c;
-  --app-accent: #4ade80;
-  --app-danger: #f87171;
-  color-scheme: dark;
+:root {
+  /* Legacy-Aliase, die die alte style.css zusätzlich hatte */
+  --app-radius: var(--radius-m);
+  --app-nav-height: 64px;
 }
 
 * {
@@ -33,84 +26,245 @@ body {
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--app-bg);
-  color: var(--app-text);
+  font-family: var(--font-body);
+  background: var(--bg-app);
+  color: var(--text-1);
   font-size: 15px;
-  line-height: 1.5;
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-strong);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-3);
 }
 
 h1, h2, h3 {
-  font-weight: 650;
+  font-weight: var(--fw-heavy);
   margin: 0;
 }
 
-/* ---- Wiederkehrende Bausteine ---- */
-
-.card {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  padding: 1rem;
+/* Logo im Dunkelmodus: transparente Variante aufhellen */
+.app-dark img[data-logo] {
+  filter: brightness(1.55) saturate(0.85);
 }
 
-/* Über einem Hintergrundbild werden Karten leicht durchscheinend (bessere Lesbarkeit) */
-.app-main.has-bg .card {
-  background: color-mix(in srgb, var(--app-surface) 90%, transparent);
-  backdrop-filter: blur(6px);
+/* ---- Bewegung ---- */
+@keyframes lumiFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.85rem;
-}
+/* ============================================================
+   Wiederkehrende Bausteine
+   ============================================================ */
 
+/* Seiten-Container: die App-Shell liefert Zentrierung + Padding,
+   die Seite selbst ist nur eine vertikale Stapelung mit Abstand. */
 .page {
-  padding: 1rem;
-  max-width: 1100px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+}
+
+.page-title {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-heavy);
+  color: var(--text-1);
+}
+
+.section-title {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-heavy);
+  color: var(--text-1);
+}
+
+/* Glas-Karte (Standard-Fläche) */
+.card,
+.glass-card {
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-l);
+  padding: 18px;
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+}
+
+/* Dunkle Glasfläche (Hero, Upsell, Katalog-Banner) */
+.deep-card {
+  background: var(--surface-deep);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-on-deep);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  box-shadow: var(--shadow-deep);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
 .muted {
-  color: var(--app-text-muted);
-  font-size: 0.87rem;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+
+/* Runder Aktions-Button (z. B. Plus oben rechts) */
+.round-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-card);
+  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  flex: none;
+}
+.round-icon-btn:hover { filter: brightness(var(--hover-brightness)); }
+.round-icon-btn:active { transform: scale(var(--press-scale)); }
+
+/* Zurück-/Kreis-Glas-Button */
+.circle-glass-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  cursor: pointer;
+  background: var(--surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-1);
+  font-size: 17px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+/* Pillen-Button (voll / geghostet) */
+.pill-btn {
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--fs-input);
+  font-weight: var(--fw-bold);
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
+  transition: filter var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.pill-btn:hover { filter: brightness(var(--hover-brightness)); }
+.pill-btn:active { transform: scale(var(--press-scale)); }
+.pill-btn-ghost {
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  padding: 10px;
+}
+
+/* Chip (Filter/Tag) */
+.chip {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  color: var(--text-2);
+  box-shadow: var(--shadow-glow);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.chip.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Icon-Kachel (getönte Fläche mit Symbol) */
+.icon-tile {
+  border-radius: var(--radius-s);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+/* Fortschrittsbalken */
+.progress-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--border-soft);
+  overflow: hidden;
+  flex: 1;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  transition: width var(--dur-base) var(--ease-out);
 }
 
 .empty-state {
   text-align: center;
   padding: 2.5rem 1rem;
-  color: var(--app-text-muted);
+  color: var(--text-2);
 }
-
-.empty-state .pi {
+.empty-state .pi,
+.empty-state i {
   font-size: 2rem;
   display: block;
   margin-bottom: 0.5rem;
 }
 
+/* ---- Formulare (unverändert übernommen, an Tokens gebunden) ---- */
 .form-grid {
   display: grid;
   gap: 0.9rem;
 }
-
 .form-field {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  min-width: 0; /* erlaubt Schrumpfen in Grid-Spalten (sonst Überbreite) */
+  min-width: 0;
 }
-
-/* PrimeVue-Felder füllen die volle Feldbreite, laufen nicht über */
 .form-field .p-inputtext,
 .form-field .p-inputnumber,
 .form-field .p-inputnumber-input,
@@ -120,30 +274,24 @@ h1, h2, h3 {
 .form-field .p-textarea {
   width: 100%;
 }
-
 .form-field > label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--app-text-muted);
+  color: var(--text-2);
 }
-
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.9rem;
 }
-
-/* Am Handy einspaltig — zwei Spalten passen nicht in die schmale Dialogbreite */
 @media (max-width: 480px) {
   .form-row {
     grid-template-columns: 1fr;
   }
 }
 
-/* iOS-Safari zoomt beim Fokussieren einer Eingabe mit Schriftgröße < 16px
-   automatisch hinein und springt nicht zurück (body ist 15px). Deshalb am
-   Handy alle Formularfelder inkl. PrimeVue-Trigger/Overlays auf 16px anheben —
-   verhindert das Auto-Zoom, ohne Pinch-Zoom zu deaktivieren. */
+/* iOS-Safari zoomt beim Fokus auf Felder < 16px automatisch hinein.
+   Am Handy alle Formularfelder auf 16px anheben. */
 @media (max-width: 767px) {
   input,
   select,
@@ -160,18 +308,16 @@ h1, h2, h3 {
 }
 
 .overdue {
-  color: var(--app-danger);
+  color: var(--danger);
   font-weight: 600;
 }
 
-/* Dialoge dürfen nie höher als der sichtbare Bereich werden (iPhone!):
-   dvh berücksichtigt die iOS-Leisten, vh davor ist der Fallback. */
+/* Dialoge nie höher als der sichtbare Bereich (iPhone). */
 .p-dialog {
   max-height: 90vh;
   max-height: 90dvh;
 }
-
 .p-dialog .p-dialog-content {
   overflow-y: auto;
-  overflow-x: hidden; /* Sicherheitsnetz gegen horizontales Scrollen */
+  overflow-x: hidden;
 }
