@@ -6,7 +6,8 @@ import Aura from '@primeuix/themes/aura'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import 'primeicons/primeicons.css'
-// Phosphor Icons (UI = fill, Pfeile/Checks = bold) — ersetzt PrimeIcons in eigenem Markup
+// Phosphor Icons (UI = fill, Pfeile/Checks = bold) — ersetzt PrimeIcons in eigenem Markup.
+// Typdeklarationen für die CSS-Subpath-Exporte liegen in src/phosphor.d.ts.
 import '@phosphor-icons/web/fill'
 import '@phosphor-icons/web/bold'
 import './style.css'
