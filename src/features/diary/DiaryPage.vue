@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
-import Tag from 'primevue/tag'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import type { DiaryEntry } from '../../data'
@@ -43,6 +42,14 @@ async function share(entry: DiaryEntry) {
 
 const dialogVisible = ref(false)
 const editingEntry = ref<DiaryEntry | null>(null)
+
+// Datums-Kachel: Tag + Kurzmonat (z. B. „15 / Jul")
+function dayOf(date: string): string {
+  return String(new Date(date).getDate())
+}
+function monthOf(date: string): string {
+  return new Date(date).toLocaleDateString('de-DE', { month: 'short' }).replace('.', '')
+}
 
 function openNew() {
   editingEntry.value = null
@@ -86,18 +93,23 @@ function tagNames(entry: DiaryEntry): string[] {
   <div class="page">
     <div class="page-header">
       <div>
-        <h1>Tagebuch</h1>
+        <h1 class="page-title">Tagebuch</h1>
         <span class="muted">{{ store.entries.length }} Einträge</span>
       </div>
-      <Button label="Neuer Eintrag" icon="pi pi-plus" @click="openNew" />
+      <button type="button" class="pill-btn entry-btn" @click="openNew">
+        <i class="ph-bold ph-plus" /> Eintrag
+      </button>
     </div>
 
     <div v-if="store.sortedEntries.length" class="timeline">
       <article v-for="entry in store.sortedEntries" :key="entry.id" class="card entry" @click="openDetail(entry)">
-        <header class="entry-header">
-          <strong>{{ entry.title || formatDate(entry.date) }}</strong>
-          <span class="entry-header-right">
-            <span class="muted">{{ formatDate(entry.date) }}</span>
+        <div class="date-tile">
+          <div class="date-day">{{ dayOf(entry.date) }}</div>
+          <div class="date-month">{{ monthOf(entry.date) }}</div>
+        </div>
+        <div class="entry-main">
+          <header class="entry-header">
+            <span class="entry-title">{{ entry.title || formatDate(entry.date) }}</span>
             <Button
               v-if="sharePublisher"
               icon="pi pi-share-alt"
@@ -109,20 +121,20 @@ function tagNames(entry: DiaryEntry): string[] {
               title="Eintrag teilen"
               @click.stop="share(entry)"
             />
-          </span>
-        </header>
-        <p v-if="entry.text" class="entry-text">{{ entry.text }}</p>
-        <div v-if="entry.photoIds.length" class="entry-photos">
-          <PhotoImg v-for="photoId in entry.photoIds" :key="photoId" :photo-id="photoId" />
-        </div>
-        <div v-if="tagNames(entry).length" class="entry-tags">
-          <Tag v-for="name in tagNames(entry)" :key="name" :value="name" severity="success" />
+          </header>
+          <p v-if="entry.text" class="entry-text">{{ entry.text }}</p>
+          <div v-if="entry.photoIds.length" class="entry-photos">
+            <PhotoImg v-for="photoId in entry.photoIds" :key="photoId" :photo-id="photoId" />
+          </div>
+          <div v-if="tagNames(entry).length" class="entry-tags">
+            <span v-for="name in tagNames(entry)" :key="name" class="entry-tag">{{ name }}</span>
+          </div>
         </div>
       </article>
     </div>
 
     <div v-else class="empty-state">
-      <i class="pi pi-pencil" />
+      <i class="ph-fill ph-book-open" />
       <p>Noch keine Einträge. Halte fest, was in deinem Garten passiert — gern mit Foto.</p>
     </div>
 
@@ -131,51 +143,95 @@ function tagNames(entry: DiaryEntry): string[] {
 </template>
 
 <style scoped>
+.entry-btn {
+  font-size: 14px;
+  padding: 10px 18px;
+}
+
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 14px;
   max-width: 640px;
 }
 
 .entry {
   cursor: pointer;
+  display: flex;
+  gap: 14px;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.entry:hover {
+  filter: brightness(var(--hover-brightness));
 }
 
-.entry:hover {
-  border-color: var(--app-accent);
+/* Datums-Kachel links */
+.date-tile {
+  flex: none;
+  width: 52px;
+  text-align: center;
+  background: var(--surface-tint);
+  border-radius: 16px;
+  padding: 8px 4px;
+  height: fit-content;
+}
+.date-day {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-brand);
+}
+.date-month {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.entry-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .entry-header {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: center;
 }
 
-.entry-header-right {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
+.entry-title {
+  font-weight: 800;
+  font-size: 15px;
 }
 
 .entry-text {
-  margin: 0.4rem 0 0;
+  margin: 2px 0 0;
   white-space: pre-wrap;
+  font-size: 14px;
+  color: var(--text-2);
 }
 
 .entry-photos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.6rem;
+  gap: 8px;
+  margin-top: 10px;
+}
+.entry-photos :deep(img) {
+  border-radius: 16px;
 }
 
 .entry-tags {
   display: flex;
-  gap: 0.35rem;
+  gap: 6px;
   flex-wrap: wrap;
-  margin-top: 0.6rem;
+  margin-top: 10px;
+}
+.entry-tag {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
 }
 </style>
