@@ -4,8 +4,12 @@ import { useToast } from 'primevue/usetoast'
 import type { Device } from '../../data'
 import { deviceKindLabels } from '../../shared/texts'
 import { useDevicesStore } from './devicesStore'
+import { useAccountStore } from '../account/accountStore'
+import { useUiStore } from '../ui/uiStore'
 
 const store = useDevicesStore()
+const account = useAccountStore()
+const ui = useUiStore()
 const toast = useToast()
 
 async function discover() {
@@ -87,6 +91,16 @@ function sensorText(deviceId: string): string {
       <i class="ph-fill ph-cpu" />
       <p>Noch keine Geräte. Klicke auf „Demo-Geräte suchen", um die Simulation zu starten.</p>
     </div>
+
+    <!-- Pro-Upsell (nur für Free-Nutzer) -->
+    <button v-if="account.isFree" type="button" class="deep-card pro-upsell" @click="ui.openPro()">
+      <span class="pro-upsell-star">✨</span>
+      <span class="pro-upsell-text">
+        <span class="pro-upsell-title">Mehr Sensoren mit lumi Pro</span>
+        <span class="pro-upsell-sub">Unbegrenzte Geräte, Automatiken und Verlaufsdaten.</span>
+      </span>
+      <i class="ph-bold ph-caret-right" />
+    </button>
   </div>
 </template>
 
@@ -155,6 +169,40 @@ function sensorText(deviceId: string): string {
   font-size: 13px;
   color: var(--text-2);
   font-weight: 600;
+}
+
+/* Pro-Upsell-Banner */
+.pro-upsell {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 16px 18px;
+  border-radius: var(--radius-l);
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.pro-upsell:hover {
+  filter: brightness(1.08);
+}
+.pro-upsell-star {
+  font-size: 24px;
+  flex: none;
+}
+.pro-upsell-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.pro-upsell-title {
+  font-weight: 800;
+}
+.pro-upsell-sub {
+  font-size: 13px;
+  opacity: 0.8;
 }
 
 /* Messwert-Kachel */

@@ -12,6 +12,10 @@ import { useTasksStore } from './features/tasks/tasksStore'
 import { useDiaryStore } from './features/diary/diaryStore'
 import { useDevicesStore } from './features/devices/devicesStore'
 import { useWeatherStore } from './features/weather/weatherStore'
+import { useAccountStore } from './features/account/accountStore'
+import { useUiStore } from './features/ui/uiStore'
+import ProDialog from './features/ui/ProDialog.vue'
+import Onboarding from './features/account/Onboarding.vue'
 
 const settings = useSettingsStore()
 const plants = usePlantsStore()
@@ -20,6 +24,8 @@ const tasks = useTasksStore()
 const diary = useDiaryStore()
 const devices = useDevicesStore()
 const weather = useWeatherStore()
+const account = useAccountStore()
+const ui = useUiStore()
 const route = useRoute()
 
 // Logo aus public/ — BASE_URL beachten (GitHub Pages liegt unter /<repo>/)
@@ -72,7 +78,7 @@ watch(
 )
 
 onMounted(async () => {
-  await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load()])
+  await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load(), account.load()])
 
   // Fehlende Pflegeaufgaben aus den Pflanzen-Intervallen erzeugen
   await tasks.syncCareTasks(plants.plants, beds.activePlantings)
@@ -116,6 +122,10 @@ onMounted(async () => {
         <span v-if="item.to === '/aufgaben' && tasks.dueTasks.length" class="nav-badge">{{ tasks.dueTasks.length }}</span>
       </RouterLink>
       <div class="side-spacer" />
+      <button v-if="account.isFree" type="button" class="side-pro" @click="ui.openPro()">
+        <div class="side-pro-title">✨ lumi Pro</div>
+        <div class="side-pro-sub">Sync, Smart Garden &amp; mehr</div>
+      </button>
       <button type="button" class="side-dark-toggle" @click="settings.setDarkMode(!settings.darkMode)">
         <i class="ph-fill" :class="darkIcon" />
         <span>{{ darkLabel }}</span>
@@ -153,6 +163,8 @@ onMounted(async () => {
 
     <Toast position="bottom-center" />
     <ConfirmDialog />
+    <ProDialog />
+    <Onboarding v-if="!account.onboarded" />
   </div>
 </template>
 
@@ -242,6 +254,32 @@ onMounted(async () => {
 
 .side-spacer {
   flex: 1;
+}
+
+.side-pro {
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  background: var(--surface-deep);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-on-deep);
+  border-radius: 20px;
+  padding: 14px;
+  box-shadow: var(--shadow-deep);
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.side-pro:hover {
+  filter: brightness(1.08);
+}
+.side-pro-title {
+  font-weight: 800;
+  font-size: 14px;
+}
+.side-pro-sub {
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 .side-dark-toggle {

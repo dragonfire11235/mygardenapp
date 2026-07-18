@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import ToggleSwitch from 'primevue/toggleswitch'
@@ -10,10 +10,25 @@ import PhotoPicker from '../../shared/PhotoPicker.vue'
 import { widgetRegistry } from '../dashboard/widgetRegistry'
 import { searchLocation, type GeoResult } from '../weather/weatherApi'
 import { useSettingsStore, type DashboardWidgetConfig } from './settingsStore'
+import { useAccountStore } from '../account/accountStore'
+import { useUiStore } from '../ui/uiStore'
 
 const settings = useSettingsStore()
+const account = useAccountStore()
+const ui = useUiStore()
 const toast = useToast()
 const confirm = useConfirm()
+
+// --- Konto/Profil ---
+const nameInput = ref(account.userName)
+watch(() => account.userName, (v) => { nameInput.value = v })
+
+async function saveName() {
+  const next = nameInput.value.trim()
+  if (next === account.userName) return
+  await account.setUserName(next)
+  toast.add({ severity: 'success', summary: 'Gespeichert', detail: 'Dein Name wurde aktualisiert.', life: 2000 })
+}
 
 // --- Dashboard-Bilder (Titelbild/Hero + Hintergrund) ---
 const headerPhotoId = computed({
@@ -156,6 +171,27 @@ function onImportSelected(event: Event) {
     </div>
 
     <div class="settings-sections">
+      <!-- Konto/Profil — heute lokal, später Online-Konto (siehe Roadmap) -->
+      <section class="card account-card">
+        <div class="account-top">
+          <div class="account-avatar">{{ account.initial }}</div>
+          <div class="account-meta">
+            <div class="account-name">{{ account.userName || 'Dein Garten' }}</div>
+            <div class="account-plan-row">
+              <span class="plan-badge" :class="{ 'is-pro': !account.isFree }">{{ account.planLabel }}</span>
+              <span class="plan-sub">{{ account.planSub }}</span>
+            </div>
+          </div>
+          <button v-if="account.isFree" type="button" class="pill-btn account-pro-btn" @click="ui.openPro()">
+            Pro werden
+          </button>
+        </div>
+        <div class="account-name-edit">
+          <InputText v-model="nameInput" placeholder="Dein Name" class="grow" @blur="saveName" @keyup.enter="saveName" />
+          <Button label="Speichern" @click="saveName" />
+        </div>
+      </section>
+
       <!-- Schnellzugriff (mobil sind Entdeckungen/Kalender nur hier erreichbar) -->
       <section class="card quick-links">
         <RouterLink to="/kalender" class="quick-link">
@@ -305,6 +341,71 @@ function onImportSelected(event: Event) {
   margin: 0 0 0.6rem;
   font-size: 17px;
   font-weight: 800;
+}
+
+.account-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.account-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 800;
+  flex: none;
+}
+.account-meta {
+  flex: 1;
+  min-width: 0;
+}
+.account-name {
+  font-weight: 800;
+  font-size: 16px;
+}
+.account-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.plan-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-tint);
+  color: var(--text-2);
+}
+.plan-badge.is-pro {
+  background: var(--accent);
+  color: #fff;
+}
+.plan-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.account-pro-btn {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 16px;
+  flex: none;
+}
+.account-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .quick-links {

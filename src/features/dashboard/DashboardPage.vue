@@ -4,10 +4,12 @@ import { getPhotoUrl } from '../../shared/photos'
 import { useSettingsStore } from '../settings/settingsStore'
 import { useWeatherStore } from '../weather/weatherStore'
 import { weatherLabel } from '../weather/weatherApi'
+import { useAccountStore } from '../account/accountStore'
 import { widgetRegistry } from './widgetRegistry'
 
 const settings = useSettingsStore()
 const weatherStore = useWeatherStore()
+const account = useAccountStore()
 
 const mascotUrl = `${import.meta.env.BASE_URL}lumi/mascot/lumi-watering.png`
 
@@ -37,10 +39,8 @@ watch(
 
 const greeting = computed(() => {
   const hour = new Date().getHours()
-  if (hour < 5) return 'Gute Nacht'
-  if (hour < 11) return 'Guten Morgen'
-  if (hour < 18) return 'Hallo'
-  return 'Guten Abend'
+  const time = hour < 5 ? 'Gute Nacht' : hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend'
+  return account.userName ? `${time}, ${account.userName}` : time
 })
 
 const today = new Date().toLocaleDateString('de-DE', {
