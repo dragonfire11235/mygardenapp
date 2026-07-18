@@ -150,12 +150,25 @@ function onImportSelected(event: Event) {
   <div class="page">
     <div class="page-header">
       <div>
-        <h1>Einstellungen</h1>
+        <h1 class="page-title">Mehr</h1>
         <p class="muted">App-Konfiguration, Dashboard und Datensicherung.</p>
       </div>
     </div>
 
     <div class="settings-sections">
+      <!-- Schnellzugriff (mobil sind Entdeckungen/Kalender nur hier erreichbar) -->
+      <section class="card quick-links">
+        <RouterLink to="/kalender" class="quick-link">
+          <span class="icon-tile quick-tile"><i class="ph-fill ph-calendar-blank" /></span>
+          <span class="grow">Kalender</span>
+          <i class="ph-bold ph-caret-right quick-caret" />
+        </RouterLink>
+        <RouterLink to="/entdeckungen" class="quick-link">
+          <span class="icon-tile quick-tile"><i class="ph-fill ph-binoculars" /></span>
+          <span class="grow">Entdeckungen</span>
+          <i class="ph-bold ph-caret-right quick-caret" />
+        </RouterLink>
+      </section>
       <section class="card">
         <h2>Pflanzen-Datenbank (Trefle)</h2>
         <p class="muted">
@@ -254,6 +267,8 @@ function onImportSelected(event: Event) {
         </div>
         <p class="muted">Der Import ersetzt alle vorhandenen Daten durch den Inhalt der Backup-Datei.</p>
       </section>
+
+      <p class="app-footer muted">lumi · Mein Garten 2.0 · offline-fähig 🌱</p>
     </div>
   </div>
 </template>
@@ -288,7 +303,46 @@ function onImportSelected(event: Event) {
 
 .card h2 {
   margin: 0 0 0.6rem;
-  font-size: 1rem;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.quick-links {
+  padding: 6px 16px;
+}
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 2px;
+  border-bottom: 1px solid var(--border-soft);
+  color: inherit;
+  font-weight: 700;
+  font-size: 15px;
+}
+.quick-link:last-child {
+  border-bottom: none;
+}
+.quick-link:hover {
+  color: var(--accent-strong);
+}
+.quick-tile {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 19px;
+}
+.quick-caret {
+  color: var(--text-3);
+}
+
+.app-footer {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 0 4px;
 }
 
 .row {
