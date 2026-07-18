@@ -38,6 +38,17 @@ export const taskTypeIcons: Record<TaskType, string> = {
   sonstiges: '📌',
 }
 
+// Phosphor-Icons + Akzentfarben je Aufgabenart (lumi-Design-System).
+// Farben laut Handoff: Gießen --info, Düngen --accent, Rest feste Hex-Werte.
+export const taskTypePhosphor: Record<TaskType, { icon: string; color: string }> = {
+  giessen: { icon: 'ph-drop', color: 'var(--info)' },
+  duengen: { icon: 'ph-flask', color: 'var(--accent)' },
+  schneiden: { icon: 'ph-scissors', color: '#d95f4c' },
+  ernten: { icon: 'ph-basket', color: '#dba842' },
+  aussaat: { icon: 'ph-plant', color: '#10b981' },
+  sonstiges: { icon: 'ph-push-pin', color: '#64748b' },
+}
+
 export const deviceKindLabels: Record<DeviceKind, string> = {
   switch: 'Schalter',
   valve: 'Ventil',
