@@ -4,13 +4,16 @@
 
 ## Funktionen
 
-- **Dashboard** — konfigurierbare Widgets (Sichtbarkeit & Reihenfolge in den Einstellungen), eigenes Titelbild und Hintergrundbild, Wetter-Widget mit Frost-/Regenhinweis (Open-Meteo, kostenlos, Standort in den Einstellungen)
-- **Pflanzen** — eigene Pflanzenbibliothek mit Pflegeintervallen, Aussaat-/Erntemonaten, eigenem Foto und Anbindung an die [Trefle](https://trefle.io)-Pflanzendatenbank; „Neue Pflanze anlegen" geht direkt aus jeder Pflanzen-Auswahl heraus
-- **Beete** — Beete anlegen (mit Foto als Titelbild und Metermaßen) und Bepflanzungen über die Zeit verfolgen; **Kartenansicht**: eigenes Kartenbild (z. B. Google-Maps-Screenshot) hochladen und Beete als Marker platzieren; **Beetplaner**: Raster in echten Metern, Pflanzen als Kreise in Wuchsbreite (Kategorie-Standard, pro Pflanze überschreibbar) per Drag & Drop platzieren — Überlappung erlaubt (Kräuter unterm Baumrand)
-- **Aufgaben** — einmalige und wiederkehrende Gartenaufgaben; Gieß- und Düngeaufgaben werden automatisch aus den Pflegeintervallen der Pflanzen erzeugt
-- **Tagebuch** — Einträge mit Fotos, verknüpfbar mit Pflanzen und Beeten; Teilen über das Geräte-Menü (Web-Share, am Handy z. B. Instagram/WhatsApp)
-- **Geräte** — Schalter, Ventile und Sensoren über austauschbare Adapter (aktuell: Demo; vorbereitet: Home Assistant)
-- **Datensicherung** — JSON-Export/-Import, optional mit Fotos
+- **Dashboard (Start)** — tageszeitabhängige Begrüßung, rotierende Lumi-Tipps, Wetter-Widget mit Frost-/Regenhinweis (Open-Meteo, kostenlos); konfigurierbare Widgets (Sichtbarkeit & Reihenfolge unter „Mehr"), eigenes Titel- und Hintergrundbild
+- **Pflanzen** — eigene Bibliothek mit Pflegeintervallen, Aussaat-/Erntemonaten, Foto; mitgelieferter, durchsuchbarer **Katalog (657 Pflanzen)** — die Suche schlägt passende Arten direkt zum Hinzufügen vor; optionale Online-Suche über [Trefle](https://trefle.io)
+- **Beete** — Beete mit Foto und Metermaßen; **Kartenansicht** (eigenes Kartenbild, Beete als Marker); **Beetplaner** (Raster in echten Metern, Pflanzen als maßstäbliche Kreise per Drag & Drop)
+- **Aufgaben** — einmalige und wiederkehrende Gartenaufgaben; Gieß-/Düngeaufgaben werden automatisch aus den Pflegeintervallen erzeugt; Export als Kalender (.ics)
+- **Tagebuch** — Einträge mit Fotos, verknüpfbar mit Pflanzen und Beeten; Teilen über das Teilen-Menü des Geräts (Web-Share)
+- **Entdeckungen** — kleines Sammelspiel: Insekten und Vögel fotografieren, Abzeichen und Biodiversitäts-Score, Nützlings-Tipps aus den eigenen Pflanzen
+- **Kalender** — Blüh- und Schnittzeiten der eigenen Pflanzen als Jahresübersicht
+- **Geräte (Smart Garden)** — Schalter, Ventile und Sensoren über austauschbare Adapter (aktuell: Demo; vorbereitet: Home Assistant)
+- **Konto** — Erststart-Onboarding und lokales Profil (Name); Free/Pro-Anzeige mit Pro-Upgrade-Dialog. *Konto/Pro ist derzeit ein lokaler Platzhalter — echte Anmeldung, Bezahlung und Geräte-Sync sind Roadmap.*
+- **Datensicherung** — JSON-Export/-Import, optional mit Fotos; Dunkelmodus
 
 ## Technik
 
@@ -28,7 +31,7 @@ npm run build    # Typprüfung + Produktions-Build
 npm run preview  # Produktions-Build lokal testen
 ```
 
-Für die Trefle-Pflanzensuche wird ein kostenloser API-Token benötigt (in den App-Einstellungen hinterlegen). Der Dev-Server proxied Trefle-Anfragen über `/api/trefle` (CORS).
+Für die Trefle-Pflanzensuche wird ein kostenloser API-Token benötigt (unter „Mehr" hinterlegen). Der Dev-Server proxied Trefle-Anfragen über `/api/trefle` (CORS); auf GitHub Pages funktioniert die Live-Suche mangels Proxy nicht — der mitgelieferte Katalog dagegen schon (offline).
 
 ## Am Handy nutzen
 
@@ -44,5 +47,8 @@ Hinweis: Die Tunnel-URL wechselt bei jedem Start von `cloudflared` — beim näc
 
 ## Roadmap
 
-1. Supabase/Backend für Sync über mehrere Geräte + echte Push-Benachrichtigungen; ermöglicht dann auch Social-Media-Auto-Posting (`SocialPublisher`-Schnittstelle in `src/features/diary/socialShare.ts` liegt bereit)
-2. Home Assistant-Anbindung (Adapter-Schnittstelle in `src/features/devices/adapters/` liegt bereit)
+Detailplan zum Weg vom kostenlosen 1.0 zum bezahlten SaaS: `.claude/planung/PLAN-profil-saas.md`.
+
+1. **Konto & Sync (SaaS):** Supabase-Backend, Anmeldung (E-Mail+Passwort), Geräte-übergreifender Sync (local-first, Last-Write-Wins), danach Stripe-Abo. Die Konto-/Pro-UI ist bereits als Naht vorhanden.
+2. **Home Assistant** — Adapter-Schnittstelle in `src/features/devices/adapters/` liegt bereit.
+3. Social-Media-Auto-Posting (`SocialPublisher` in `src/features/diary/socialShare.ts` liegt bereit), echte Push-Benachrichtigungen.
