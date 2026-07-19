@@ -21,7 +21,6 @@ export function emptyPlantDraft(): PlantDraft {
     pruningMonths: [],
     sunlight: null,
     notes: '',
-    trefleId: null,
   }
 }
 

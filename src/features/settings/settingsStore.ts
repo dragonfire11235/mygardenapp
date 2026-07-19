@@ -14,7 +14,6 @@ export interface WeatherLocation {
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-  const trefleToken = ref('')
   const notificationsEnabled = ref(false)
   const dashboardLayout = ref<DashboardWidgetConfig[]>([])
   const dashboardHeaderPhotoId = ref<string | null>(null)
@@ -25,7 +24,6 @@ export const useSettingsStore = defineStore('settings', () => {
   const loaded = ref(false)
 
   async function load() {
-    trefleToken.value = (await storage.getSetting<string>('trefleToken')) ?? ''
     notificationsEnabled.value = (await storage.getSetting<boolean>('notificationsEnabled')) ?? false
     dashboardLayout.value = (await storage.getSetting<DashboardWidgetConfig[]>('dashboardLayout')) ?? []
     dashboardHeaderPhotoId.value = (await storage.getSetting<string>('dashboardHeaderPhotoId')) ?? null
@@ -41,11 +39,6 @@ export const useSettingsStore = defineStore('settings', () => {
   async function setDarkMode(enabled: boolean) {
     darkMode.value = enabled
     await storage.setSetting('darkMode', enabled)
-  }
-
-  async function setTrefleToken(token: string) {
-    trefleToken.value = token.trim()
-    await storage.setSetting('trefleToken', trefleToken.value)
   }
 
   async function setNotificationsEnabled(enabled: boolean) {
@@ -79,7 +72,6 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   return {
-    trefleToken,
     notificationsEnabled,
     dashboardLayout,
     dashboardHeaderPhotoId,
@@ -89,7 +81,6 @@ export const useSettingsStore = defineStore('settings', () => {
     darkMode,
     loaded,
     load,
-    setTrefleToken,
     setNotificationsEnabled,
     setDashboardLayout,
     setDashboardHeaderPhotoId,

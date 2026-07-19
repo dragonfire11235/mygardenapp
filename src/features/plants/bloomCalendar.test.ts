@@ -19,7 +19,6 @@ function makePlant(name: string, bloomMonths: number[], pruningMonths: number[] 
     pruningMonths,
     sunlight: null,
     notes: '',
-    trefleId: null,
   })
 }
 

@@ -2,7 +2,7 @@
 //
 // Der Katalog ist ein schreibgeschützter Referenz-Datensatz. Beim „Übernehmen"
 // wird ein Eintrag über catalogPlantToDraft() in einen PlantDraft gewandelt und
-// dann über den normalen Anlege-Flow gespeichert (wie beim Trefle-Import).
+// dann über den normalen Anlege-Flow gespeichert (Katalog-Import).
 
 import type { CatalogFile, CatalogPlant } from './catalogTypes'
 import { emptyPlantDraft, type PlantDraft } from './plantsStore'

@@ -77,14 +77,6 @@ async function clearLocation() {
   await settings.setWeatherLocation(null)
 }
 
-// --- Trefle-API ---
-const tokenInput = ref(settings.trefleToken)
-
-async function saveToken() {
-  await settings.setTrefleToken(tokenInput.value)
-  toast.add({ severity: 'success', summary: 'Gespeichert', detail: 'Trefle-Token aktualisiert.', life: 2500 })
-}
-
 // --- Benachrichtigungen ---
 const notificationsEnabled = computed({
   get: () => settings.notificationsEnabled,
@@ -215,17 +207,6 @@ function onImportSelected(event: Event) {
           <i class="ph-bold ph-caret-right quick-caret" />
         </RouterLink>
       </section>
-      <section class="card">
-        <h2>Pflanzen-Datenbank (Trefle)</h2>
-        <p class="muted">
-          Mit einem kostenlosen Token von trefle.io kannst du Pflanzen aus der Online-Datenbank suchen.
-        </p>
-        <div class="row">
-          <InputText v-model="tokenInput" placeholder="Trefle API-Token" class="grow" />
-          <Button label="Speichern" @click="saveToken" />
-        </div>
-      </section>
-
       <section class="card">
         <h2>Benachrichtigungen</h2>
         <div class="row">

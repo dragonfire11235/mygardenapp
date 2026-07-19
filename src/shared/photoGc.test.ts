@@ -24,7 +24,6 @@ function makePlant(photoId: string | null): Plant {
     pruningMonths: [],
     sunlight: null,
     notes: '',
-    trefleId: null,
   })
 }
 

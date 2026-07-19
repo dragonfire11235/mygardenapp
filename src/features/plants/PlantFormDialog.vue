@@ -16,7 +16,7 @@ import { useBedsStore } from '../beds/bedsStore'
 import { emptyPlantDraft, type PlantDraft } from './plantsStore'
 
 const props = defineProps<{
-  /** Vorbelegung (bei Bearbeiten oder Trefle-Import) */
+  /** Vorbelegung (bei Bearbeiten oder Katalog-Import) */
   initial?: PlantDraft | null
   editing?: boolean
   /** Nur beim Neu-Anlegen sinnvoll: „In Beete einsetzen"-Auswahl anzeigen */

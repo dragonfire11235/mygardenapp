@@ -14,7 +14,6 @@ import { usePlantsStore, type PlantDraft } from './plantsStore'
 import { loadCatalog, searchCatalog, catalogPlantToDraft, normalizeBotanical } from './catalogApi'
 import type { CatalogPlant } from './catalogTypes'
 import PlantFormDialog from './PlantFormDialog.vue'
-import TrefleSearchDialog from './TrefleSearchDialog.vue'
 import CatalogSearchDialog from './CatalogSearchDialog.vue'
 
 const store = usePlantsStore()
@@ -25,7 +24,6 @@ const router = useRouter()
 const filter = ref('')
 const sortBy = ref<'name' | 'standort'>('name')
 const dialogVisible = ref(false)
-const trefleVisible = ref(false)
 const catalogVisible = ref(false)
 const initialDraft = ref<PlantDraft | null>(null)
 
@@ -127,7 +125,7 @@ function openDetail(plant: Plant) {
   router.push(`/pflanzen/${plant.id}`)
 }
 
-// Von Trefle- UND Katalog-Dialog genutzt: Entwurf ins Formular übernehmen
+// Vom Katalog-Dialog genutzt: Entwurf ins Formular übernehmen
 function openImport(draft: PlantDraft) {
   initialDraft.value = draft
   dialogVisible.value = true
@@ -154,9 +152,6 @@ async function save(draft: PlantDraft, bedIds: string[]) {
         <span class="muted">{{ store.plants.length }} in der Bibliothek</span>
       </div>
       <div class="header-actions">
-        <button type="button" class="pill-btn-ghost" @click="trefleVisible = true">
-          <i class="ph-bold ph-globe" /> Online suchen
-        </button>
         <button type="button" class="round-icon-btn" aria-label="Neue Pflanze" @click="openNew">
           <i class="ph-bold ph-plus" />
         </button>
@@ -261,7 +256,6 @@ async function save(draft: PlantDraft, bedIds: string[]) {
       show-bed-assign
       @save="save"
     />
-    <TrefleSearchDialog v-model:visible="trefleVisible" @import="openImport" />
     <CatalogSearchDialog v-model:visible="catalogVisible" @import="openImport" />
   </div>
 </template>

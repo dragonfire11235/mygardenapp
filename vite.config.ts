@@ -30,25 +30,10 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: ['.trycloudflare.com'],
-    proxy: {
-      // Trefle.io sendet keine CORS-Header → Browser-Aufrufe laufen über diesen Proxy.
-      '/api/trefle': {
-        target: 'https://trefle.io/api/v1',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/trefle/, ''),
-      },
-    },
   },
   preview: {
     host: true,
     allowedHosts: ['.trycloudflare.com'],
-    proxy: {
-      '/api/trefle': {
-        target: 'https://trefle.io/api/v1',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/trefle/, ''),
-      },
-    },
   },
   test: {
     environment: 'node',

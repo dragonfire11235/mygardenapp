@@ -19,7 +19,6 @@ function makePlant(name: string): Plant {
     pruningMonths: [],
     sunlight: 'sonne',
     notes: '',
-    trefleId: null,
   })
 }
 
@@ -119,17 +118,17 @@ describe('DexieProvider', () => {
   })
 
   it('speichert und liest Einstellungen', async () => {
-    await provider.setSetting('trefleToken', 'abc123')
-    expect(await provider.getSetting<string>('trefleToken')).toBe('abc123')
+    await provider.setSetting('someSetting', 'abc123')
+    expect(await provider.getSetting<string>('someSetting')).toBe('abc123')
     expect(await provider.getSetting<string>('gibtEsNicht')).toBeUndefined()
   })
 
   it('überschreibt vorhandene Einstellungen und speichert auch strukturierte Werte', async () => {
-    await provider.setSetting('trefleToken', 'alt')
-    await provider.setSetting('trefleToken', 'neu')
+    await provider.setSetting('someSetting', 'alt')
+    await provider.setSetting('someSetting', 'neu')
     await provider.setSetting('layout', [{ id: 'tasks', visible: true }])
 
-    expect(await provider.getSetting('trefleToken')).toBe('neu')
+    expect(await provider.getSetting('someSetting')).toBe('neu')
     expect(await provider.getSetting('layout')).toEqual([{ id: 'tasks', visible: true }])
   })
 
@@ -152,7 +151,7 @@ describe('DexieProvider', () => {
 
   it('importAll ersetzt den kompletten Datenbestand inkl. Einstellungen', async () => {
     await provider.plants.put(makePlant('Alt'))
-    await provider.setSetting('trefleToken', 'alt')
+    await provider.setSetting('someSetting', 'alt')
 
     await provider.importAll({
       version: 1,
@@ -164,7 +163,7 @@ describe('DexieProvider', () => {
       diary: [],
       devices: [],
       sightings: [],
-      settings: { trefleToken: 'neu' },
+      settings: { someSetting: 'neu' },
       photos: [],
     })
 
@@ -172,6 +171,6 @@ describe('DexieProvider', () => {
     expect(plants).toHaveLength(1)
     expect(plants[0].name).toBe('Gurke')
     expect(await provider.beds.getAll()).toHaveLength(0)
-    expect(await provider.getSetting('trefleToken')).toBe('neu')
+    expect(await provider.getSetting('someSetting')).toBe('neu')
   })
 })

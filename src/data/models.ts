@@ -24,7 +24,7 @@ export interface Plant extends BaseEntity {
   name: string
   botanicalName: string
   category: PlantCategory
-  /** Externe Bild-URL (z. B. aus Trefle) */
+  /** Externe Bild-URL (z. B. aus dem Katalog) */
   imageUrl: string
   /** Eigenes Foto aus der Photo-Tabelle */
   photoId: string | null
@@ -43,7 +43,6 @@ export interface Plant extends BaseEntity {
   pruningMonths: number[]
   sunlight: Sunlight | null
   notes: string
-  trefleId: number | null
 }
 
 export interface Bed extends BaseEntity {

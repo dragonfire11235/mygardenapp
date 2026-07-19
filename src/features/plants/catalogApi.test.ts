@@ -96,7 +96,6 @@ describe('catalogPlantToDraft', () => {
     expect(draft.sunlight).toBeNull()
     expect(draft.wateringIntervalDays).toBeNull()
     expect(draft.sowingMonths).toEqual([])
-    expect(draft.trefleId).toBeNull()
   })
 })
 
