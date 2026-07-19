@@ -11,13 +11,25 @@ import { widgetRegistry } from '../dashboard/widgetRegistry'
 import { searchLocation, type GeoResult } from '../weather/weatherApi'
 import { useSettingsStore, type DashboardWidgetConfig } from './settingsStore'
 import { useAccountStore } from '../account/accountStore'
+import { useAuthStore } from '../auth/authStore'
 import { useUiStore } from '../ui/uiStore'
 
 const settings = useSettingsStore()
 const account = useAccountStore()
+const auth = useAuthStore()
 const ui = useUiStore()
 const toast = useToast()
 const confirm = useConfirm()
+
+// --- Konto (Online-Login via Supabase) ---
+async function logout() {
+  try {
+    await auth.logout()
+    toast.add({ severity: 'success', summary: 'Abgemeldet', detail: 'Du bist jetzt abgemeldet.', life: 2000 })
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Fehler', detail: e instanceof Error ? e.message : String(e), life: 3000 })
+  }
+}
 
 // --- Konto/Profil ---
 const nameInput = ref(account.userName)
@@ -181,6 +193,30 @@ function onImportSelected(event: Event) {
         <div class="account-name-edit">
           <InputText v-model="nameInput" placeholder="Dein Name" class="grow" @blur="saveName" @keyup.enter="saveName" />
           <Button label="Speichern" @click="saveName" />
+        </div>
+
+        <!-- Online-Konto (Supabase Auth) — additiv, App bleibt ohne Login offline nutzbar -->
+        <div v-if="auth.available" class="account-auth">
+          <template v-if="auth.isAuthenticated">
+            <div class="account-auth-status">
+              <i class="ph-fill ph-check-circle" />
+              <span class="grow">Angemeldet als <strong>{{ auth.email }}</strong></span>
+            </div>
+            <p class="muted account-auth-hint">
+              Geräte-Sync ist noch nicht aktiv — kommt in einem der nächsten Schritte.
+            </p>
+            <div class="account-auth-actions">
+              <Button label="Passwort ändern" severity="secondary" outlined @click="ui.openAuth('password')" />
+              <Button label="Abmelden" severity="secondary" text @click="logout" />
+            </div>
+          </template>
+          <template v-else>
+            <div class="account-auth-status">
+              <i class="ph-fill ph-lock-simple" />
+              <span class="grow">Lokal — nicht angemeldet. Deine Daten liegen nur auf diesem Gerät.</span>
+            </div>
+            <Button label="Anmelden / Registrieren" class="account-auth-cta" @click="ui.openAuth('login')" />
+          </template>
         </div>
       </section>
 
@@ -397,6 +433,36 @@ function onImportSelected(event: Event) {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.account-auth {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+.account-auth-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.account-auth-status i {
+  font-size: 19px;
+  color: var(--accent);
+  flex: none;
+}
+.account-auth-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+.account-auth-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 10px;
+}
+.account-auth-cta {
+  margin-top: 12px;
+  width: 100%;
 }
 
 .quick-links {

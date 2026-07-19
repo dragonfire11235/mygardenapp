@@ -13,8 +13,10 @@ import { useDiaryStore } from './features/diary/diaryStore'
 import { useDevicesStore } from './features/devices/devicesStore'
 import { useWeatherStore } from './features/weather/weatherStore'
 import { useAccountStore } from './features/account/accountStore'
+import { useAuthStore } from './features/auth/authStore'
 import { useUiStore } from './features/ui/uiStore'
 import ProDialog from './features/ui/ProDialog.vue'
+import AuthDialog from './features/auth/AuthDialog.vue'
 import Onboarding from './features/account/Onboarding.vue'
 
 const settings = useSettingsStore()
@@ -25,6 +27,7 @@ const diary = useDiaryStore()
 const devices = useDevicesStore()
 const weather = useWeatherStore()
 const account = useAccountStore()
+const auth = useAuthStore()
 const ui = useUiStore()
 const route = useRoute()
 
@@ -83,7 +86,7 @@ watch(
 )
 
 onMounted(async () => {
-  await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load(), account.load()])
+  await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load(), account.load(), auth.init()])
 
   // Fehlende Pflegeaufgaben aus den Pflanzen-Intervallen erzeugen
   await tasks.syncCareTasks(plants.plants, beds.activePlantings)
@@ -169,6 +172,7 @@ onMounted(async () => {
     <Toast position="bottom-center" />
     <ConfirmDialog />
     <ProDialog />
+    <AuthDialog />
     <Onboarding v-if="!account.onboarded" />
   </div>
 </template>

@@ -17,6 +17,7 @@
   "dependencies": {
     "@phosphor-icons/web": "^2.1.2",
     "@primeuix/themes": "^2.0.3",
+    "@supabase/supabase-js": "^2.110.7",
     "dexie": "^4.4.4",
     "pinia": "^3.0.4",
     "primevue": "^4.5.5",
