@@ -132,7 +132,7 @@ function save() {
               class="grow"
             />
             <Button
-              icon="pi pi-plus"
+              icon="ph-bold ph-plus"
               severity="secondary"
               outlined
               aria-label="Neue Pflanze anlegen"
@@ -159,7 +159,7 @@ function save() {
           <div v-for="id in photoIds" :key="id" class="photo-wrap">
             <PhotoImg :photo-id="id" />
             <Button
-              icon="pi pi-times"
+              icon="ph-bold ph-x"
               rounded
               size="small"
               severity="danger"
@@ -179,7 +179,7 @@ function save() {
         />
         <Button
           :label="uploading ? 'Wird verarbeitet …' : 'Foto hinzufügen'"
-          icon="pi pi-camera"
+          icon="ph-fill ph-camera"
           severity="secondary"
           outlined
           :loading="uploading"

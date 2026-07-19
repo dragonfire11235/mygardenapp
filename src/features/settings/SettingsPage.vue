@@ -144,7 +144,7 @@ function onImportSelected(event: Event) {
   confirm.require({
     message: 'Der Import ersetzt alle vorhandenen Daten. Fortfahren?',
     header: 'Backup importieren',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Importieren', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {
@@ -192,8 +192,18 @@ function onImportSelected(event: Event) {
         </div>
       </section>
 
-      <!-- Schnellzugriff (mobil sind Entdeckungen/Kalender nur hier erreichbar) -->
+      <!-- Schnellzugriff (mobil sind diese Bereiche nur hier erreichbar) -->
       <section class="card quick-links">
+        <RouterLink to="/tagebuch" class="quick-link">
+          <span class="icon-tile quick-tile"><i class="ph-fill ph-book-open" /></span>
+          <span class="grow">Tagebuch</span>
+          <i class="ph-bold ph-caret-right quick-caret" />
+        </RouterLink>
+        <RouterLink to="/geraete" class="quick-link">
+          <span class="icon-tile quick-tile"><i class="ph-fill ph-cpu" /></span>
+          <span class="grow">Geräte</span>
+          <i class="ph-bold ph-caret-right quick-caret" />
+        </RouterLink>
         <RouterLink to="/kalender" class="quick-link">
           <span class="icon-tile quick-tile"><i class="ph-fill ph-calendar-blank" /></span>
           <span class="grow">Kalender</span>
@@ -247,7 +257,7 @@ function onImportSelected(event: Event) {
         <h2>Wetter</h2>
         <p class="muted">Standort für das Wetter-Widget am Dashboard (Open-Meteo, kostenlos).</p>
         <div v-if="settings.weatherLocation" class="row">
-          <i class="pi pi-map-marker" />
+          <i class="ph-fill ph-map-pin" />
           <span class="grow">{{ settings.weatherLocation.name }}</span>
           <Button label="Entfernen" severity="secondary" text size="small" @click="clearLocation" />
         </div>
@@ -258,7 +268,7 @@ function onImportSelected(event: Event) {
             class="grow"
             @keyup.enter="findLocation"
           />
-          <Button label="Suchen" icon="pi pi-search" :loading="locationSearching" @click="findLocation" />
+          <Button label="Suchen" icon="ph-bold ph-magnifying-glass" :loading="locationSearching" @click="findLocation" />
         </div>
         <div v-if="locationResults.length" class="location-results">
           <Button
@@ -284,8 +294,8 @@ function onImportSelected(event: Event) {
               @update:modelValue="(v: boolean) => toggleWidget(config.id, v)"
             />
             <label :for="`widget-${config.id}`" class="grow">{{ widgetTitle.get(config.id) }}</label>
-            <Button icon="pi pi-arrow-up" text rounded size="small" severity="secondary" aria-label="Nach oben" @click="moveWidget(config.id, -1)" />
-            <Button icon="pi pi-arrow-down" text rounded size="small" severity="secondary" aria-label="Nach unten" @click="moveWidget(config.id, 1)" />
+            <Button icon="ph-bold ph-arrow-up" text rounded size="small" severity="secondary" aria-label="Nach oben" @click="moveWidget(config.id, -1)" />
+            <Button icon="ph-bold ph-arrow-down" text rounded size="small" severity="secondary" aria-label="Nach unten" @click="moveWidget(config.id, 1)" />
           </div>
         </div>
       </section>
@@ -297,8 +307,8 @@ function onImportSelected(event: Event) {
           <label for="photos">Fotos ins Backup aufnehmen</label>
         </div>
         <div class="row actions">
-          <Button label="Backup herunterladen" icon="pi pi-download" @click="exportData" />
-          <Button label="Backup importieren" icon="pi pi-upload" severity="secondary" outlined @click="importInput?.click()" />
+          <Button label="Backup herunterladen" icon="ph-bold ph-download-simple" @click="exportData" />
+          <Button label="Backup importieren" icon="ph-bold ph-upload-simple" severity="secondary" outlined @click="importInput?.click()" />
           <input ref="importInput" type="file" accept="application/json,.json" class="hidden-input" @change="onImportSelected" />
         </div>
         <p class="muted">Der Import ersetzt alle vorhandenen Daten durch den Inhalt der Backup-Datei.</p>

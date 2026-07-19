@@ -142,8 +142,8 @@ function careHint(entry: CatalogPlant): string[] {
 }
 
 .chip {
-  border: 1px solid var(--app-border);
-  background: var(--app-surface);
+  border: 1px solid var(--border-soft);
+  background: var(--surface-card-solid);
   border-radius: 999px;
   padding: 0.2rem 0.7rem;
   font: inherit;
@@ -153,12 +153,12 @@ function careHint(entry: CatalogPlant): string[] {
 }
 
 .chip:hover {
-  border-color: var(--app-accent);
+  border-color: var(--accent);
 }
 
 .chip.active {
-  background: var(--app-accent);
-  border-color: var(--app-accent);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
@@ -188,7 +188,7 @@ function careHint(entry: CatalogPlant): string[] {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--border-soft);
   border-radius: 10px;
   padding: 0.5rem;
 }
@@ -206,7 +206,7 @@ function careHint(entry: CatalogPlant): string[] {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background: var(--app-bg);
+  background: var(--bg-app);
 }
 
 .result-text {
@@ -246,12 +246,12 @@ function careHint(entry: CatalogPlant): string[] {
 }
 
 .ben-score {
-  color: var(--app-text-muted);
+  color: var(--text-2);
   font-size: 0.78rem;
 }
 
 .info-link {
   font-size: 0.8rem;
-  color: var(--app-accent);
+  color: var(--accent);
 }
 </style>

@@ -31,7 +31,7 @@ const score = computed(() => biodiversityScore(store.sightings))
 }
 
 .more {
-  color: var(--app-accent);
+  color: var(--accent);
   text-decoration: none;
   font-size: 0.9rem;
 }

@@ -33,6 +33,6 @@ const store = useBedsStore()
 }
 
 .widget-row:hover .widget-row-text {
-  color: var(--app-accent);
+  color: var(--accent);
 }
 </style>

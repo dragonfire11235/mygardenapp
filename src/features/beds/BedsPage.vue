@@ -124,7 +124,7 @@ async function saveBed(draft: BedDraft) {
 
     <div v-else class="empty-state">
       <i class="ph-fill ph-grid-four" />
-      <p>Noch keine Beete. Lege dein erstes Beet oder deinen ersten Standort an.</p>
+      <p>Noch keine Beete. Lege dein erstes Beet an.</p>
     </div>
 
     <BedFormDialog v-model:visible="bedDialogVisible" :initial="null" @save="saveBed" />

@@ -75,9 +75,9 @@ function removeCurrent() {
   const task = editingTask.value
   if (!task) return
   confirm.require({
-    message: `„${task.title}" wirklich löschen?`,
+    message: `„${task.title}“ wirklich löschen?`,
     header: 'Aufgabe löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: () => store.remove(task.id),
@@ -118,7 +118,7 @@ function removeAllDone() {
   confirm.require({
     message: `Alle ${store.doneTasks.length} erledigten Aufgaben löschen?`,
     header: 'Erledigte löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {
@@ -246,7 +246,7 @@ function exportCalendar() {
         <Button
           v-if="showDone"
           label="Alle erledigten löschen"
-          icon="pi pi-trash"
+          icon="ph-bold ph-trash"
           text
           size="small"
           severity="danger"
@@ -270,7 +270,7 @@ function exportCalendar() {
             <span class="task-meta">erledigt am {{ new Date(task.doneAt!).toLocaleDateString('de-DE') }}</span>
           </div>
           <Button
-            icon="pi pi-trash"
+            icon="ph-bold ph-trash"
             text
             rounded
             size="small"

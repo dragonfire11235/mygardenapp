@@ -22,7 +22,7 @@ onMounted(() => {
 <template>
   <div v-if="!settings.weatherLocation" class="muted">
     Kein Standort gewählt.
-    <RouterLink to="/einstellungen">In den Einstellungen festlegen →</RouterLink>
+    <RouterLink to="/einstellungen">Unter „Mehr“ festlegen →</RouterLink>
   </div>
   <div v-else-if="loading && !weather" class="muted">Wetter wird geladen …</div>
   <div v-else-if="error" class="muted">{{ error }}</div>
@@ -101,13 +101,14 @@ onMounted(() => {
   border-radius: 8px;
 }
 
+/* Frost = akute Warnung (Pflanzen schützen), Regen = Wasser/Info-Thema */
 .hint.frost {
-  background: rgba(59, 130, 246, 0.12);
-  color: #1d4ed8;
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .hint.rain {
-  background: rgba(22, 163, 74, 0.1);
-  color: var(--app-accent);
+  background: var(--info-soft);
+  color: var(--info);
 }
 </style>

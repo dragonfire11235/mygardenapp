@@ -21,7 +21,7 @@ async function toggle(device: Device, on: boolean) {
       />
     </div>
   </div>
-  <p v-else class="muted">Keine schaltbaren Geräte (siehe „Geräte").</p>
+  <p v-else class="muted">Keine schaltbaren Geräte (siehe „Geräte“).</p>
 </template>
 
 <style scoped>

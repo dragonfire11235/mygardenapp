@@ -45,7 +45,7 @@ function importResult(result: TrefleResult) {
 <template>
   <Dialog v-model:visible="visible" modal header="Online suchen (Trefle)" :style="{ width: 'min(560px, 95vw)' }">
     <Message v-if="!settings.trefleToken" severity="warn" :closable="false">
-      Kein Trefle-Token hinterlegt. Du kannst ihn unter „Mehr → Einstellungen" eintragen.
+      Kein Trefle-Token hinterlegt. Du kannst ihn unter „Mehr“ eintragen.
     </Message>
 
     <div class="search-row">
@@ -55,7 +55,7 @@ function importResult(result: TrefleResult) {
         class="search-input"
         @keyup.enter="search"
       />
-      <Button label="Suchen" icon="pi pi-search" :loading="searching" :disabled="!query.trim()" @click="search" />
+      <Button label="Suchen" icon="ph-bold ph-magnifying-glass" :loading="searching" :disabled="!query.trim()" @click="search" />
     </div>
     <p class="muted">Tipp: Trefle kennt vor allem englische und botanische Namen.</p>
 
@@ -100,7 +100,7 @@ function importResult(result: TrefleResult) {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--border-soft);
   border-radius: 10px;
   padding: 0.5rem;
 }
@@ -118,7 +118,7 @@ function importResult(result: TrefleResult) {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background: var(--app-bg);
+  background: var(--bg-app);
 }
 
 .result-text {

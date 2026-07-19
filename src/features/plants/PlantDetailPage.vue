@@ -115,9 +115,9 @@ function removePlant() {
   const p = plant.value
   if (!p) return
   confirm.require({
-    message: `„${p.name}" wirklich löschen?`,
+    message: `„${p.name}“ wirklich löschen?`,
     header: 'Pflanze löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {

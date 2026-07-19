@@ -14,7 +14,7 @@ const store = useDevicesStore()
       <span class="muted sensor-name">{{ device.name }}</span>
     </div>
   </div>
-  <p v-else class="muted">Keine Sensoren eingerichtet (siehe „Geräte").</p>
+  <p v-else class="muted">Keine Sensoren eingerichtet (siehe „Geräte“).</p>
 </template>
 
 <style scoped>
@@ -35,7 +35,7 @@ const store = useDevicesStore()
 .sensor-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--app-accent);
+  color: var(--accent);
 }
 
 .sensor-name {

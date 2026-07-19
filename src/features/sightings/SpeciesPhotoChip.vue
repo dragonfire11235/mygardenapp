@@ -97,7 +97,7 @@ onBeforeUnmount(closeTapped)
 
 <style scoped>
 .chip {
-  background: var(--app-surface-muted, rgba(100, 116, 139, 0.12));
+  background: var(--surface-tint);
   border-radius: 999px;
   padding: 0.2rem 0.6rem;
   font-size: 0.8rem;
@@ -105,7 +105,7 @@ onBeforeUnmount(closeTapped)
 }
 
 .chip-open {
-  background: var(--app-accent-soft, rgba(22, 163, 74, 0.15));
+  background: var(--accent-soft);
 }
 </style>
 
@@ -115,9 +115,9 @@ onBeforeUnmount(closeTapped)
   position: fixed;
   z-index: 1000;
   width: 170px;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+  background: var(--surface-card-solid);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
   padding: 0.5rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
   cursor: default;

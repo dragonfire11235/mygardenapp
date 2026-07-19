@@ -74,7 +74,7 @@ function removeCurrent() {
   confirm.require({
     message: 'Eintrag samt Fotos wirklich löschen?',
     header: 'Eintrag löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: () => store.remove(entry),
@@ -112,7 +112,7 @@ function tagNames(entry: DiaryEntry): string[] {
             <span class="entry-title">{{ entry.title || formatDate(entry.date) }}</span>
             <Button
               v-if="sharePublisher"
-              icon="pi pi-share-alt"
+              icon="ph-bold ph-share-network"
               text
               rounded
               size="small"

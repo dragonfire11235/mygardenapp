@@ -31,3 +31,6 @@ dist-ssr
 # Katalog-Build-Cache (Wikidata/GloBI-Zwischenstände)
 scripts/.cache/
 design_handoff_lumi_redesign/
+
+# Vom NVIDIA-Treiber versehentlich im Projekt-Root angelegt
+NVIDIA Corporation/

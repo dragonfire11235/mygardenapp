@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { getPhotoUrl } from '../../shared/photos'
 import { useSettingsStore } from '../settings/settingsStore'
 import { useWeatherStore } from '../weather/weatherStore'
 import { weatherLabel } from '../weather/weatherApi'
 import { useAccountStore } from '../account/accountStore'
+import { buildLumiTips } from './lumiTips'
 import { widgetRegistry } from './widgetRegistry'
 
 const settings = useSettingsStore()
@@ -56,14 +57,23 @@ const weatherLine = computed(() => {
   return `${Math.round(w.currentTemp)}° · ${weatherLabel(w.currentCode).toLowerCase()}`
 })
 
-// Lumi-Tipp: kleine, kontextabhängige Hilfe statt statischem Text
-const lumiTip = computed(() => {
-  const w = weatherStore.weather
-  if (w?.frostWarning) return '❄️ Lumi-Tipp: Nachtfrost erwartet — deck empfindliche Pflanzen ab!'
-  if (w?.rainToday) return '🌧️ Lumi-Tipp: Heute ist Regen angesagt — das Gießen kann warten.'
-  if (w && w.currentTemp >= 25) return '💧 Lumi-Tipp: Heute wird’s warm — gieß am besten erst am Abend!'
-  return '🌱 Lumi-Tipp: Ein kurzer Blick ins Beet lohnt sich jeden Tag.'
+// Lumi-Tipps: wetterbewusst + allgemein + Tagebuch-Nudges, rotieren alle 8 s
+const tips = computed(() => buildLumiTips(weatherStore.weather))
+const tipIndex = ref(0)
+let tipTimer: ReturnType<typeof setInterval> | undefined
+
+onMounted(() => {
+  tipTimer = setInterval(() => {
+    if (tips.value.length) tipIndex.value = (tipIndex.value + 1) % tips.value.length
+  }, 8000)
 })
+onUnmounted(() => {
+  if (tipTimer) clearInterval(tipTimer)
+})
+// Ändert sich die Liste (Wetter lädt nach), Index absichern und Wetter-Tipp zeigen
+watch(tips, () => { tipIndex.value = 0 })
+
+const lumiTip = computed(() => tips.value[tipIndex.value] ?? tips.value[0] ?? '')
 </script>
 
 <template>
@@ -82,7 +92,9 @@ const lumiTip = computed(() => {
           </div>
           <img :src="mascotUrl" alt="Lumi gießt" class="hero-mascot" />
         </div>
-        <div class="hero-tip">{{ lumiTip }}</div>
+        <Transition name="tip-fade" mode="out-in">
+          <div class="hero-tip" :key="lumiTip">{{ lumiTip }}</div>
+        </Transition>
       </div>
     </header>
 
@@ -95,7 +107,7 @@ const lumiTip = computed(() => {
 
     <p v-if="!visibleWidgets.length" class="muted">
       Alle Widgets sind ausgeblendet. Unter
-      <RouterLink to="/einstellungen">Einstellungen</RouterLink> kannst du sie wieder einblenden.
+      <RouterLink to="/einstellungen">Mehr</RouterLink> kannst du sie wieder einblenden.
     </p>
   </div>
 </template>
@@ -176,6 +188,16 @@ const lumiTip = computed(() => {
   border-radius: 18px;
   padding: 10px 14px;
   font-size: 14px;
+}
+
+/* Sanfter Wechsel zwischen den rotierenden Tipps */
+.tip-fade-enter-active,
+.tip-fade-leave-active {
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.tip-fade-enter-from,
+.tip-fade-leave-to {
+  opacity: 0;
 }
 
 .widget-grid {

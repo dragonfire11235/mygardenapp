@@ -79,7 +79,7 @@ function removeCurrent() {
   confirm.require({
     message: 'Sichtung samt Foto wirklich löschen?',
     header: 'Sichtung löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: () => store.remove(sighting),

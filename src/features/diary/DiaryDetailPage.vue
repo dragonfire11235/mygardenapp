@@ -48,7 +48,7 @@ function removeEntry() {
   confirm.require({
     message: 'Eintrag samt Fotos wirklich löschen?',
     header: 'Eintrag löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {
@@ -75,7 +75,7 @@ async function share() {
   <div class="page">
     <Button
       label="Tagebuch"
-      icon="pi pi-arrow-left"
+      icon="ph-bold ph-arrow-left"
       text
       severity="secondary"
       class="back-btn"
@@ -90,17 +90,17 @@ async function share() {
             <p class="muted date">📅 {{ formatDate(entry.date) }}</p>
           </div>
           <div class="head-actions">
-            <Button label="Bearbeiten" icon="pi pi-pencil" size="small" @click="editVisible = true" />
+            <Button label="Bearbeiten" icon="ph-fill ph-pencil-simple" size="small" @click="editVisible = true" />
             <Button
               v-if="sharePublisher"
               label="Teilen"
-              icon="pi pi-share-alt"
+              icon="ph-bold ph-share-network"
               size="small"
               severity="secondary"
               outlined
               @click="share"
             />
-            <Button label="Löschen" icon="pi pi-trash" size="small" severity="danger" outlined @click="removeEntry" />
+            <Button label="Löschen" icon="ph-bold ph-trash" size="small" severity="danger" outlined @click="removeEntry" />
           </div>
         </header>
 
@@ -120,7 +120,7 @@ async function share() {
     </template>
 
     <div v-else-if="store.loaded" class="empty-state">
-      <i class="pi pi-pencil" />
+      <i class="ph-fill ph-pencil-simple" />
       <p>Diesen Eintrag gibt es nicht (mehr).</p>
     </div>
   </div>
@@ -184,7 +184,7 @@ async function share() {
 }
 
 .link-chip {
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--border-soft);
   border-radius: 999px;
   padding: 0.2rem 0.7rem;
   font-size: 0.85rem;
@@ -193,7 +193,7 @@ async function share() {
 }
 
 .link-chip:hover {
-  border-color: var(--app-accent);
-  color: var(--app-accent);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 </style>

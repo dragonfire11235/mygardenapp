@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Mein Garten',
-        short_name: 'Garten',
+        name: 'lumi — Dein Garten',
+        short_name: 'lumi',
         description: 'Pflanzen, Beete, Aufgaben, Tagebuch und Geräte für den eigenen Garten',
         lang: 'de',
         theme_color: '#5f8c4a',

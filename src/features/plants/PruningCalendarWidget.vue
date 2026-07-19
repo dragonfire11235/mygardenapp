@@ -67,7 +67,7 @@ const monthInitials = monthNamesShort.map((m) => m[0])
   <p v-else class="muted">
     Noch keine Schnittzeiten hinterlegt. Übernimm Gehölze aus dem
     <button class="link-btn" @click="router.push('/pflanzen')">Katalog</button>
-    oder trage bei einer Pflanze „Schnitt-Monate" ein.
+    oder trage bei einer Pflanze „Schnitt-Monate“ ein.
   </p>
 </template>
 
@@ -109,13 +109,13 @@ const monthInitials = monthNamesShort.map((m) => m[0])
 }
 
 .row:not(.head):hover .name {
-  color: var(--app-accent);
+  color: var(--accent);
 }
 
 .cell {
   height: 16px;
   border-radius: 3px;
-  background: var(--app-bg);
+  background: var(--bg-app);
 }
 
 .head-cell {
@@ -123,22 +123,22 @@ const monthInitials = monthNamesShort.map((m) => m[0])
   background: none;
   text-align: center;
   font-size: 0.7rem;
-  color: var(--app-text-muted);
+  color: var(--text-2);
 }
 
 .cell.now {
-  outline: 1.5px solid var(--app-accent);
+  outline: 1.5px solid var(--accent);
   outline-offset: -1px;
 }
 
 .head-cell.now {
-  color: var(--app-accent);
+  color: var(--accent);
   font-weight: 700;
 }
 
 .more {
   font-size: 0.82rem;
-  color: var(--app-accent);
+  color: var(--accent);
   text-decoration: none;
   font-weight: 600;
 }
@@ -152,7 +152,7 @@ const monthInitials = monthNamesShort.map((m) => m[0])
   border: none;
   padding: 0;
   font: inherit;
-  color: var(--app-accent);
+  color: var(--accent);
   cursor: pointer;
   text-decoration: underline;
 }

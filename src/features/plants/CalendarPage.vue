@@ -143,8 +143,8 @@ function rows(plants: Plant[]) {
 
     <div v-else class="empty-state">
       <i class="ph-fill ph-calendar-blank" />
-      <p v-if="mode === 'bloom'">Noch keine Blütezeiten hinterlegt. Übernimm Pflanzen aus dem Katalog oder trage „Blüte-Monate" ein.</p>
-      <p v-else>Noch keine Schnittzeiten hinterlegt. Übernimm Gehölze aus dem Katalog oder trage „Schnitt-Monate" ein.</p>
+      <p v-if="mode === 'bloom'">Noch keine Blütezeiten hinterlegt. Übernimm Pflanzen aus dem Katalog oder trage „Blüte-Monate“ ein.</p>
+      <p v-else>Noch keine Schnittzeiten hinterlegt. Übernimm Gehölze aus dem Katalog oder trage „Schnitt-Monate“ ein.</p>
     </div>
   </div>
 </template>

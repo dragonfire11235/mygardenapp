@@ -1,6 +1,6 @@
-# Mein Garten 🌱
+# lumi 🌱
 
-Eine Progressive Web App (PWA) zur Verwaltung des eigenen Gartens — komplett offline-fähig, alle Daten bleiben lokal im Browser (IndexedDB).
+**Dein Garten. Dein Zuhause.** Eine Progressive Web App (PWA) zur Verwaltung des eigenen Gartens — komplett offline-fähig, alle Daten bleiben lokal im Browser (IndexedDB). Warmes Liquid-Glass-Design mit Maskottchen Lumi, durchgehend Deutsch (Du-Form).
 
 ## Funktionen
 
@@ -14,7 +14,7 @@ Eine Progressive Web App (PWA) zur Verwaltung des eigenen Gartens — komplett o
 
 ## Technik
 
-Vue 3 (`<script setup>`) · TypeScript · Vite · PrimeVue · Pinia · Dexie (IndexedDB) · vite-plugin-pwa
+Vue 3 (`<script setup>`) · TypeScript · Vite · Pinia · Dexie (IndexedDB) · vite-plugin-pwa · PrimeVue (Dialoge/Formulare) · Phosphor Icons · Nunito (selbst gehostet). Optik über ein eigenes Design-Token-System (`src/styles/tokens/`).
 
 Die Storage-Schicht ist als Interface abstrahiert (`src/data/storage.ts`) — ein späteres Server-Backend kann den lokalen `DexieProvider` ersetzen, ohne dass sich die Features ändern. Alle Entitäten sind sync-fähig aufgebaut (UUID, Zeitstempel, Soft-Delete).
 

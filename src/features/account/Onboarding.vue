@@ -46,7 +46,7 @@ async function finish() {
         <img :src="logoUrl" alt="lumi" data-logo="1" class="ob-logo" />
         <div class="ob-tagline">Dein Garten. Dein Zuhause.</div>
         <div class="ob-actions">
-          <button type="button" class="pill-btn ob-primary" @click="next">Los geht's 🌱</button>
+          <button type="button" class="pill-btn ob-primary" @click="next">Los geht’s 🌱</button>
           <button type="button" class="ob-link" @click="toLogin">Ich habe schon ein Konto</button>
         </div>
       </template>
@@ -94,9 +94,11 @@ async function finish() {
   z-index: 60;
   background: var(--bg-app-gradient);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 24px;
+  /* Bei geringer Höhe (Landscape/kleine Geräte) scrollbar statt abgeschnitten */
+  overflow-y: auto;
 }
 
 .ob-inner {
@@ -106,6 +108,8 @@ async function finish() {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  /* margin:auto zentriert bei Platz vertikal, erlaubt bei Überlänge das Scrollen */
+  margin: auto;
   animation: fadeUp 400ms var(--ease-out);
 }
 

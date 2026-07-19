@@ -341,9 +341,9 @@ function removeSelected() {
   const sel = selected.value
   if (!sel) return
   confirm.require({
-    message: `„${sel.plant.name}" aus dem Beet entfernen?`,
+    message: `„${sel.plant.name}“ aus dem Beet entfernen?`,
     header: 'Bepflanzung beenden',
-    icon: 'pi pi-question-circle',
+    icon: 'ph-fill ph-question',
     acceptProps: { label: 'Entfernen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {
@@ -359,7 +359,7 @@ function removeSelected() {
     <!-- Ohne Maße: erst festlegen -->
     <div v-if="!hasDimensions" class="dimensions-form">
       <p class="muted">
-        „{{ bed.name }}" hat noch keine Metermaße. Lege Breite und Länge fest, um zu planen.
+        „{{ bed.name }}“ hat noch keine Metermaße. Lege Breite und Länge fest, um zu planen.
       </p>
       <div class="dim-row">
         <InputNumber v-model="widthInput" :min="0.2" :max="50" :step="0.1" :min-fraction-digits="1" :max-fraction-digits="2" suffix=" m" placeholder="Breite" />
@@ -409,7 +409,7 @@ function removeSelected() {
             <span class="muted">{{ entry.count }}</span>
           </button>
           <p v-if="!plantsStore.plants.length" class="muted">
-            Die Bibliothek ist leer — lege zuerst unter „Pflanzen" welche an.
+            Die Bibliothek ist leer — lege zuerst unter „Pflanzen“ welche an.
           </p>
         </div>
       </div>
@@ -443,7 +443,7 @@ function removeSelected() {
           </span>
           <Button
             label="Als Bild teilen"
-            icon="pi pi-share-alt"
+            icon="ph-bold ph-share-network"
             size="small"
             severity="secondary"
             outlined
@@ -462,7 +462,7 @@ function removeSelected() {
           Position {{ fmtM(selected.planting.posX!) }} / {{ fmtM(selected.planting.posY!) }} m
         </span>
         <span class="muted comp-legend">🟢 gute · 🔴 ungünstige Nachbarn</span>
-        <Button label="Entfernen" icon="pi pi-trash" severity="danger" text size="small" @click="removeSelected" />
+        <Button label="Entfernen" icon="ph-bold ph-trash" severity="danger" text size="small" @click="removeSelected" />
       </div>
 
       <!-- Noch nicht platzierte Bepflanzungen -->
@@ -472,7 +472,7 @@ function removeSelected() {
           v-for="item in unplaced"
           :key="item.planting.id"
           :label="item.plant.name"
-          icon="pi pi-plus"
+          icon="ph-bold ph-plus"
           size="small"
           severity="secondary"
           outlined
@@ -554,7 +554,7 @@ function removeSelected() {
   padding: 0;
   font: inherit;
   font-size: 0.8rem;
-  color: var(--app-accent);
+  color: var(--accent);
   cursor: pointer;
   text-decoration: underline;
 }

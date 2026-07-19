@@ -51,7 +51,7 @@ function removeMap() {
   confirm.require({
     message: 'Kartenbild entfernen? Die Beet-Positionen bleiben gespeichert.',
     header: 'Karte entfernen',
-    icon: 'pi pi-question-circle',
+    icon: 'ph-fill ph-question',
     acceptProps: { label: 'Entfernen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {
@@ -130,14 +130,14 @@ function plantCount(bedId: string): number {
   <div class="map-view">
     <!-- Noch kein Kartenbild: Upload anbieten -->
     <div v-if="!mapUrl" class="empty-state card">
-      <i class="pi pi-map" />
+      <i class="ph-fill ph-map-trifold" />
       <p>
         Lade ein Bild deines Gartens hoch — z. B. einen Google-Maps-Screenshot
         oder eine Zeichnung. Danach platzierst du deine Beete darauf.
       </p>
       <Button
         :label="uploading ? 'Wird verarbeitet …' : 'Kartenbild hochladen'"
-        icon="pi pi-upload"
+        icon="ph-bold ph-upload-simple"
         :loading="uploading"
         @click="fileInput?.click()"
       />
@@ -172,7 +172,7 @@ function plantCount(bedId: string): number {
             v-for="bed in unplacedBeds"
             :key="bed.id"
             :label="bed.name"
-            icon="pi pi-plus"
+            icon="ph-bold ph-plus"
             size="small"
             severity="secondary"
             outlined
@@ -186,7 +186,7 @@ function plantCount(bedId: string): number {
           v-for="bed in placedBeds"
           :key="bed.id"
           :label="`${bed.name} von Karte nehmen`"
-          icon="pi pi-times"
+          icon="ph-bold ph-x"
           text
           size="small"
           severity="secondary"
@@ -195,8 +195,8 @@ function plantCount(bedId: string): number {
       </div>
 
       <div class="map-actions">
-        <Button label="Karte ändern" icon="pi pi-upload" severity="secondary" outlined size="small" :loading="uploading" @click="fileInput?.click()" />
-        <Button label="Karte entfernen" icon="pi pi-trash" severity="danger" text size="small" @click="removeMap" />
+        <Button label="Karte ändern" icon="ph-bold ph-upload-simple" severity="secondary" outlined size="small" :loading="uploading" @click="fileInput?.click()" />
+        <Button label="Karte entfernen" icon="ph-bold ph-trash" severity="danger" text size="small" @click="removeMap" />
       </div>
     </template>
 
@@ -213,9 +213,9 @@ function plantCount(bedId: string): number {
 
 .map-canvas {
   position: relative;
-  border-radius: var(--app-radius);
+  border-radius: var(--radius-m);
   overflow: hidden;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--border-soft);
   touch-action: none; /* verhindert Scrollen beim Marker-Ziehen am Handy */
   user-select: none;
 }
@@ -252,8 +252,8 @@ function plantCount(bedId: string): number {
 }
 
 .marker-label {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background: var(--surface-card-solid);
+  border: 1px solid var(--border-soft);
   border-radius: 999px;
   padding: 0.1rem 0.55rem;
   font-size: 0.78rem;
@@ -266,7 +266,7 @@ function plantCount(bedId: string): number {
 }
 
 .marker-count {
-  background: var(--app-accent);
+  background: var(--accent);
   color: #fff;
   border-radius: 999px;
   min-width: 1.1rem;

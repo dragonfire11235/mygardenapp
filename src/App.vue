@@ -32,21 +32,26 @@ const route = useRoute()
 const logoUrl = `${import.meta.env.BASE_URL}lumi/logo-lumi-wordmark-alpha.png`
 
 // Navigation (Phosphor-Icons, Stil "fill" — siehe Design-Handoff)
-// Mobil: 7 Tabs; Desktop-Sidebar zusätzlich Entdeckungen + Kalender
+// Mobil: 5 Tabs (passt sicher bis 320 px, iOS-Standard). Tagebuch, Geräte,
+// Entdeckungen und Kalender sind über „Mehr" (Schnellzugriff) erreichbar.
+// Desktop-Sidebar zeigt alle Bereiche direkt.
 const tabItems = [
+  { to: '/', icon: 'ph-house', label: 'Start' },
+  { to: '/pflanzen', icon: 'ph-potted-plant', label: 'Pflanzen' },
+  { to: '/beete', icon: 'ph-grid-four', label: 'Beete' },
+  { to: '/aufgaben', icon: 'ph-list-checks', label: 'Aufgaben' },
+  { to: '/einstellungen', icon: 'ph-dots-three-circle', label: 'Mehr' },
+]
+const sideItems = [
   { to: '/', icon: 'ph-house', label: 'Start' },
   { to: '/pflanzen', icon: 'ph-potted-plant', label: 'Pflanzen' },
   { to: '/beete', icon: 'ph-grid-four', label: 'Beete' },
   { to: '/aufgaben', icon: 'ph-list-checks', label: 'Aufgaben' },
   { to: '/tagebuch', icon: 'ph-book-open', label: 'Tagebuch' },
   { to: '/geraete', icon: 'ph-cpu', label: 'Geräte' },
-  { to: '/einstellungen', icon: 'ph-dots-three-circle', label: 'Mehr' },
-]
-const sideItems = [
-  ...tabItems.slice(0, 6),
   { to: '/entdeckungen', icon: 'ph-binoculars', label: 'Entdeckungen' },
   { to: '/kalender', icon: 'ph-calendar-blank', label: 'Kalender' },
-  tabItems[6],
+  { to: '/einstellungen', icon: 'ph-dots-three-circle', label: 'Mehr' },
 ]
 
 // Aktiv-Logik: Detailseiten zählen zum Hauptbereich (z. B. /pflanzen/42 → Pflanzen)
@@ -176,7 +181,8 @@ onMounted(async () => {
   --bg-photo-veil: rgba(247, 244, 238, 0.6);
 }
 :global(.app-dark) .app-shell {
-  --bg-photo-veil: rgba(16, 22, 15, 0.65);
+  /* Kräftiger abdunkeln, damit helle Hintergrundbilder im Dunkelmodus nicht blenden */
+  --bg-photo-veil: rgba(13, 18, 12, 0.86);
 }
 
 .app-main {
@@ -192,11 +198,13 @@ onMounted(async () => {
   min-height: 100vh; /* füllt den Bildschirm auch bei wenig Inhalt */
 }
 
-/* Inhalt: zentriert, Platz unten für die schwebende Tab-Bar */
+/* Inhalt: zentriert, Platz unten für die schwebende Tab-Bar.
+   Oben env(safe-area-inset-top), damit der Seitenkopf in der installierten
+   PWA (Notch-iPhones, standalone) nicht unter die Statusleiste rutscht. */
 .app-content {
   max-width: 1060px;
   margin: 0 auto;
-  padding: 20px 18px 140px;
+  padding: calc(20px + env(safe-area-inset-top)) 18px 140px;
 }
 
 /* Seitenwechsel: fadeUp nur beim Eintreten (wie im Prototyp) */
@@ -357,6 +365,7 @@ onMounted(async () => {
 .tab-item span:not(.nav-badge) {
   font-size: 10px;
   font-weight: 800;
+  white-space: nowrap;
 }
 .tab-item:active {
   transform: scale(var(--press-scale, 0.97));
@@ -384,13 +393,9 @@ onMounted(async () => {
   .tab-bar {
     display: none;
   }
-}
-
-/* Schmale Handys: Tab-Bar kompakter, damit 7 Tabs passen */
-@media (max-width: 389px) {
-  .tab-item {
-    padding: 7px 7px;
-    min-width: 42px;
+  /* Kein Platz mehr für die (ausgeblendete) schwebende Tab-Bar nötig */
+  .app-content {
+    padding-bottom: 40px;
   }
 }
 </style>

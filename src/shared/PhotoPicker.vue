@@ -30,7 +30,7 @@ async function onFileSelected(event: Event) {
     <div v-if="model" class="preview">
       <PhotoImg :photo-id="model" />
       <Button
-        icon="pi pi-times"
+        icon="ph-bold ph-x"
         rounded
         size="small"
         severity="danger"
@@ -42,7 +42,7 @@ async function onFileSelected(event: Event) {
     <input ref="fileInput" type="file" accept="image/*" class="file-hidden" @change="onFileSelected" />
     <Button
       :label="uploading ? 'Wird verarbeitet …' : model ? 'Foto ersetzen' : label"
-      icon="pi pi-camera"
+      icon="ph-fill ph-camera"
       severity="secondary"
       outlined
       :loading="uploading"

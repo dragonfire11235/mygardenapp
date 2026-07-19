@@ -37,7 +37,7 @@ async function waterAll() {
     <Button
       v-if="store.dueWatering.length"
       :label="`${weather.rainToday ? '🌧️ ' : ''}Alles gegossen (${store.dueWatering.length})`"
-      icon="pi pi-check"
+      icon="ph-bold ph-check"
       size="small"
       severity="info"
       class="water-all"
@@ -45,7 +45,7 @@ async function waterAll() {
       @click="waterAll"
     />
     <div v-for="task in store.dueTasks.slice(0, 6)" :key="task.id" class="widget-row">
-      <Button icon="pi pi-check" rounded outlined size="small" aria-label="Erledigt" @click="complete(task)" />
+      <Button icon="ph-bold ph-check" rounded outlined size="small" aria-label="Erledigt" @click="complete(task)" />
       <span class="widget-row-text">{{ taskTypeIcons[task.type] }} {{ task.title }}</span>
       <span class="muted" :class="{ overdue: daysFromToday(task.dueDate) < 0 }">{{ formatDue(task.dueDate) }}</span>
     </div>
@@ -74,10 +74,10 @@ async function waterAll() {
 @keyframes rain-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55);
+    box-shadow: 0 0 0 0 rgba(111, 163, 199, 0.55);
   }
   50% {
-    box-shadow: 0 0 0 7px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 7px rgba(111, 163, 199, 0);
   }
 }
 
@@ -96,7 +96,7 @@ async function waterAll() {
 }
 
 .widget-link {
-  color: var(--app-accent);
+  color: var(--accent);
   text-decoration: none;
   font-size: 0.85rem;
   margin-top: 0.25rem;

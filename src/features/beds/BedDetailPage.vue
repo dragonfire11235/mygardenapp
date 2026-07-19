@@ -85,9 +85,9 @@ function removeBed() {
   const b = bed.value
   if (!b) return
   confirm.require({
-    message: `„${b.name}" wirklich löschen? Aktive Bepflanzungen werden beendet.`,
+    message: `„${b.name}“ wirklich löschen? Aktive Bepflanzungen werden beendet.`,
     header: 'Beet löschen',
-    icon: 'pi pi-exclamation-triangle',
+    icon: 'ph-fill ph-warning',
     acceptProps: { label: 'Löschen', severity: 'danger' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: async () => {
@@ -103,9 +103,9 @@ async function savePlanting(data: { plantId: string; quantity: number; plantedAt
 
 function endPlanting(plantingId: string, name: string) {
   confirm.require({
-    message: `„${name}" aus dem Beet entfernen?`,
+    message: `„${name}“ aus dem Beet entfernen?`,
     header: 'Bepflanzung beenden',
-    icon: 'pi pi-question-circle',
+    icon: 'ph-fill ph-question',
     acceptProps: { label: 'Entfernen' },
     rejectProps: { label: 'Abbrechen', severity: 'secondary', text: true },
     accept: () => store.endPlanting(plantingId),
@@ -158,7 +158,7 @@ function endPlanting(plantingId: string, name: string) {
               <span>🌿 {{ plantName(pl.plantId) }}<span v-if="pl.quantity > 1" class="muted"> ×{{ pl.quantity }}</span></span>
               <span class="muted">seit {{ formatDate(pl.plantedAt) }}</span>
             </RouterLink>
-            <Button icon="pi pi-times" text rounded size="small" severity="secondary" aria-label="Entfernen" @click="endPlanting(pl.id, plantName(pl.plantId))" />
+            <Button icon="ph-bold ph-x" text rounded size="small" severity="secondary" aria-label="Entfernen" @click="endPlanting(pl.id, plantName(pl.plantId))" />
           </li>
         </ul>
         <p v-else class="muted">Noch nichts eingepflanzt.</p>

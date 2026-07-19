@@ -89,7 +89,7 @@ function sensorText(deviceId: string): string {
 
     <div v-else class="empty-state">
       <i class="ph-fill ph-cpu" />
-      <p>Noch keine Geräte. Klicke auf „Demo-Geräte suchen", um die Simulation zu starten.</p>
+      <p>Noch keine Geräte. Klicke auf „Demo-Geräte suchen“, um die Simulation zu starten.</p>
     </div>
 
     <!-- Pro-Upsell (nur für Free-Nutzer) -->

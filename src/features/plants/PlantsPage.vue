@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import InputText from 'primevue/inputtext'
 import type { Plant, PlantCategory } from '../../data'
@@ -11,6 +11,8 @@ import PlantBeneficialBadge from './PlantBeneficialBadge.vue'
 import { useBedsStore } from '../beds/bedsStore'
 import { useTasksStore } from '../tasks/tasksStore'
 import { usePlantsStore, type PlantDraft } from './plantsStore'
+import { loadCatalog, searchCatalog, catalogPlantToDraft, normalizeBotanical } from './catalogApi'
+import type { CatalogPlant } from './catalogTypes'
 import PlantFormDialog from './PlantFormDialog.vue'
 import TrefleSearchDialog from './TrefleSearchDialog.vue'
 import CatalogSearchDialog from './CatalogSearchDialog.vue'
@@ -39,6 +41,34 @@ const sortOptions = [
 // Kategorie-Tönung wie im Design-System: Kategorie-Farbe mit 13 % Alpha
 function tint(category: PlantCategory): string {
   return `${categoryColors[category]}22`
+}
+
+// Katalog-Vorschläge: während der Suche im mitgelieferten Katalog (657 Pflanzen)
+// nach passenden Arten suchen, die noch nicht in der Bibliothek stehen.
+const catalogEntries = ref<CatalogPlant[]>([])
+onMounted(async () => {
+  try {
+    catalogEntries.value = await loadCatalog()
+  } catch {
+    /* Katalog nicht ladbar (offline/Fehler) → dann eben keine Vorschläge */
+  }
+})
+
+const librarySet = computed(
+  () => new Set(store.plants.map((p) => normalizeBotanical(p.botanicalName)).filter(Boolean)),
+)
+
+const catalogSuggestions = computed(() => {
+  const q = filter.value.trim()
+  if (q.length < 2 || !catalogEntries.value.length) return []
+  return searchCatalog(catalogEntries.value, q, {}, 12)
+    .filter((e) => !librarySet.value.has(normalizeBotanical(e.botanicalName)))
+    .slice(0, 5)
+})
+
+function addFromCatalog(entry: CatalogPlant) {
+  openImport(catalogPlantToDraft(entry))
+  filter.value = ''
 }
 
 const filteredPlants = computed(() => {
@@ -150,6 +180,25 @@ async function save(draft: PlantDraft, bedIds: string[]) {
       </div>
     </div>
 
+    <!-- Katalog-Vorschläge während der Suche (Arten, die noch nicht in der Bibliothek sind) -->
+    <div v-if="catalogSuggestions.length" class="catalog-suggestions card">
+      <div class="cs-head"><i class="ph-fill ph-books" /> Aus dem Katalog hinzufügen</div>
+      <button
+        v-for="entry in catalogSuggestions"
+        :key="entry.id"
+        type="button"
+        class="cs-item"
+        @click="addFromCatalog(entry)"
+      >
+        <span class="cs-emoji" :style="{ background: tint(entry.category) }">🌿</span>
+        <span class="cs-text">
+          <span class="cs-name">{{ entry.name }}</span>
+          <span v-if="entry.botanicalName" class="cs-bot">{{ entry.botanicalName }}</span>
+        </span>
+        <i class="ph-bold ph-plus cs-add" />
+      </button>
+    </div>
+
     <div v-if="groupedPlants.length" class="groups">
       <section v-for="group in groupedPlants" :key="group.category" class="category-group">
         <button
@@ -188,7 +237,7 @@ async function save(draft: PlantDraft, bedIds: string[]) {
 
     <div v-else class="empty-state">
       <i class="ph-fill ph-potted-plant" />
-      <p v-if="store.plants.length">Keine Treffer für „{{ filter }}".</p>
+      <p v-if="store.plants.length">Keine Treffer für „{{ filter }}“.</p>
       <p v-else>
         Noch keine Pflanzen in der Bibliothek.<br />
         Lege die erste an — oder suche online danach.
@@ -270,6 +319,73 @@ async function save(draft: PlantDraft, bedIds: string[]) {
 .sort-field label {
   font-size: 13px;
   font-weight: 600;
+}
+
+/* Katalog-Vorschläge (Autocomplete aus dem 657er-Katalog) */
+.catalog-suggestions {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cs-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3);
+  padding: 2px 4px 6px;
+}
+.cs-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 8px 4px;
+  border-radius: var(--radius-s);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.cs-item:hover {
+  background: var(--surface-tint);
+}
+.cs-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex: none;
+}
+.cs-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cs-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.cs-bot {
+  font-size: 12px;
+  color: var(--text-3);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cs-add {
+  color: var(--accent);
+  font-size: 16px;
+  flex: none;
 }
 
 .groups {

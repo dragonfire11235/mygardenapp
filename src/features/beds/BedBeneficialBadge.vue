@@ -25,14 +25,14 @@ const value = computed(() => forBed(props.bedId))
   align-items: center;
   gap: 0.25rem;
   font-size: 0.8rem;
-  background: var(--app-bg);
-  border: 1px solid var(--app-border);
+  background: var(--bg-app);
+  border: 1px solid var(--border-soft);
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
 }
 
 .ben-txt {
-  color: var(--app-text-muted);
+  color: var(--text-2);
   font-size: 0.76rem;
 }
 </style>
