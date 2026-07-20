@@ -17,6 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => Boolean(user.value))
   const email = computed(() => user.value?.email ?? '')
   const available = computed(() => isSupabaseConfigured)
+  /** Anzeigename aus den User-Metadaten (bei Registrierung gesetzt, hier änderbar). */
+  const displayName = computed(() => (user.value?.user_metadata?.display_name as string | undefined)?.trim() ?? '')
 
   function apply(next: Session | null) {
     session.value = next
@@ -78,6 +80,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (error) throw error
   }
 
+  /** Anzeigenamen im Konto ändern (User-Metadaten). USER_UPDATED aktualisiert `user` von selbst. */
+  async function updateDisplayName(name: string) {
+    if (!supabase) throw new Error('Online-Konto ist nicht verfügbar (Supabase nicht konfiguriert).')
+    const { error } = await supabase.auth.updateUser({ data: { display_name: name.trim() } })
+    if (error) throw error
+  }
+
   async function updatePassword(newPassword: string) {
     if (!supabase) throw new Error('Online-Konto ist nicht verfügbar (Supabase nicht konfiguriert).')
     const { error } = await supabase.auth.updateUser({ password: newPassword })
@@ -91,11 +100,13 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     email,
     available,
+    displayName,
     init,
     register,
     login,
     logout,
     sendPasswordReset,
+    updateDisplayName,
     updatePassword,
   }
 })

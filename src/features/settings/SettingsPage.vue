@@ -30,6 +30,29 @@ const lastSyncedLabel = computed(() =>
     : 'noch nie',
 )
 
+// --- Angezeigte Identität: angemeldet = Konto-Anzeigename, sonst lokaler Name ---
+const shownName = computed(() =>
+  (auth.isAuthenticated ? auth.displayName || account.userName : account.userName) || 'Dein Garten',
+)
+const shownInitial = computed(() => shownName.value.trim().charAt(0).toUpperCase() || '🌱')
+
+// Inline-Bearbeitung des Konto-Anzeigenamens (nur angemeldet)
+const editingName = ref(false)
+const displayNameDraft = ref('')
+function startEditName() {
+  displayNameDraft.value = auth.displayName
+  editingName.value = true
+}
+async function saveDisplayName() {
+  try {
+    await auth.updateDisplayName(displayNameDraft.value)
+    editingName.value = false
+    toast.add({ severity: 'success', summary: 'Gespeichert', detail: 'Anzeigename aktualisiert.', life: 2000 })
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Fehler', detail: e instanceof Error ? e.message : String(e), life: 3000 })
+  }
+}
+
 // --- Konto (Online-Login via Supabase) ---
 async function logout() {
   try {
@@ -187,9 +210,9 @@ function onImportSelected(event: Event) {
       <!-- Konto/Profil — heute lokal, später Online-Konto (siehe Roadmap) -->
       <section class="card account-card">
         <div class="account-top">
-          <div class="account-avatar">{{ account.initial }}</div>
+          <div class="account-avatar">{{ shownInitial }}</div>
           <div class="account-meta">
-            <div class="account-name">{{ account.userName || 'Dein Garten' }}</div>
+            <div class="account-name">{{ shownName }}</div>
             <div class="account-plan-row">
               <span class="plan-badge" :class="{ 'is-pro': !account.isFree }">{{ account.planLabel }}</span>
               <span class="plan-sub">{{ account.planSub }}</span>
@@ -199,7 +222,20 @@ function onImportSelected(event: Event) {
             Pro werden
           </button>
         </div>
-        <div class="account-name-edit">
+
+        <!-- Angemeldet: Anzeigename aus dem Konto (inline änderbar). Abgemeldet: lokaler Name. -->
+        <div v-if="auth.isAuthenticated" class="account-name-edit">
+          <template v-if="editingName">
+            <InputText v-model="displayNameDraft" placeholder="Anzeigename" class="grow" @keyup.enter="saveDisplayName" />
+            <Button label="Speichern" @click="saveDisplayName" />
+            <Button label="Abbrechen" severity="secondary" text @click="editingName = false" />
+          </template>
+          <template v-else>
+            <span class="muted grow">Anzeigename: <strong>{{ auth.displayName || '—' }}</strong></span>
+            <Button label="Ändern" severity="secondary" text @click="startEditName" />
+          </template>
+        </div>
+        <div v-else class="account-name-edit">
           <InputText v-model="nameInput" placeholder="Dein Name" class="grow" @blur="saveName" @keyup.enter="saveName" />
           <Button label="Speichern" @click="saveName" />
         </div>

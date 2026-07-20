@@ -95,6 +95,15 @@ watch(
   },
 )
 
+// Angemeldet: Konto-Anzeigename in den lokalen Namen spiegeln (Begrüßung/Avatar bleiben konsistent).
+watch(
+  () => auth.displayName,
+  (name) => {
+    if (auth.isAuthenticated && name && name !== account.userName) void account.setUserName(name)
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load(), account.load(), auth.init()])
 
