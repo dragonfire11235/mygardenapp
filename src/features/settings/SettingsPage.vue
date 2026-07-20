@@ -485,6 +485,18 @@ function onImportSelected(event: Event) {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  /* Auf schmalen Screens umbrechen, statt die Buttons zu quetschen */
+  flex-wrap: wrap;
+}
+/* Buttons behalten ihre volle Breite (Beschriftung nicht abschneiden) */
+.account-name-edit :deep(.p-button) {
+  flex: none;
+  white-space: nowrap;
+}
+/* Eingabefeld darf die erste Zeile füllen und bei Bedarf umbrechen lassen */
+.account-name-edit :deep(.grow) {
+  flex: 1 1 8rem;
+  min-width: 8rem;
 }
 
 .account-auth {
