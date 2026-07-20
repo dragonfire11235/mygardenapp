@@ -1,5 +1,6 @@
 import type { AdapterId } from '../../../data'
 import { DemoAdapter } from './DemoAdapter'
+import { GardenaAdapter } from './GardenaAdapter'
 import type { DeviceAdapter } from './types'
 
 // Wenn Home Assistant angebunden wird:
@@ -10,6 +11,7 @@ import type { DeviceAdapter } from './types'
 // installierte PWA darf kein HTTP-HA ansprechen (Mixed Content).
 const adapters: Partial<Record<AdapterId, DeviceAdapter>> = {
   demo: new DemoAdapter(),
+  gardena: new GardenaAdapter(),
 }
 
 export function getAdapter(id: AdapterId): DeviceAdapter {

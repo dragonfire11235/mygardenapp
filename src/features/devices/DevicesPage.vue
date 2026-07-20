@@ -26,6 +26,28 @@ async function disconnectGardena() {
   toast.add({ severity: 'info', summary: 'Gardena getrennt', life: 2500 })
 }
 
+async function discoverGardena() {
+  try {
+    const added = await store.discoverAndAdd('gardena')
+    toast.add({
+      severity: added ? 'success' : 'info',
+      summary: added ? `${added} Gardena-Geräte gefunden` : 'Keine neuen Gardena-Geräte',
+      life: 3000,
+    })
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Gardena-Fehler', detail: e instanceof Error ? e.message : String(e), life: 4000 })
+  }
+}
+
+async function mowerCommand(device: Device, on: boolean) {
+  try {
+    await store.setOn(device, on)
+    toast.add({ severity: 'success', summary: on ? 'Mähen gestartet' : 'Wird geparkt', life: 2500 })
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Fehler', detail: e instanceof Error ? e.message : String(e), life: 4000 })
+  }
+}
+
 async function discover() {
   const added = await store.discoverAndAdd('demo')
   toast.add({
@@ -70,6 +92,9 @@ function sensorText(deviceId: string): string {
           <strong><i class="ph-fill ph-check-circle ok-icon" /> Gardena verbunden</strong>
           <span class="muted">Deine Gardena-Geräte kannst du unten suchen und steuern.</span>
           <div class="gardena-actions">
+            <button type="button" class="pill-btn" @click="discoverGardena">
+              <i class="ph-bold ph-magnifying-glass" /> Gardena-Geräte suchen
+            </button>
             <button type="button" class="pill-btn-ghost" :disabled="gardena.busy" @click="disconnectGardena">Trennen</button>
           </div>
         </template>
@@ -92,6 +117,26 @@ function sensorText(deviceId: string): string {
     </div>
 
     <template v-if="store.devices.length">
+      <h2 v-if="store.mowers.length" class="section-title">Mähroboter</h2>
+      <div class="card-grid">
+        <div v-for="device in store.mowers" :key="device.id" class="card device mower">
+          <div class="device-info">
+            <div class="device-name">
+              <span class="status-dot" :class="{ on: store.states[device.id]?.on }" />
+              {{ device.name }}
+            </div>
+            <span class="device-state">
+              {{ store.states[device.id]?.text ?? '–' }}
+              <template v-if="store.states[device.id]?.battery !== undefined">· 🔋 {{ store.states[device.id]?.battery }} %</template>
+            </span>
+          </div>
+          <div class="mower-actions">
+            <button type="button" class="pill-btn" @click="mowerCommand(device, true)">Mähen</button>
+            <button type="button" class="pill-btn-ghost" @click="mowerCommand(device, false)">Parken</button>
+          </div>
+        </div>
+      </div>
+
       <h2 v-if="store.switchables.length" class="section-title">Schalten</h2>
       <div class="card-grid">
         <div v-for="device in store.switchables" :key="device.id" class="card device">
@@ -101,7 +146,7 @@ function sensorText(deviceId: string): string {
               {{ device.name }}
             </div>
             <span class="device-kind">{{ deviceKindLabels[device.kind] }}</span>
-            <span class="device-state">{{ store.states[device.id]?.on ? 'Eingeschaltet' : 'Ausgeschaltet' }}</span>
+            <span class="device-state">{{ store.states[device.id]?.text ?? (store.states[device.id]?.on ? 'Eingeschaltet' : 'Ausgeschaltet') }}</span>
           </div>
           <ToggleSwitch
             :model-value="store.states[device.id]?.on ?? false"
@@ -185,6 +230,12 @@ function sensorText(deviceId: string): string {
   color: var(--danger);
   font-size: 13px;
   margin-top: 6px;
+}
+
+.mower-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex: none;
 }
 
 .section-title {

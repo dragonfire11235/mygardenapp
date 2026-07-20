@@ -10,7 +10,8 @@ export const useDevicesStore = defineStore('devices', () => {
   const unsubscribers: (() => void)[] = []
 
   const sensors = computed(() => devices.value.filter((d) => d.kind === 'sensor'))
-  const switchables = computed(() => devices.value.filter((d) => d.kind !== 'sensor'))
+  const mowers = computed(() => devices.value.filter((d) => d.kind === 'mower'))
+  const switchables = computed(() => devices.value.filter((d) => d.kind === 'valve' || d.kind === 'switch'))
 
   async function load() {
     devices.value = await storage.devices.getAll()
@@ -77,5 +78,5 @@ export const useDevicesStore = defineStore('devices', () => {
     await load()
   }
 
-  return { devices, states, loaded, sensors, switchables, load, discoverAndAdd, setOn, remove, refreshStates }
+  return { devices, states, loaded, sensors, mowers, switchables, load, discoverAndAdd, setOn, remove, refreshStates }
 })

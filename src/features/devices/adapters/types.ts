@@ -13,11 +13,15 @@ export interface DeviceDescriptor {
 }
 
 export interface DeviceState {
-  /** Für Schalter/Ventile */
+  /** Für Schalter/Ventile/Mäher (an = schaltet/bewässert/mäht) */
   on?: boolean
   /** Für Sensoren */
   value?: number
   unit?: string
+  /** Menschlicher Statustext (z. B. „Geparkt", „Bewässert") */
+  text?: string
+  /** Akkustand in % (z. B. Mäher) */
+  battery?: number
   updatedAt: string
 }
 

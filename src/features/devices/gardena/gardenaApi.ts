@@ -13,6 +13,14 @@ const STATE_KEY = 'gardena-oauth-state'
 
 export const gardenaConfigured = Boolean(CLIENT_ID && SUPABASE_URL)
 
+/** Ein Service aus den Gardena-Location-Daten (JSON:API). Attribute sind {value,timestamp}. */
+export interface GardenaService {
+  id: string
+  type: string // COMMON | MOWER | VALVE | VALVE_SET | SENSOR | POWER_SOCKET | DEVICE | LOCATION
+  relationships?: { device?: { data?: { id: string } } }
+  attributes?: Record<string, { value: unknown; timestamp?: string }>
+}
+
 /** Redirect-Ziel nach dem Husqvarna-Login (muss in der Developer-App registriert sein). */
 export function redirectUri(): string {
   return `${window.location.origin}${import.meta.env.BASE_URL}gardena/callback`
@@ -73,8 +81,11 @@ export const gardenaApi = {
   status: () => callEdge<GardenaStatus>('status'),
   connect: (code: string) => callEdge('connect', { method: 'POST', body: { code, redirectUri: redirectUri() } }),
   disconnect: () => callEdge('disconnect', { method: 'POST' }),
-  /** Rohe Location-Daten (JSON:API) — für den Adapter (Discover/State). */
-  locations: () => callEdge<{ data?: unknown; included?: unknown }>('locations'),
+  /** Location-Liste (JSON:API) — minimal, für die id. */
+  locations: () => callEdge<{ data?: { id: string }[] }>('locations'),
+  /** Location-Detail inkl. Geräte + Services + State (JSON:API). */
+  locationDetail: (id: string) =>
+    callEdge<{ data?: unknown; included?: GardenaService[] }>(`locations?id=${encodeURIComponent(id)}`),
   websocketUrl: (locationId: string) =>
     callEdge<{ data?: { attributes?: { url?: string } } }>('websocket', { method: 'POST', body: { locationId } }),
   command: (serviceId: string, command: unknown) =>
