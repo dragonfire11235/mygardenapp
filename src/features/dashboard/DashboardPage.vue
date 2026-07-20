@@ -206,6 +206,11 @@ const lumiTip = computed(() => tips.value[tipIndex.value] ?? tips.value[0] ?? ''
   gap: 16px;
 }
 
+.widget-card {
+  /* Anker für den absolut positionierten Ansicht-Umschalter der Kalender-Widgets */
+  position: relative;
+}
+
 .widget-title {
   margin: 0 0 12px;
   font-size: 17px;

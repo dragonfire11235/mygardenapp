@@ -40,6 +40,35 @@ export function monthsCovered(plants: Plant[], get: MonthSelector): boolean[] {
   return monthCountByMonth(plants, get).map((n) => n > 0)
 }
 
+/** Eine aggregierte Kalenderzeile (z. B. für ein Beet). */
+export interface CoverageRow {
+  id: string
+  name: string
+  /** 12 Bool-Werte (Index 0 = Januar) — true, wo ≥1 Pflanze der Gruppe aktiv ist. */
+  months: boolean[]
+  /** Erster aktiver Monat (1–12) für die Sortierung. */
+  firstMonth: number
+}
+
+/**
+ * Aggregiert Gruppen (z. B. Beete mit ihren Pflanzen) zu Kalenderzeilen: Ein Monat ist
+ * aktiv, wenn mindestens eine Pflanze der Gruppe in ihm aktiv ist. Gruppen ohne aktiven
+ * Monat entfallen. Sortiert nach erstem Monat, dann Name.
+ */
+export function coverageRows(
+  groups: { id: string; name: string; plants: Plant[] }[],
+  get: MonthSelector,
+): CoverageRow[] {
+  const rows: CoverageRow[] = []
+  for (const group of groups) {
+    const months = monthsCovered(group.plants, get)
+    const first = months.findIndex(Boolean)
+    if (first === -1) continue
+    rows.push({ id: group.id, name: group.name, months, firstMonth: first + 1 })
+  }
+  return rows.sort((a, b) => a.firstMonth - b.firstMonth || a.name.localeCompare(b.name, 'de'))
+}
+
 /** Monate (1–12) ohne einzige Pflanze — Lücken. */
 export function monthGaps(plants: Plant[], get: MonthSelector): number[] {
   const counts = monthCountByMonth(plants, get)

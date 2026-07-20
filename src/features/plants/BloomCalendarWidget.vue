@@ -1,35 +1,67 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { categoryColors, formatMonths, monthNamesShort } from '../../shared/texts'
 import { usePlantsStore } from './plantsStore'
-import { bloomGaps, bloomRows } from './bloomCalendar'
+import { bloomGaps, bloomRows, coverageRows, type MonthSelector } from './bloomCalendar'
+import { useCalendarBedGroups } from './useCalendarBedGroups'
 
 const store = usePlantsStore()
 const router = useRouter()
 const currentMonth = new Date().getMonth() + 1
 
 const MAX_ROWS = 7
-const rows = computed(() => bloomRows(store.plants))
-// Aktuell blühende zuerst, damit das Wesentliche im gedeckelten Widget sichtbar ist
-const sortedRows = computed(() =>
-  [...rows.value].sort(
-    (a, b) => Number(b.months[currentMonth - 1]) - Number(a.months[currentMonth - 1]) || a.firstMonth - b.firstMonth,
-  ),
-)
-const visibleRows = computed(() => sortedRows.value.slice(0, MAX_ROWS))
-const gaps = computed(() => bloomGaps(store.plants))
-const bloomingNow = computed(() => rows.value.filter((r) => r.months[currentMonth - 1]))
+const sel: MonthSelector = (p) => p.bloomMonths
 
-// Einzelbuchstabe je Monat für die Kopfzeile (J F M A M J J A S O N D)
+// Ansicht: einzelne Pflanzen oder nach Beeten aggregiert
+const view = ref<'plants' | 'beds'>('plants')
+
+// Aktuellen Monat zuerst, damit das Wesentliche im gedeckelten Widget sichtbar ist
+function currentFirst<T extends { months: boolean[]; firstMonth: number }>(rows: T[]): T[] {
+  return [...rows].sort(
+    (a, b) => Number(b.months[currentMonth - 1]) - Number(a.months[currentMonth - 1]) || a.firstMonth - b.firstMonth,
+  )
+}
+
+// Pflanzen-Ansicht
+const plantRows = computed(() => bloomRows(store.plants))
+const visiblePlantRows = computed(() => currentFirst(plantRows.value).slice(0, MAX_ROWS))
+
+// Beete-Ansicht
+const bedGroups = useCalendarBedGroups(sel)
+const bedRows = computed(() => coverageRows(bedGroups.value, sel))
+const visibleBedRows = computed(() => currentFirst(bedRows.value).slice(0, MAX_ROWS))
+
+const totalRows = computed(() => (view.value === 'plants' ? plantRows.value.length : bedRows.value.length))
+
+const gaps = computed(() => bloomGaps(store.plants))
+const bloomingNow = computed(() => plantRows.value.filter((r) => r.months[currentMonth - 1]))
+const bedsBloomingNow = computed(() => bedRows.value.filter((r) => r.months[currentMonth - 1]))
+
 const monthInitials = monthNamesShort.map((m) => m[0])
 </script>
 
 <template>
-  <div v-if="rows.length" class="bloom">
+  <div v-if="plantRows.length" class="bloom">
+    <!-- Umschalter Pflanzen ⇄ Beete (oben rechts, in Höhe der Überschrift) -->
+    <div class="view-toggle" role="group" aria-label="Ansicht">
+      <button type="button" :class="{ active: view === 'plants' }" title="Pflanzen" aria-label="Pflanzen" @click="view = 'plants'">
+        <i class="ph-fill ph-potted-plant" />
+      </button>
+      <button type="button" :class="{ active: view === 'beds' }" title="Beete" aria-label="Beete" @click="view = 'beds'">
+        <i class="ph-fill ph-grid-four" />
+      </button>
+    </div>
+
     <p class="summary">
-      <span v-if="bloomingNow.length">🌸 {{ bloomingNow.length }} blüht im {{ monthNamesShort[currentMonth - 1] }}</span>
-      <span v-else class="muted">Diesen Monat blüht laut deiner Bibliothek nichts.</span>
+      <template v-if="view === 'plants'">
+        <span v-if="bloomingNow.length">🌸 {{ bloomingNow.length }} blüht im {{ monthNamesShort[currentMonth - 1] }}</span>
+        <span v-else class="muted">Diesen Monat blüht laut deiner Bibliothek nichts.</span>
+      </template>
+      <template v-else>
+        <span v-if="bedsBloomingNow.length">🌸 {{ bedsBloomingNow.length }} {{ bedsBloomingNow.length === 1 ? 'Beet blüht' : 'Beete blühen' }} im {{ monthNamesShort[currentMonth - 1] }}</span>
+        <span v-else class="muted">Diesen Monat blüht in keinem Beet etwas.</span>
+      </template>
     </p>
 
     <div class="grid" role="table" aria-label="Blühkalender">
@@ -45,27 +77,52 @@ const monthInitials = monthNamesShort.map((m) => m[0])
         >{{ ini }}</span>
       </div>
 
-      <!-- Eine Zeile je blühender Pflanze (gedeckelt) -->
-      <RouterLink
-        v-for="row in visibleRows"
-        :key="row.plant.id"
-        class="row"
-        role="row"
-        :to="`/pflanzen/${row.plant.id}`"
-      >
-        <span class="name" :title="row.plant.name">{{ row.plant.name }}</span>
-        <span
-          v-for="(on, i) in row.months"
-          :key="i"
-          class="cell"
-          :class="{ on, now: i + 1 === currentMonth }"
-          :style="on ? { background: categoryColors[row.plant.category] } : undefined"
-        />
-      </RouterLink>
+      <!-- Pflanzen-Ansicht: eine Zeile je blühender Pflanze -->
+      <template v-if="view === 'plants'">
+        <RouterLink
+          v-for="row in visiblePlantRows"
+          :key="row.plant.id"
+          class="row"
+          role="row"
+          :to="`/pflanzen/${row.plant.id}`"
+        >
+          <span class="name" :title="row.plant.name">{{ row.plant.name }}</span>
+          <span
+            v-for="(on, i) in row.months"
+            :key="i"
+            class="cell"
+            :class="{ now: i + 1 === currentMonth }"
+            :style="on ? { background: categoryColors[row.plant.category] } : undefined"
+          />
+        </RouterLink>
+      </template>
+
+      <!-- Beete-Ansicht: eine Zeile je Beet (aggregiert) -->
+      <template v-else>
+        <RouterLink
+          v-for="row in visibleBedRows"
+          :key="row.id"
+          class="row"
+          role="row"
+          :to="`/beete/${row.id}`"
+        >
+          <span class="name" :title="row.name">{{ row.name }}</span>
+          <span
+            v-for="(on, i) in row.months"
+            :key="i"
+            class="cell"
+            :class="{ now: i + 1 === currentMonth }"
+            :style="on ? { background: 'var(--accent)' } : undefined"
+          />
+        </RouterLink>
+        <p v-if="!visibleBedRows.length" class="muted empty-beds">
+          Noch kein Beet mit Blüte — setz blühende Pflanzen in ein Beet.
+        </p>
+      </template>
     </div>
 
     <RouterLink to="/kalender" class="more">
-      <template v-if="rows.length > MAX_ROWS">+ {{ rows.length - MAX_ROWS }} weitere · </template>Ganzer Kalender →
+      <template v-if="totalRows > MAX_ROWS">+ {{ totalRows - MAX_ROWS }} weitere · </template>Ganzer Kalender →
     </RouterLink>
 
     <p v-if="gaps.length" class="gaps muted">
@@ -87,9 +144,41 @@ const monthInitials = monthNamesShort.map((m) => m[0])
   gap: 0.6rem;
 }
 
+/* Umschalter oben rechts — positioniert relativ zur Widget-Karte (position:relative dort) */
+.view-toggle {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  gap: 2px;
+  background: var(--surface-tint);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+}
+.view-toggle button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  color: var(--text-3);
+  font-size: 15px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.view-toggle button.active {
+  background: var(--surface-raised);
+  color: var(--accent);
+  box-shadow: var(--shadow-card);
+}
+
 .summary {
   margin: 0;
   font-weight: 600;
+  /* Platz für den Umschalter, damit lange Sätze nicht darunterlaufen */
+  padding-right: 4.5rem;
 }
 
 .grid {
@@ -148,6 +237,11 @@ const monthInitials = monthNamesShort.map((m) => m[0])
 .head-cell.now {
   color: var(--accent);
   font-weight: 700;
+}
+
+.empty-beds {
+  font-size: 0.82rem;
+  margin: 0.2rem 0;
 }
 
 .gaps {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEntity, type Plant } from '../../data'
-import { bloomCountByMonth, bloomGaps, bloomRows, bloomsInRange, monthRows, monthsCovered } from './bloomCalendar'
+import { bloomCountByMonth, bloomGaps, bloomRows, bloomsInRange, coverageRows, monthRows, monthsCovered } from './bloomCalendar'
 
 function makePlant(name: string, bloomMonths: number[], pruningMonths: number[] = []): Plant {
   return createEntity<Plant>({
@@ -21,6 +21,32 @@ function makePlant(name: string, bloomMonths: number[], pruningMonths: number[] 
     notes: '',
   })
 }
+
+describe('coverageRows', () => {
+  const sel = (p: Plant) => p.bloomMonths
+
+  it('aggregiert je Beet die Monate seiner Pflanzen (ODER-Verknüpfung)', () => {
+    const beetA = { id: 'a', name: 'Hochbeet', plants: [makePlant('Krokus', [3]), makePlant('Aster', [9, 10])] }
+    const rows = coverageRows([beetA], sel)
+    expect(rows).toHaveLength(1)
+    expect(rows[0].months[2]).toBe(true) // März
+    expect(rows[0].months[8]).toBe(true) // September
+    expect(rows[0].months[0]).toBe(false) // Januar
+    expect(rows[0].firstMonth).toBe(3)
+  })
+
+  it('lässt Gruppen ohne aktiven Monat weg und sortiert nach erstem Monat', () => {
+    const rows = coverageRows(
+      [
+        { id: 'spaet', name: 'Spät', plants: [makePlant('Aster', [10])] },
+        { id: 'frueh', name: 'Früh', plants: [makePlant('Krokus', [2])] },
+        { id: 'leer', name: 'Leer', plants: [makePlant('Efeu', [])] },
+      ],
+      sel,
+    )
+    expect(rows.map((r) => r.id)).toEqual(['frueh', 'spaet'])
+  })
+})
 
 describe('bloomRows', () => {
   it('nimmt nur Pflanzen mit Blütemonaten auf', () => {
