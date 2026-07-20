@@ -40,6 +40,12 @@ jobs:
       # der Pfad auch nach einer Repo-Umbenennung.
       - name: Build
         run: npm run build -- --base=${{ steps.pages.outputs.base_path }}/
+        env:
+          # Supabase-Zugang für den Client-Build. Als Repo-Secrets hinterlegen:
+          # Settings → Secrets and variables → Actions. Der Publishable/Anon-Key
+          # ist client-öffentlich (RLS schützt die Daten) — kein echtes Geheimnis.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       # SPA-Fallback: GitHub Pages kennt die Client-Routen nicht;
       # 404.html liefert die App aus, der Router übernimmt dann.

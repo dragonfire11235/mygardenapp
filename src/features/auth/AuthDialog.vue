@@ -206,15 +206,19 @@ const canSubmit = computed(() => {
   margin: 16px 0 6px;
 }
 
-/* Eigene Inputs (kein PrimeVue), 16px gegen iOS-Auto-Zoom im Dialog */
+/* Eigene Inputs (kein PrimeVue), 16px gegen iOS-Auto-Zoom im Dialog.
+   Flächen-/Textfarbe über Theme-Tokens, damit es auch im Dunkelmodus lesbar ist. */
 .auth-input {
   width: 100%;
   font-size: 16px;
   padding: 12px 14px;
-  border: 1px solid var(--border-soft, rgba(0, 0, 0, 0.12));
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg, 14px);
-  background: var(--surface-input, #fff);
+  background: var(--surface-card-solid);
   color: var(--text-1);
+}
+.auth-input::placeholder {
+  color: var(--text-3);
 }
 .auth-input:focus {
   outline: none;

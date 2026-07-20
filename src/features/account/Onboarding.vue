@@ -1,12 +1,16 @@
 <script setup lang="ts">
 // Erststart-Onboarding (3 Schritte). Wird von App.vue nur gezeigt, solange
-// account.onboarded false ist. E-Mail/Passwort sind hier noch reine Optik —
-// das echte Konto (Supabase) ist Roadmap (PLAN-profil-saas.md). Der Name wird,
-// falls eingegeben, ins lokale Profil übernommen (Dashboard-Begrüßung).
+// account.onboarded false ist. Schritt 3 legt jetzt ein echtes Supabase-Konto an
+// (falls konfiguriert + E-Mail/Passwort ausgefüllt); sonst geht es rein lokal
+// weiter. Der Name wird ins lokale Profil übernommen (Dashboard-Begrüßung).
 import { computed, ref } from 'vue'
 import { useAccountStore } from './accountStore'
+import { useAuthStore } from '../auth/authStore'
+import { useUiStore } from '../ui/uiStore'
 
 const account = useAccountStore()
+const auth = useAuthStore()
+const ui = useUiStore()
 
 const heroUrl = `${import.meta.env.BASE_URL}lumi/mascot/lumi-hero.png`
 const hugUrl = `${import.meta.env.BASE_URL}lumi/mascot/lumi-hug.png`
@@ -14,6 +18,11 @@ const logoUrl = `${import.meta.env.BASE_URL}lumi/logo-lumi-wordmark-alpha.png`
 
 const step = ref(0)
 const name = ref('')
+const email = ref('')
+const password = ref('')
+const busy = ref(false)
+const errorMsg = ref('')
+const registered = ref(false) // Registrierung ok, aber E-Mail muss noch bestätigt werden
 
 const dots = computed(() => [0, 1, 2].map((i) => i === step.value))
 
@@ -27,8 +36,42 @@ function next() {
   step.value = Math.min(step.value + 1, 2)
 }
 
-function toLogin() {
-  step.value = 2
+function friendly(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e)
+  if (/User already registered/i.test(raw)) return 'Für diese E-Mail gibt es schon ein Konto. Melde dich unten an.'
+  if (/Password should be at least/i.test(raw)) return 'Das Passwort ist zu kurz (mindestens 6 Zeichen).'
+  if (/rate limit|too many/i.test(raw)) return 'Zu viele Versuche. Bitte kurz warten.'
+  return raw
+}
+
+/** „Konto erstellen": echtes Supabase-Konto anlegen, sonst lokal weiter. */
+async function createAccount() {
+  errorMsg.value = ''
+  // Ohne Supabase-Konfiguration oder ohne Eingaben: rein lokal fortfahren.
+  if (!auth.available || !email.value.trim() || !password.value) {
+    await finish()
+    return
+  }
+  busy.value = true
+  try {
+    const { needsConfirmation } = await auth.register(email.value, password.value, name.value)
+    if (name.value.trim()) await account.setUserName(name.value)
+    if (needsConfirmation) {
+      registered.value = true // Hinweis anzeigen, dann „Zur App"
+    } else {
+      account.setOnboarded(true)
+    }
+  } catch (e) {
+    errorMsg.value = friendly(e)
+  } finally {
+    busy.value = false
+  }
+}
+
+/** „Ich habe schon ein Konto": Onboarding beenden und echten Login-Dialog öffnen. */
+function existingAccount() {
+  account.setOnboarded(true)
+  if (auth.available) ui.openAuth('login')
 }
 
 async function finish() {
@@ -47,7 +90,7 @@ async function finish() {
         <div class="ob-tagline">Dein Garten. Dein Zuhause.</div>
         <div class="ob-actions">
           <button type="button" class="pill-btn ob-primary" @click="next">Los geht’s 🌱</button>
-          <button type="button" class="ob-link" @click="toLogin">Ich habe schon ein Konto</button>
+          <button type="button" class="ob-link" @click="existingAccount">Ich habe schon ein Konto</button>
         </div>
       </template>
 
@@ -69,15 +112,30 @@ async function finish() {
       <!-- Schritt 3: Konto (optional) -->
       <template v-else>
         <img :src="hugUrl" alt="Lumi" class="ob-hug" />
-        <div class="ob-heading">Fast geschafft!</div>
-        <div class="ob-sub">Mit Konto werden deine Daten sicher synchronisiert.</div>
-        <div class="ob-form">
-          <input v-model="name" class="ob-input" placeholder="Dein Name" />
-          <input class="ob-input" type="email" placeholder="E-Mail" />
-          <input class="ob-input" type="password" placeholder="Passwort" />
-          <button type="button" class="pill-btn ob-primary" @click="finish">Konto erstellen</button>
-          <button type="button" class="ob-skip" @click="finish">Ohne Konto fortfahren</button>
-        </div>
+
+        <!-- Registrierung erfolgreich, E-Mail-Bestätigung offen -->
+        <template v-if="registered">
+          <div class="ob-heading">Fast geschafft!</div>
+          <div class="ob-sub">Wir haben dir eine Bestätigungs-E-Mail geschickt. Klick den Link darin, dann kannst du dich anmelden.</div>
+          <div class="ob-form">
+            <button type="button" class="pill-btn ob-primary" @click="finish">Weiter zur App</button>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="ob-heading">Fast geschafft!</div>
+          <div class="ob-sub">Mit Konto werden deine Daten später auf allen Geräten synchronisiert.</div>
+          <div class="ob-form">
+            <input v-model="name" class="ob-input" placeholder="Dein Name" autocomplete="nickname" />
+            <input v-model="email" class="ob-input" type="email" placeholder="E-Mail" autocomplete="email" />
+            <input v-model="password" class="ob-input" type="password" placeholder="Passwort" autocomplete="new-password" />
+            <p v-if="errorMsg" class="ob-error">{{ errorMsg }}</p>
+            <button type="button" class="pill-btn ob-primary" :disabled="busy" @click="createAccount">
+              {{ busy ? 'Bitte warten …' : 'Konto erstellen' }}
+            </button>
+            <button type="button" class="ob-skip" @click="finish">Ohne Konto fortfahren</button>
+          </div>
+        </template>
       </template>
 
       <div class="ob-dots">
@@ -220,6 +278,12 @@ async function finish() {
 }
 .ob-input:focus {
   border-color: var(--accent);
+}
+.ob-error {
+  color: var(--danger);
+  font-size: 13px;
+  text-align: center;
+  margin: 0;
 }
 
 .ob-dots {
