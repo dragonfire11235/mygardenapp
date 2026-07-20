@@ -95,8 +95,15 @@ function sensorText(deviceId: string): string {
         <h1 class="page-title">Geräte</h1>
         <span class="muted">{{ shownCount }} eingerichtet</span>
       </div>
-      <button v-if="showDemo" type="button" class="pill-btn-ghost" @click="discover">
-        <i class="ph-bold ph-magnifying-glass" /> Demo-Geräte suchen
+      <button
+        type="button"
+        class="demo-pill"
+        :class="{ on: showDemo }"
+        :disabled="gardena.connected"
+        :title="gardena.connected ? 'Ausgeblendet, solange Gardena verbunden ist' : (showDemo ? 'Demo-Geräte ausschalten' : 'Demo-Geräte einschalten')"
+        @click="demoToggle = !demoToggle"
+      >
+        <i class="ph-fill ph-flask" /> Demo
       </button>
     </div>
 
@@ -129,18 +136,14 @@ function sensorText(deviceId: string): string {
       </div>
     </div>
 
-    <!-- Demo-Geräte: an/aus (bei Gardena-Verbindung automatisch aus) -->
-    <div class="card demo-note">
+    <!-- Demo-Hinweis nur, solange die Demo aktiv ist (an/aus über den Button oben rechts) -->
+    <div v-if="showDemo" class="card demo-note">
       <i class="ph-fill ph-plugs-connected note-icon" />
       <div class="demo-body">
-        <div class="demo-head">
-          <span class="demo-title">Demo-Geräte</span>
-          <ToggleSwitch v-model="demoToggle" :disabled="gardena.connected" aria-label="Demo-Geräte anzeigen" />
-        </div>
-        <span class="muted">
-          <template v-if="gardena.connected">Ausgeblendet, solange Gardena verbunden ist.</template>
-          <template v-else>Simulierte Geräte zum Ausprobieren — zeigen, was mit Pro möglich ist.</template>
-        </span>
+        <span class="muted">Simulierte Geräte zum Ausprobieren — zeigen, was mit Pro möglich ist.</span>
+        <button type="button" class="pill-btn-ghost demo-search" @click="discover">
+          <i class="ph-bold ph-magnifying-glass" /> Demo-Geräte suchen
+        </button>
       </div>
     </div>
 
@@ -231,19 +234,38 @@ function sensorText(deviceId: string): string {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
+  align-items: flex-start;
   min-width: 0;
 }
-.demo-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.demo-search {
+  font-size: 13px;
 }
-.demo-title {
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--text-1);
+
+/* Kleiner Demo-An/Aus-Button oben rechts (auf Höhe der Überschrift) */
+.demo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-tint);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.demo-pill.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.demo-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .note-icon {
   font-size: 22px;
