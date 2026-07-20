@@ -46,6 +46,8 @@ jobs:
           # ist client-öffentlich (RLS schützt die Daten) — kein echtes Geheimnis.
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # Gardena Application Key (client_id) — öffentlich-unkritisch, aber via Secret gepflegt.
+          VITE_GARDENA_CLIENT_ID: ${{ secrets.VITE_GARDENA_CLIENT_ID }}
 
       # SPA-Fallback: GitHub Pages kennt die Client-Routen nicht;
       # 404.html liefert die App aus, der Router übernimmt dann.
