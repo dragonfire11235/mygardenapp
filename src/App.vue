@@ -14,6 +14,7 @@ import { useDevicesStore } from './features/devices/devicesStore'
 import { useWeatherStore } from './features/weather/weatherStore'
 import { useAccountStore } from './features/account/accountStore'
 import { useAuthStore } from './features/auth/authStore'
+import { useSyncStore } from './features/sync/syncStore'
 import { useUiStore } from './features/ui/uiStore'
 import ProDialog from './features/ui/ProDialog.vue'
 import AuthDialog from './features/auth/AuthDialog.vue'
@@ -28,6 +29,7 @@ const devices = useDevicesStore()
 const weather = useWeatherStore()
 const account = useAccountStore()
 const auth = useAuthStore()
+const sync = useSyncStore()
 const ui = useUiStore()
 const route = useRoute()
 
@@ -85,6 +87,14 @@ watch(
   { immediate: true },
 )
 
+// Nach dem Anmelden (Login während der Session) einmal abgleichen.
+watch(
+  () => auth.isAuthenticated,
+  (yes, was) => {
+    if (yes && !was) void sync.syncNow()
+  },
+)
+
 onMounted(async () => {
   await Promise.all([settings.load(), plants.load(), beds.load(), tasks.load(), diary.load(), devices.load(), account.load(), auth.init()])
 
@@ -93,6 +103,10 @@ onMounted(async () => {
 
   // Wetter laden (für Widget + „Alles gegossen"-Hervorhebung bei Regen)
   void weather.load()
+
+  // Geräte-Sync: letzten Stand lesen; wenn angemeldet, beim App-Start abgleichen.
+  await sync.loadMeta()
+  if (auth.isAuthenticated) void sync.syncNow()
 
   // Verwaiste Foto-Blobs im Hintergrund aufräumen (PhotoPicker ersetzt/entfernt
   // nur die Referenz; die Blobs selbst räumt dieser Sweep ab)

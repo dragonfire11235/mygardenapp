@@ -59,6 +59,10 @@ class DexieRepository<T extends BaseEntity> implements Repository<T> {
     return (await this.table.toArray()).filter((e) => e.deletedAt === null)
   }
 
+  async getAllForSync(): Promise<T[]> {
+    return this.table.toArray()
+  }
+
   async getById(id: string): Promise<T | undefined> {
     const item = await this.table.get(id)
     return item && item.deletedAt === null ? item : undefined

@@ -18,6 +18,8 @@ import type {
 export interface Repository<T extends BaseEntity> {
   /** Alle nicht gelöschten Einträge */
   getAll(): Promise<T[]>
+  /** Alle Einträge inkl. Soft-gelöschter (Tombstones) — für den Sync-Abgleich. */
+  getAllForSync(): Promise<T[]>
   getById(id: string): Promise<T | undefined>
   /** Legt an oder überschreibt (upsert) */
   put(item: T): Promise<void>

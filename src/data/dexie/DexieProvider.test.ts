@@ -86,6 +86,18 @@ describe('DexieProvider', () => {
     expect(backup.plants[0].deletedAt).not.toBeNull()
   })
 
+  it('getAllForSync liefert Tombstones, getAll nicht', async () => {
+    const a = makePlant('Aktiv')
+    const b = makePlant('Gelöscht')
+    await provider.plants.bulkPut([a, b])
+    await provider.plants.softDelete(b.id)
+
+    expect(await provider.plants.getAll()).toHaveLength(1)
+    const forSync = await provider.plants.getAllForSync()
+    expect(forSync).toHaveLength(2)
+    expect(forSync.find((p) => p.id === b.id)?.deletedAt).not.toBeNull()
+  })
+
   it('setzt beim Soft-Delete auch updatedAt neu (für späteren Sync)', async () => {
     const plant = makePlant('Gurke')
     await provider.plants.put(plant)

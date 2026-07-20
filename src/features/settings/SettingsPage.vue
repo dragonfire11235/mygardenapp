@@ -12,14 +12,23 @@ import { searchLocation, type GeoResult } from '../weather/weatherApi'
 import { useSettingsStore, type DashboardWidgetConfig } from './settingsStore'
 import { useAccountStore } from '../account/accountStore'
 import { useAuthStore } from '../auth/authStore'
+import { useSyncStore } from '../sync/syncStore'
 import { useUiStore } from '../ui/uiStore'
 
 const settings = useSettingsStore()
 const account = useAccountStore()
 const auth = useAuthStore()
+const sync = useSyncStore()
 const ui = useUiStore()
 const toast = useToast()
 const confirm = useConfirm()
+
+// --- Geräte-Sync ---
+const lastSyncedLabel = computed(() =>
+  sync.lastSyncedAt
+    ? new Date(sync.lastSyncedAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
+    : 'noch nie',
+)
 
 // --- Konto (Online-Login via Supabase) ---
 async function logout() {
@@ -203,9 +212,16 @@ function onImportSelected(event: Event) {
               <span class="grow">Angemeldet als <strong>{{ auth.email }}</strong></span>
             </div>
             <p class="muted account-auth-hint">
-              Geräte-Sync ist noch nicht aktiv — kommt in einem der nächsten Schritte.
+              <template v-if="sync.status === 'error'">Sync-Fehler: {{ sync.errorMsg }}</template>
+              <template v-else-if="sync.status === 'syncing'">Synchronisiere …</template>
+              <template v-else>Zuletzt synchronisiert: {{ lastSyncedLabel }}</template>
             </p>
             <div class="account-auth-actions">
+              <Button
+                :label="sync.status === 'syncing' ? 'Synchronisiere …' : 'Jetzt synchronisieren'"
+                :disabled="sync.status === 'syncing'"
+                @click="sync.syncNow()"
+              />
               <Button label="Passwort ändern" severity="secondary" outlined @click="ui.openAuth('password')" />
               <Button label="Abmelden" severity="secondary" text @click="logout" />
             </div>
