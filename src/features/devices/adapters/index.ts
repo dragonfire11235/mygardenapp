@@ -9,9 +9,12 @@ import type { DeviceAdapter } from './types'
 // Zu beachten (bereits bekannt): In der HA-Konfiguration muss
 // `http: cors_allowed_origins` die App-URL erlauben, und eine über HTTPS
 // installierte PWA darf kein HTTP-HA ansprechen (Mixed Content).
+// Singleton, damit die Geräte-Seite das WebSocket-Gating (setPageActive) ansteuern kann.
+export const gardenaAdapter = new GardenaAdapter()
+
 const adapters: Partial<Record<AdapterId, DeviceAdapter>> = {
   demo: new DemoAdapter(),
-  gardena: new GardenaAdapter(),
+  gardena: gardenaAdapter,
 }
 
 export function getAdapter(id: AdapterId): DeviceAdapter {

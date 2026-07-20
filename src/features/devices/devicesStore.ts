@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { createEntity, storage, type Device } from '../../data'
-import { getAdapter, type DeviceState } from './adapters'
+import { gardenaAdapter, getAdapter, type DeviceState } from './adapters'
 
 export const useDevicesStore = defineStore('devices', () => {
   const devices = ref<Device[]>([])
@@ -78,5 +78,10 @@ export const useDevicesStore = defineStore('devices', () => {
     await load()
   }
 
-  return { devices, states, loaded, sensors, mowers, switchables, load, discoverAndAdd, setOn, remove, refreshStates }
+  /** Gardena-Live-Updates nur laufen lassen, solange die Geräte-Seite aktiv ist (Rate-Limit). */
+  function setGardenaLive(active: boolean) {
+    gardenaAdapter.setPageActive(active)
+  }
+
+  return { devices, states, loaded, sensors, mowers, switchables, load, discoverAndAdd, setOn, remove, refreshStates, setGardenaLive }
 })

@@ -15,6 +15,7 @@ export interface WeatherLocation {
 
 export const useSettingsStore = defineStore('settings', () => {
   const notificationsEnabled = ref(false)
+  const demoDevicesEnabled = ref(true)
   const dashboardLayout = ref<DashboardWidgetConfig[]>([])
   const dashboardHeaderPhotoId = ref<string | null>(null)
   const dashboardBackgroundPhotoId = ref<string | null>(null)
@@ -25,6 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   async function load() {
     notificationsEnabled.value = (await storage.getSetting<boolean>('notificationsEnabled')) ?? false
+    demoDevicesEnabled.value = (await storage.getSetting<boolean>('demoDevicesEnabled')) ?? true
     dashboardLayout.value = (await storage.getSetting<DashboardWidgetConfig[]>('dashboardLayout')) ?? []
     dashboardHeaderPhotoId.value = (await storage.getSetting<string>('dashboardHeaderPhotoId')) ?? null
     dashboardBackgroundPhotoId.value = (await storage.getSetting<string>('dashboardBackgroundPhotoId')) ?? null
@@ -44,6 +46,11 @@ export const useSettingsStore = defineStore('settings', () => {
   async function setNotificationsEnabled(enabled: boolean) {
     notificationsEnabled.value = enabled
     await storage.setSetting('notificationsEnabled', enabled)
+  }
+
+  async function setDemoDevicesEnabled(enabled: boolean) {
+    demoDevicesEnabled.value = enabled
+    await storage.setSetting('demoDevicesEnabled', enabled)
   }
 
   async function setDashboardLayout(layout: DashboardWidgetConfig[]) {
@@ -73,6 +80,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return {
     notificationsEnabled,
+    demoDevicesEnabled,
     dashboardLayout,
     dashboardHeaderPhotoId,
     dashboardBackgroundPhotoId,
@@ -82,6 +90,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loaded,
     load,
     setNotificationsEnabled,
+    setDemoDevicesEnabled,
     setDashboardLayout,
     setDashboardHeaderPhotoId,
     setDashboardBackgroundPhotoId,

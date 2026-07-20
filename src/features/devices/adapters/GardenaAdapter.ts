@@ -58,6 +58,31 @@ export class GardenaAdapter implements DeviceAdapter {
   private subscribers = new Map<string, (state: DeviceState) => void>()
   private reconnectTimer?: ReturnType<typeof setTimeout>
   private reconnectDelay = 5000
+  // AP08: WebSocket nur offen, wenn die Geräte-Seite aktiv UND der Tab sichtbar ist
+  private pageActive = false
+  private visible = true
+
+  constructor() {
+    if (typeof document !== 'undefined') {
+      this.visible = document.visibilityState !== 'hidden'
+      document.addEventListener('visibilitychange', () => {
+        this.visible = document.visibilityState !== 'hidden'
+        this.syncSocket()
+      })
+    }
+  }
+
+  /** Von der Geräte-Seite gesteuert: schont das Rate-Limit (WS nur bei aktiver Seite). */
+  setPageActive(active: boolean): void {
+    this.pageActive = active
+    if (active) void this.ensureLoaded().then(() => this.syncSocket())
+    else this.syncSocket()
+  }
+
+  private syncSocket(): void {
+    if (this.subscribers.size > 0 && this.pageActive && this.visible) void this.openSocket()
+    else this.closeSocket()
+  }
 
   // --- Laden / Parsen ------------------------------------------------------
 
@@ -193,10 +218,10 @@ export class GardenaAdapter implements DeviceAdapter {
 
   subscribe(externalId: string, callback: (state: DeviceState) => void): () => void {
     this.subscribers.set(externalId, callback)
-    void this.ensureLoaded().then(() => this.openSocket())
+    this.syncSocket()
     return () => {
       this.subscribers.delete(externalId)
-      if (this.subscribers.size === 0) this.closeSocket()
+      this.syncSocket()
     }
   }
 
@@ -210,10 +235,11 @@ export class GardenaAdapter implements DeviceAdapter {
       if (!url) return
       const ws = new WebSocket(url)
       this.ws = ws
+      ws.onopen = () => { this.reconnectDelay = 5000 }
       ws.onmessage = (e) => this.onMessage(e.data)
       ws.onclose = () => {
         this.ws = undefined
-        if (this.subscribers.size > 0) this.scheduleReconnect()
+        if (this.subscribers.size > 0 && this.pageActive && this.visible) this.scheduleReconnect()
       }
       ws.onerror = () => ws.close()
     } catch {
@@ -227,7 +253,7 @@ export class GardenaAdapter implements DeviceAdapter {
       this.reconnectTimer = undefined
       // Backoff bis 60 s (rate-limit-schonend, jede WS-URL kostet einen REST-Call)
       this.reconnectDelay = Math.min(this.reconnectDelay * 2, 60000)
-      void this.openSocket()
+      this.syncSocket()
     }, this.reconnectDelay)
   }
 

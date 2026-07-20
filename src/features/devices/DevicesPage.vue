@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import type { Device } from '../../data'
@@ -8,17 +8,37 @@ import { useDevicesStore } from './devicesStore'
 import { useAccountStore } from '../account/accountStore'
 import { useAuthStore } from '../auth/authStore'
 import { useGardenaStore } from './gardena/gardenaStore'
+import { useSettingsStore } from '../settings/settingsStore'
 import { useUiStore } from '../ui/uiStore'
 
 const store = useDevicesStore()
 const account = useAccountStore()
 const auth = useAuthStore()
 const gardena = useGardenaStore()
+const settings = useSettingsStore()
 const ui = useUiStore()
 const toast = useToast()
 
+// Demo-Geräte: manuell an/aus, aber bei bestehender Gardena-Verbindung automatisch aus.
+const showDemo = computed(() => settings.demoDevicesEnabled && !gardena.connected)
+const demoToggle = computed({
+  get: () => settings.demoDevicesEnabled,
+  set: (v: boolean) => void settings.setDemoDevicesEnabled(v),
+})
+function withoutDemo<T extends { adapter: Device['adapter'] }>(list: T[]): T[] {
+  return showDemo.value ? list : list.filter((d) => d.adapter !== 'demo')
+}
+const shownMowers = computed(() => withoutDemo(store.mowers))
+const shownSwitchables = computed(() => withoutDemo(store.switchables))
+const shownSensors = computed(() => withoutDemo(store.sensors))
+const shownCount = computed(() => shownMowers.value.length + shownSwitchables.value.length + shownSensors.value.length)
+
 onMounted(() => {
   void gardena.refresh()
+  store.setGardenaLive(true) // AP08: WebSocket nur laufen, solange diese Seite offen ist
+})
+onUnmounted(() => {
+  store.setGardenaLive(false)
 })
 
 async function disconnectGardena() {
@@ -73,9 +93,9 @@ function sensorText(deviceId: string): string {
     <div class="page-header">
       <div>
         <h1 class="page-title">Geräte</h1>
-        <span class="muted">{{ store.devices.length }} eingerichtet</span>
+        <span class="muted">{{ shownCount }} eingerichtet</span>
       </div>
-      <button type="button" class="pill-btn-ghost" @click="discover">
+      <button v-if="showDemo" type="button" class="pill-btn-ghost" @click="discover">
         <i class="ph-bold ph-magnifying-glass" /> Demo-Geräte suchen
       </button>
     </div>
@@ -109,17 +129,25 @@ function sensorText(deviceId: string): string {
       </div>
     </div>
 
-    <div class="card ha-note">
+    <!-- Demo-Geräte: an/aus (bei Gardena-Verbindung automatisch aus) -->
+    <div class="card demo-note">
       <i class="ph-fill ph-plugs-connected note-icon" />
-      <span>
-        Zusätzlich laufen hier simulierte Demo-Geräte. Ein Home-Assistant-Adapter kommt später.
-      </span>
+      <div class="demo-body">
+        <div class="demo-head">
+          <span class="demo-title">Demo-Geräte</span>
+          <ToggleSwitch v-model="demoToggle" :disabled="gardena.connected" aria-label="Demo-Geräte anzeigen" />
+        </div>
+        <span class="muted">
+          <template v-if="gardena.connected">Ausgeblendet, solange Gardena verbunden ist.</template>
+          <template v-else>Simulierte Geräte zum Ausprobieren — zeigen, was mit Pro möglich ist.</template>
+        </span>
+      </div>
     </div>
 
-    <template v-if="store.devices.length">
-      <h2 v-if="store.mowers.length" class="section-title">Mähroboter</h2>
+    <template v-if="shownCount">
+      <h2 v-if="shownMowers.length" class="section-title">Mähroboter</h2>
       <div class="card-grid">
-        <div v-for="device in store.mowers" :key="device.id" class="card device mower">
+        <div v-for="device in shownMowers" :key="device.id" class="card device mower">
           <div class="device-info">
             <div class="device-name">
               <span class="status-dot" :class="{ on: store.states[device.id]?.on }" />
@@ -137,9 +165,9 @@ function sensorText(deviceId: string): string {
         </div>
       </div>
 
-      <h2 v-if="store.switchables.length" class="section-title">Schalten</h2>
+      <h2 v-if="shownSwitchables.length" class="section-title">Schalten</h2>
       <div class="card-grid">
-        <div v-for="device in store.switchables" :key="device.id" class="card device">
+        <div v-for="device in shownSwitchables" :key="device.id" class="card device">
           <div class="device-info">
             <div class="device-name">
               <span class="status-dot" :class="{ on: store.states[device.id]?.on }" />
@@ -156,9 +184,9 @@ function sensorText(deviceId: string): string {
         </div>
       </div>
 
-      <h2 v-if="store.sensors.length" class="section-title">Sensoren</h2>
+      <h2 v-if="shownSensors.length" class="section-title">Sensoren</h2>
       <div class="card-grid">
-        <div v-for="device in store.sensors" :key="device.id" class="card device">
+        <div v-for="device in shownSensors" :key="device.id" class="card device">
           <div class="device-info">
             <div class="device-name">
               <span class="status-dot on" />
@@ -173,7 +201,9 @@ function sensorText(deviceId: string): string {
 
     <div v-else class="empty-state">
       <i class="ph-fill ph-cpu" />
-      <p>Noch keine Geräte. Klicke auf „Demo-Geräte suchen“, um die Simulation zu starten.</p>
+      <p v-if="showDemo">Noch keine Geräte. Klicke auf „Demo-Geräte suchen“, um die Simulation zu starten.</p>
+      <p v-else-if="gardena.connected">Noch keine Gardena-Geräte übernommen — klick oben auf „Gardena-Geräte suchen“.</p>
+      <p v-else>Noch keine Geräte. Verbinde Gardena oder aktiviere die Demo-Geräte.</p>
     </div>
 
     <!-- Pro-Upsell (nur für Free-Nutzer) -->
@@ -189,13 +219,31 @@ function sensorText(deviceId: string): string {
 </template>
 
 <style scoped>
-.ha-note {
+.demo-note {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   font-size: 13px;
   color: var(--text-2);
   padding: 12px 16px;
+}
+.demo-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.demo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.demo-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text-1);
 }
 .note-icon {
   font-size: 22px;
