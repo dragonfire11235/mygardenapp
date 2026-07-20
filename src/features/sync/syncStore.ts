@@ -17,6 +17,17 @@ import { useSightingsStore } from '../sightings/sightingsStore'
  */
 export type SyncStatus = 'idle' | 'syncing' | 'error'
 
+/** Zieht eine lesbare Meldung aus Error ODER Supabase-Fehlerobjekten ({message,details,code}). */
+function errText(e: unknown): string {
+  if (e instanceof Error) return e.message
+  if (e && typeof e === 'object') {
+    const o = e as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
+    const parts = [o.message, o.details, o.hint, o.code].filter((p) => typeof p === 'string' && p)
+    if (parts.length) return parts.join(' · ')
+  }
+  return String(e)
+}
+
 export const useSyncStore = defineStore('sync', () => {
   const status = ref<SyncStatus>('idle')
   const lastSyncedAt = ref<string | null>(null)
@@ -51,7 +62,7 @@ export const useSyncStore = defineStore('sync', () => {
       await storage.setSetting('lastSyncedAt', now)
       status.value = 'idle'
     } catch (e) {
-      errorMsg.value = e instanceof Error ? e.message : String(e)
+      errorMsg.value = errText(e)
       status.value = 'error'
     }
   }
