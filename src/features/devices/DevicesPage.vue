@@ -1,16 +1,30 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import type { Device } from '../../data'
 import { deviceKindLabels } from '../../shared/texts'
 import { useDevicesStore } from './devicesStore'
 import { useAccountStore } from '../account/accountStore'
+import { useAuthStore } from '../auth/authStore'
+import { useGardenaStore } from './gardena/gardenaStore'
 import { useUiStore } from '../ui/uiStore'
 
 const store = useDevicesStore()
 const account = useAccountStore()
+const auth = useAuthStore()
+const gardena = useGardenaStore()
 const ui = useUiStore()
 const toast = useToast()
+
+onMounted(() => {
+  void gardena.refresh()
+})
+
+async function disconnectGardena() {
+  await gardena.disconnect()
+  toast.add({ severity: 'info', summary: 'Gardena getrennt', life: 2500 })
+}
 
 async function discover() {
   const added = await store.discoverAndAdd('demo')
@@ -44,11 +58,36 @@ function sensorText(deviceId: string): string {
       </button>
     </div>
 
+    <!-- Gardena-Anbindung (echte Geräte über dein eigenes Gardena-Konto) -->
+    <div v-if="gardena.available" class="card gardena-card">
+      <i class="ph-fill ph-plant note-icon" />
+      <div class="gardena-body">
+        <template v-if="!auth.isAuthenticated">
+          <strong>Gardena verbinden</strong>
+          <span class="muted">Melde dich zuerst in lumi an (unter „Mehr"), dann kannst du dein Gardena-Konto verbinden.</span>
+        </template>
+        <template v-else-if="gardena.connected">
+          <strong><i class="ph-fill ph-check-circle ok-icon" /> Gardena verbunden</strong>
+          <span class="muted">Deine Gardena-Geräte kannst du unten suchen und steuern.</span>
+          <div class="gardena-actions">
+            <button type="button" class="pill-btn-ghost" :disabled="gardena.busy" @click="disconnectGardena">Trennen</button>
+          </div>
+        </template>
+        <template v-else>
+          <strong>Gardena verbinden</strong>
+          <span class="muted">Verbinde dein eigenes Gardena-Konto, um Mäher, Bewässerung und Sensoren hier zu sehen und zu steuern.</span>
+          <div class="gardena-actions">
+            <button type="button" class="pill-btn" :disabled="gardena.busy" @click="gardena.startConnect()">Gardena verbinden</button>
+          </div>
+        </template>
+        <span v-if="gardena.errorMsg" class="gardena-error">{{ gardena.errorMsg }}</span>
+      </div>
+    </div>
+
     <div class="card ha-note">
       <i class="ph-fill ph-plugs-connected note-icon" />
       <span>
-        Aktuell laufen hier simulierte Demo-Geräte. Sobald dein Home Assistant steht,
-        wird er als Adapter angebunden — deine Geräte tauchen dann genauso hier auf.
+        Zusätzlich laufen hier simulierte Demo-Geräte. Ein Home-Assistant-Adapter kommt später.
       </span>
     </div>
 
@@ -117,6 +156,35 @@ function sensorText(deviceId: string): string {
   font-size: 22px;
   color: var(--accent);
   flex: none;
+}
+
+.gardena-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+}
+.gardena-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.gardena-body .muted {
+  font-size: 13px;
+}
+.ok-icon {
+  color: var(--accent);
+}
+.gardena-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 0.5rem;
+}
+.gardena-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 6px;
 }
 
 .section-title {

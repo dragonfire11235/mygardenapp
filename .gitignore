@@ -30,6 +30,9 @@ dist-ssr
 
 # Katalog-Build-Cache (Wikidata/GloBI-Zwischenstände)
 scripts/.cache/
+
+# Gardena-Spike: Test-HTML enthält kurzlebige Token-URL (nie committen)
+scripts/.gardena-ws-test.html
 design_handoff_lumi_redesign/
 
 # Vom NVIDIA-Treiber versehentlich im Projekt-Root angelegt

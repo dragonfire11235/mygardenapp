@@ -119,8 +119,8 @@ export interface Photo extends BaseEntity {
   mimeType: string
 }
 
-export type DeviceKind = 'switch' | 'valve' | 'sensor'
-export type AdapterId = 'demo' | 'homeassistant'
+export type DeviceKind = 'switch' | 'valve' | 'sensor' | 'mower'
+export type AdapterId = 'demo' | 'homeassistant' | 'gardena'
 
 export interface Device extends BaseEntity {
   name: string

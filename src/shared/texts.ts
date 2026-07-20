@@ -53,6 +53,7 @@ export const deviceKindLabels: Record<DeviceKind, string> = {
   switch: 'Schalter',
   valve: 'Ventil',
   sensor: 'Sensor',
+  mower: 'Mähroboter',
 }
 
 export const sightingGroupLabels: Record<SightingGroup, string> = {

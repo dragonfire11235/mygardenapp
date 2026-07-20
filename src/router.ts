@@ -19,6 +19,7 @@ export const router = createRouter({
     { path: '/kalender', name: 'calendar', component: () => import('./features/plants/CalendarPage.vue'), meta: { title: 'Kalender' } },
     { path: '/entdeckungen', name: 'sightings', component: () => import('./features/sightings/SightingsPage.vue'), meta: { title: 'Entdeckungen' } },
     { path: '/geraete', name: 'devices', component: () => import('./features/devices/DevicesPage.vue'), meta: { title: 'Geräte' } },
+    { path: '/gardena/callback', name: 'gardena-callback', component: () => import('./features/devices/gardena/GardenaCallback.vue'), meta: { title: 'Gardena' } },
     { path: '/einstellungen', name: 'settings', component: () => import('./features/settings/SettingsPage.vue'), meta: { title: 'Einstellungen' } },
   ],
 })
