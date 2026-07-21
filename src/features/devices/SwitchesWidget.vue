@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import ToggleSwitch from 'primevue/toggleswitch'
 import type { Device } from '../../data'
 import { useDevicesStore } from './devicesStore'
+import { useGardenaStore } from './gardena/gardenaStore'
+import { useSettingsStore } from '../settings/settingsStore'
 
 const store = useDevicesStore()
+const gardena = useGardenaStore()
+const settings = useSettingsStore()
+
+// Demo-Geräte nur zeigen, solange die Demo aktiv ist (Setting an + keine Gardena-Verbindung) —
+// gleiche Regel wie auf der Geräte-Seite (DevicesPage.vue).
+const showDemo = computed(() => settings.demoDevicesEnabled && !gardena.connected)
+const switchables = computed(() =>
+  store.switchables.filter((d) => showDemo.value || d.adapter !== 'demo'),
+)
 
 async function toggle(device: Device, on: boolean) {
   await store.setOn(device, on)
@@ -11,8 +23,8 @@ async function toggle(device: Device, on: boolean) {
 </script>
 
 <template>
-  <div v-if="store.switchables.length" class="widget-list">
-    <div v-for="device in store.switchables" :key="device.id" class="widget-row">
+  <div v-if="switchables.length" class="widget-list">
+    <div v-for="device in switchables" :key="device.id" class="widget-row">
       <span class="widget-row-text">{{ device.name }}</span>
       <ToggleSwitch
         :model-value="store.states[device.id]?.on ?? false"

@@ -7,6 +7,7 @@ import { isAppInstalled, openInstallDialog } from '../../shared/pwaInstall'
 
 const DISMISS_KEY = 'lumi-install-tip-dismissed'
 const visible = ref(false)
+const appBaseUrl = import.meta.env.BASE_URL
 
 onMounted(() => {
   if (isAppInstalled()) return
@@ -39,6 +40,7 @@ function dismiss() {
     manual-chrome="true"
     name="lumi"
     description="Dein Garten. Dein Zuhause."
+    :icon="`${appBaseUrl}pwa-512.png`"
   />
 
   <Transition name="tip-slide">
