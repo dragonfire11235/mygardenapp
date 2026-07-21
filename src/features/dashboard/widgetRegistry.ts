@@ -22,8 +22,6 @@ export interface WidgetDefinition {
   id: string
   title: string
   component: Component
-  /** Optionale Route, zu der der Widget-Titel verlinkt (z. B. zur zugehörigen Seite). */
-  link?: string
 }
 
 export const widgetRegistry: WidgetDefinition[] = [
@@ -36,5 +34,5 @@ export const widgetRegistry: WidgetDefinition[] = [
   { id: 'diary', title: 'Tagebuch', component: RecentDiaryWidget },
   { id: 'sightings', title: 'Entdeckungen', component: SightingsWidget },
   { id: 'sensors', title: 'Sensoren', component: SensorsWidget },
-  { id: 'switches', title: 'Geräte', component: SwitchesWidget, link: '/geraete' },
+  { id: 'switches', title: 'Geräte', component: SwitchesWidget },
 ]

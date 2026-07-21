@@ -100,13 +100,7 @@ const lumiTip = computed(() => tips.value[tipIndex.value] ?? tips.value[0] ?? ''
 
     <div class="widget-grid">
       <section v-for="widget in visibleWidgets" :key="widget.id" class="card widget-card">
-        <h2 class="widget-title">
-          <RouterLink v-if="widget.link" :to="widget.link" class="widget-title-link">
-            {{ widget.title }}
-            <i class="ph-bold ph-arrow-right" />
-          </RouterLink>
-          <template v-else>{{ widget.title }}</template>
-        </h2>
+        <h2 class="widget-title">{{ widget.title }}</h2>
         <component :is="widget.component" />
       </section>
     </div>
@@ -221,24 +215,5 @@ const lumiTip = computed(() => tips.value[tipIndex.value] ?? tips.value[0] ?? ''
   margin: 0 0 12px;
   font-size: 17px;
   font-weight: 800;
-}
-
-.widget-title-link {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: inherit;
-  text-decoration: none;
-  width: fit-content;
-}
-.widget-title-link i {
-  font-size: 14px;
-  opacity: 0.6;
-}
-.widget-title-link:hover {
-  color: var(--accent);
-}
-.widget-title-link:hover i {
-  opacity: 1;
 }
 </style>

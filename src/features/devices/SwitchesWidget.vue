@@ -34,6 +34,8 @@ async function toggle(device: Device, on: boolean) {
     </div>
   </div>
   <p v-else class="muted">Keine schaltbaren Geräte (siehe „Geräte“).</p>
+
+  <RouterLink to="/geraete" class="more">Zur Geräte-Seite →</RouterLink>
 </template>
 
 <style scoped>
@@ -41,6 +43,19 @@ async function toggle(device: Device, on: boolean) {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.more {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.more:hover {
+  text-decoration: underline;
 }
 
 .widget-row {
