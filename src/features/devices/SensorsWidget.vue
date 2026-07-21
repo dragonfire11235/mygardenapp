@@ -1,12 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useDevicesStore } from './devicesStore'
+import { useGardenaStore } from './gardena/gardenaStore'
+import { useSettingsStore } from '../settings/settingsStore'
 
 const store = useDevicesStore()
+const gardena = useGardenaStore()
+const settings = useSettingsStore()
+
+// Demo-Geräte nur zeigen, solange die Demo aktiv ist (Setting an + keine Gardena-Verbindung) —
+// gleiche Regel wie auf der Geräte-Seite (DevicesPage.vue).
+const showDemo = computed(() => settings.demoDevicesEnabled && !gardena.connected)
+const sensors = computed(() =>
+  store.sensors.filter((d) => showDemo.value || d.adapter !== 'demo'),
+)
 </script>
 
 <template>
-  <div v-if="store.sensors.length" class="sensor-grid">
-    <div v-for="device in store.sensors" :key="device.id" class="sensor">
+  <div v-if="sensors.length" class="sensor-grid">
+    <div v-for="device in sensors" :key="device.id" class="sensor">
       <span class="sensor-value">
         {{ store.states[device.id]?.value ?? '–' }}
         <small>{{ store.states[device.id]?.unit ?? '' }}</small>
