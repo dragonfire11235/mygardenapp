@@ -18,6 +18,7 @@ import { useSyncStore } from './features/sync/syncStore'
 import { useUiStore } from './features/ui/uiStore'
 import ProDialog from './features/ui/ProDialog.vue'
 import AuthDialog from './features/auth/AuthDialog.vue'
+import InstallTip from './features/settings/InstallTip.vue'
 import Onboarding from './features/account/Onboarding.vue'
 
 const settings = useSettingsStore()
@@ -196,6 +197,7 @@ onMounted(async () => {
     <ConfirmDialog />
     <ProDialog />
     <AuthDialog />
+    <InstallTip />
     <Onboarding v-if="!account.onboarded" />
   </div>
 </template>

@@ -6,7 +6,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
+    // <pwa-install> ist eine Web-Component (khmyznikov) — nicht als Vue-Komponente auflösen.
+    vue({
+      template: { compilerOptions: { isCustomElement: (tag) => tag === 'pwa-install' } },
+    }),
     VitePWA({
       // autoUpdate: neue Versionen aktivieren sich beim nächsten Öffnen von selbst
       registerType: 'autoUpdate',

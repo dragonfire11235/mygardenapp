@@ -15,6 +15,7 @@
     "species:photos": "node scripts/build-species-photos.mjs"
   },
   "dependencies": {
+    "@khmyznikov/pwa-install": "^0.6.4",
     "@phosphor-icons/web": "^2.1.2",
     "@primeuix/themes": "^2.0.3",
     "@supabase/supabase-js": "^2.110.7",

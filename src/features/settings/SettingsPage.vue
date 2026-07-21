@@ -6,6 +6,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { downloadBackup, importBackupFile } from '../../data/backup'
+import { isAppInstalled, openInstallDialog } from '../../shared/pwaInstall'
 import PhotoPicker from '../../shared/PhotoPicker.vue'
 import { widgetRegistry } from '../dashboard/widgetRegistry'
 import { searchLocation, type GeoResult } from '../weather/weatherApi'
@@ -51,6 +52,12 @@ async function saveDisplayName() {
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Fehler', detail: e instanceof Error ? e.message : String(e), life: 3000 })
   }
+}
+
+// --- App installieren (PWA) — Dialog liegt global in InstallTip.vue ---
+const isStandalone = isAppInstalled()
+function openInstall() {
+  openInstallDialog()
 }
 
 // --- Konto (Online-Login via Supabase) ---
@@ -295,6 +302,16 @@ function onImportSelected(event: Event) {
           <i class="ph-bold ph-caret-right quick-caret" />
         </RouterLink>
       </section>
+      <section v-if="!isStandalone" class="card">
+        <h2>App installieren</h2>
+        <p class="muted">
+          Installiere lumi auf deinem Startbildschirm — startet wie eine echte App, offline nutzbar.
+        </p>
+        <div class="row">
+          <Button label="App installieren" @click="openInstall" />
+        </div>
+      </section>
+
       <section class="card">
         <h2>Benachrichtigungen</h2>
         <div class="row">

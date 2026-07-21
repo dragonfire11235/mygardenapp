@@ -9,6 +9,8 @@ import ConfirmationService from 'primevue/confirmationservice'
 // Typdeklarationen für die CSS-Subpath-Exporte liegen in src/phosphor.d.ts.
 import '@phosphor-icons/web/fill'
 import '@phosphor-icons/web/bold'
+// PWA-Installier-Dialog (Web-Component, cross-platform inkl. iOS-Anleitung)
+import '@khmyznikov/pwa-install'
 import './style.css'
 import App from './App.vue'
 import { router } from './router'
