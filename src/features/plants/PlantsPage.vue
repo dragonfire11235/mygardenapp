@@ -152,6 +152,15 @@ async function save(draft: PlantDraft, bedIds: string[]) {
         <span class="muted">{{ store.plants.length }} in der Bibliothek</span>
       </div>
       <div class="header-actions">
+        <button
+          type="button"
+          class="circle-glass-btn"
+          aria-label="Pflanzenkatalog durchstöbern"
+          title="Pflanzenkatalog"
+          @click="catalogVisible = true"
+        >
+          <i class="ph-fill ph-books" />
+        </button>
         <button type="button" class="round-icon-btn" aria-label="Neue Pflanze" @click="openNew">
           <i class="ph-bold ph-plus" />
         </button>
@@ -238,16 +247,6 @@ async function save(draft: PlantDraft, bedIds: string[]) {
         Lege die erste an — oder suche online danach.
       </p>
     </div>
-
-    <!-- Katalog-Banner (dunkles Glas) -->
-    <button type="button" class="catalog-banner" @click="catalogVisible = true">
-      <i class="ph-fill ph-books banner-icon" />
-      <span class="banner-text">
-        <span class="banner-title">Pflanzenkatalog</span>
-        <span class="banner-sub">657 Pflanzen durchstöbern und hinzufügen</span>
-      </span>
-      <i class="ph-bold ph-caret-right" />
-    </button>
 
     <PlantFormDialog
       v-model:visible="dialogVisible"
@@ -514,40 +513,4 @@ async function save(draft: PlantDraft, bedIds: string[]) {
   color: var(--info);
 }
 
-/* Katalog-Banner (dunkles Glas) */
-.catalog-banner {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  background: var(--surface-deep);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  color: var(--text-on-deep);
-  border: none;
-  border-radius: var(--radius-l);
-  padding: 16px 18px;
-  box-shadow: var(--shadow-deep);
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  transition: filter var(--dur-fast) var(--ease-out);
-}
-.catalog-banner:hover {
-  filter: brightness(1.08);
-}
-.banner-icon {
-  font-size: 26px;
-}
-.banner-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.banner-title {
-  font-weight: 800;
-}
-.banner-sub {
-  font-size: 13px;
-  opacity: 0.8;
-}
 </style>

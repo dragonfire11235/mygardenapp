@@ -640,7 +640,9 @@ function removeSelected() {
 .canvas {
   position: relative;
   width: 100%;
-  background-color: var(--surface-tint);
+  /* Bewusst undurchsichtig (kein Glas-Effekt): das Raster muss auch vor
+     einem hellen Hintergrundfoto gut lesbar bleiben. */
+  background-color: var(--surface-card-solid);
   border: 1px dashed var(--border-soft);
   border-radius: 20px;
   overflow: hidden;

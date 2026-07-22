@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -13,6 +13,8 @@ import type { PlantCategory, Sunlight } from '../../data'
 import { categoryLabels, categorySpreadM, monthOptions, sunlightLabels } from '../../shared/texts'
 import { toIsoDate } from '../../shared/dates'
 import { useBedsStore } from '../beds/bedsStore'
+import { catalogPlantToDraft, loadCatalog, searchCatalog } from './catalogApi'
+import type { CatalogPlant } from './catalogTypes'
 import { emptyPlantDraft, type PlantDraft } from './plantsStore'
 
 const props = defineProps<{
@@ -42,8 +44,36 @@ watch(visible, (open) => {
     // Datensätze noch nicht haben (z. B. bloomMonths).
     draft.value = props.initial ? { ...emptyPlantDraft(), ...props.initial } : emptyPlantDraft()
     assignBedIds.value = []
+    suggestionsPicked.value = false
   }
 })
+
+// Katalog-Vorschläge im Namensfeld (nur beim Neu-Anlegen, nicht beim Bearbeiten)
+const catalogEntries = ref<CatalogPlant[]>([])
+onMounted(async () => {
+  try {
+    catalogEntries.value = await loadCatalog()
+  } catch {
+    /* Katalog nicht ladbar (offline/Fehler) → dann eben keine Vorschläge */
+  }
+})
+
+// Nach Auswahl eines Vorschlags Liste ausblenden, bis wieder getippt wird
+const suggestionsPicked = ref(false)
+watch(() => draft.value.name, () => { suggestionsPicked.value = false })
+
+const nameSuggestions = computed(() => {
+  if (props.editing || suggestionsPicked.value) return []
+  const q = draft.value.name.trim()
+  if (q.length < 2 || !catalogEntries.value.length) return []
+  return searchCatalog(catalogEntries.value, q, {}, 6)
+})
+
+async function pickSuggestion(entry: CatalogPlant) {
+  draft.value = { ...draft.value, ...catalogPlantToDraft(entry) }
+  await nextTick()
+  suggestionsPicked.value = true
+}
 
 const bedOptions = computed(() => bedsStore.beds.map((b) => ({ label: b.name, value: b.id })))
 
@@ -81,9 +111,22 @@ function save() {
   >
     <div class="form-grid">
       <div class="form-row">
-        <div class="form-field">
+        <div class="form-field name-field">
           <label for="plant-name">Name *</label>
-          <InputText id="plant-name" v-model="draft.name" autofocus placeholder="z. B. Tomate" />
+          <InputText id="plant-name" v-model="draft.name" autofocus placeholder="z. B. Tomate" autocomplete="off" />
+          <div v-if="nameSuggestions.length" class="name-suggestions">
+            <button
+              v-for="entry in nameSuggestions"
+              :key="entry.id"
+              type="button"
+              class="name-suggestion"
+              @click="pickSuggestion(entry)"
+            >
+              <i class="ph-fill ph-books" />
+              <span class="ns-name">{{ entry.name }}</span>
+              <span v-if="entry.botanicalName" class="ns-bot">{{ entry.botanicalName }}</span>
+            </button>
+          </div>
         </div>
         <div class="form-field">
           <label for="plant-botanical">Botanischer Name</label>
@@ -243,3 +286,59 @@ function save() {
     </template>
   </Dialog>
 </template>
+
+<style scoped>
+.name-field {
+  position: relative;
+}
+
+.name-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin-top: 4px;
+  background: var(--surface-card-solid);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-card);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.name-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 7px 8px;
+  border-radius: var(--radius-s);
+}
+.name-suggestion:hover {
+  background: var(--surface-tint);
+}
+.name-suggestion > i {
+  color: var(--accent);
+  flex: none;
+}
+.ns-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.ns-bot {
+  font-size: 12px;
+  color: var(--text-3);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

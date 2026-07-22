@@ -82,7 +82,10 @@ export function searchCatalog(
     : entries
 
   const q = normalize(query.trim())
-  if (!q) return filtered.slice(0, limit)
+  // Ohne Suchbegriff: kompletten (ggf. nach Kategorie gefilterten) Katalog
+  // zurückgeben — die Ergebnisliste ist scrollbar, ein Limit würde Arten
+  // verstecken, die man ohne Suchwort durchstöbern will.
+  if (!q) return filtered
 
   const scored: { entry: CatalogPlant; score: number }[] = []
   for (const entry of filtered) {
