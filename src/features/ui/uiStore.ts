@@ -32,5 +32,15 @@ export const useUiStore = defineStore('ui', () => {
     authDialogOpen.value = false
   }
 
-  return { proDialogOpen, openPro, closePro, authDialogOpen, authMode, openAuth, closeAuth }
+  const lumiOpen = ref(false)
+
+  function openLumi() {
+    lumiOpen.value = true
+  }
+
+  function closeLumi() {
+    lumiOpen.value = false
+  }
+
+  return { proDialogOpen, openPro, closePro, authDialogOpen, authMode, openAuth, closeAuth, lumiOpen, openLumi, closeLumi }
 })

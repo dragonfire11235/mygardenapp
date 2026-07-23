@@ -20,6 +20,8 @@ import ProDialog from './features/ui/ProDialog.vue'
 import AuthDialog from './features/auth/AuthDialog.vue'
 import InstallTip from './features/settings/InstallTip.vue'
 import Onboarding from './features/account/Onboarding.vue'
+import LumiFab from './features/assistant/LumiFab.vue'
+import LumiChatOverlay from './features/assistant/LumiChatOverlay.vue'
 
 const settings = useSettingsStore()
 const plants = usePlantsStore()
@@ -199,6 +201,8 @@ onMounted(async () => {
     <AuthDialog />
     <InstallTip />
     <Onboarding v-if="!account.onboarded" />
+    <LumiFab />
+    <LumiChatOverlay />
   </div>
 </template>
 

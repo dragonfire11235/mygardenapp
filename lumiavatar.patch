@@ -1,0 +1,219 @@
+From 085cf7cc64d269ab54701dfbbd9d55944d9a75d6 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 23 Jul 2026 11:44:21 +0000
+Subject: [PATCH] Lumi-Avatar reagiert auf Kontext (Dashboard-Tipp +
+ Nav-Bereich)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Neue LumiAvatar-Komponente wechselt das Maskottchen-Bild je nach
+Stimmung: Wetter/Gieß-Tipp und Tagebuch-Nudge im Dashboard-Hero,
+sowie Pflanzen/Beete/Aufgaben/Geräte/Tagebuch als Begleiter in der
+Sidebar. Nutzt bestehende Lumi-Einzelposen aus public/lumi/mascot.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01UgA1iF7ENXJgt5G2RqMwfW
+---
+ src/App.vue                              | 14 ++++++++
+ src/features/dashboard/DashboardPage.vue |  7 ++--
+ src/features/dashboard/lumiMood.test.ts  | 18 +++++++++++
+ src/features/dashboard/lumiMood.ts       | 23 +++++++++++++
+ src/shared/LumiAvatar.vue                | 41 ++++++++++++++++++++++++
+ 5 files changed, 100 insertions(+), 3 deletions(-)
+ create mode 100644 src/features/dashboard/lumiMood.test.ts
+ create mode 100644 src/features/dashboard/lumiMood.ts
+ create mode 100644 src/shared/LumiAvatar.vue
+
+diff --git a/src/App.vue b/src/App.vue
+index b3b736e..030cfa4 100644
+--- a/src/App.vue
++++ b/src/App.vue
+@@ -5,6 +5,8 @@ import Toast from 'primevue/toast'
+ import ConfirmDialog from 'primevue/confirmdialog'
+ import { getPhotoUrl } from './shared/photos'
+ import { deleteOrphanPhotos } from './shared/photoGc'
++import LumiAvatar from './shared/LumiAvatar.vue'
++import { lumiMoodForRoute } from './features/dashboard/lumiMood'
+ import { useSettingsStore } from './features/settings/settingsStore'
+ import { usePlantsStore } from './features/plants/plantsStore'
+ import { useBedsStore } from './features/beds/bedsStore'
+@@ -66,6 +68,9 @@ function isActive(to: string): boolean {
+   return route.path === to || route.path.startsWith(`${to}/`)
+ }
+ 
++// Begleiter in der Sidebar: wechselt sein Aussehen je nach Bereich der App.
++const navMood = computed(() => lumiMoodForRoute(route.path))
++
+ const darkLabel = computed(() => (settings.darkMode ? 'Heller Modus' : 'Dunkelmodus'))
+ const darkIcon = computed(() => (settings.darkMode ? 'ph-sun' : 'ph-moon'))
+ 
+@@ -142,6 +147,7 @@ onMounted(async () => {
+     <!-- Desktop-Sidebar (≥1024px) -->
+     <nav class="side-nav">
+       <img :src="logoUrl" alt="lumi" data-logo="1" class="side-logo" />
++      <LumiAvatar :mood="navMood" class="side-mascot" />
+       <RouterLink
+         v-for="item in sideItems"
+         :key="item.to"
+@@ -265,6 +271,14 @@ onMounted(async () => {
+   margin: 4px 8px 20px;
+ }
+ 
++.side-mascot {
++  width: 72px;
++  height: 72px;
++  object-fit: contain;
++  align-self: center;
++  margin-bottom: 12px;
++}
++
+ .side-item {
+   display: flex;
+   align-items: center;
+diff --git a/src/features/dashboard/DashboardPage.vue b/src/features/dashboard/DashboardPage.vue
+index d07b776..4cb3bdb 100644
+--- a/src/features/dashboard/DashboardPage.vue
++++ b/src/features/dashboard/DashboardPage.vue
+@@ -1,19 +1,19 @@
+ <script setup lang="ts">
+ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+ import { getPhotoUrl } from '../../shared/photos'
++import LumiAvatar from '../../shared/LumiAvatar.vue'
+ import { useSettingsStore } from '../settings/settingsStore'
+ import { useWeatherStore } from '../weather/weatherStore'
+ import { weatherLabel } from '../weather/weatherApi'
+ import { useAccountStore } from '../account/accountStore'
+ import { buildLumiTips } from './lumiTips'
++import { lumiMoodForTip } from './lumiMood'
+ import { widgetRegistry } from './widgetRegistry'
+ 
+ const settings = useSettingsStore()
+ const weatherStore = useWeatherStore()
+ const account = useAccountStore()
+ 
+-const mascotUrl = `${import.meta.env.BASE_URL}lumi/mascot/lumi-watering.png`
+-
+ // Sichtbarkeit und Reihenfolge aus den Einstellungen; unbekannte/neue Widgets sind standardmäßig sichtbar.
+ const visibleWidgets = computed(() => {
+   const layout = settings.dashboardLayout
+@@ -74,6 +74,7 @@ onUnmounted(() => {
+ watch(tips, () => { tipIndex.value = 0 })
+ 
+ const lumiTip = computed(() => tips.value[tipIndex.value] ?? tips.value[0] ?? '')
++const lumiMood = computed(() => lumiMoodForTip(lumiTip.value))
+ </script>
+ 
+ <template>
+@@ -90,7 +91,7 @@ const lumiTip = computed(() => tips.value[tipIndex.value] ?? tips.value[0] ?? ''
+               <i class="ph-fill ph-cloud-sun" />{{ weatherLine }}
+             </div>
+           </div>
+-          <img :src="mascotUrl" alt="Lumi gießt" class="hero-mascot" />
++          <LumiAvatar :mood="lumiMood" class="hero-mascot" />
+         </div>
+         <Transition name="tip-fade" mode="out-in">
+           <div class="hero-tip" :key="lumiTip">{{ lumiTip }}</div>
+diff --git a/src/features/dashboard/lumiMood.test.ts b/src/features/dashboard/lumiMood.test.ts
+new file mode 100644
+index 0000000..55dc928
+--- /dev/null
++++ b/src/features/dashboard/lumiMood.test.ts
+@@ -0,0 +1,18 @@
++import { describe, expect, it } from 'vitest'
++import { lumiMoodForTip } from './lumiMood'
++
++describe('lumiMoodForTip', () => {
++  it('erkennt Wetter-/Gieß-Tipps', () => {
++    expect(lumiMoodForTip('❄️ Lumi-Tipp: Nachtfrost erwartet — deck empfindliche Pflanzen ab!')).toBe('weather')
++    expect(lumiMoodForTip('💧 Lumi-Tipp: Heute wird’s warm — gieß am besten erst am Abend!')).toBe('weather')
++  })
++
++  it('erkennt Tagebuch-Tipps', () => {
++    expect(lumiMoodForTip('📖 Lumi-Tipp: Halt fest, was heute blüht.')).toBe('diary')
++    expect(lumiMoodForTip('🦋 Lumi-Tipp: Insekt entdeckt? Ab damit ins Tagebuch!')).toBe('diary')
++  })
++
++  it('fällt bei allgemeinen Tipps auf idle zurück', () => {
++    expect(lumiMoodForTip('🌱 Lumi-Tipp: Ein kurzer Blick ins Beet lohnt sich jeden Tag.')).toBe('idle')
++  })
++})
+diff --git a/src/features/dashboard/lumiMood.ts b/src/features/dashboard/lumiMood.ts
+new file mode 100644
+index 0000000..6795124
+--- /dev/null
++++ b/src/features/dashboard/lumiMood.ts
+@@ -0,0 +1,23 @@
++// Ordnet einen Lumi-Tipp bzw. den aktuellen Navigationsbereich einer "Stimmung"
++// zu, damit das Maskottchen (LumiAvatar) passend sein Aussehen wechseln kann.
++
++export type LumiMood = 'weather' | 'devices' | 'diary' | 'plants' | 'beds' | 'tasks' | 'idle'
++
++const WEATHER_MARKERS = ['❄️', '🌧️', '💧']
++const DIARY_MARKERS = ['📖', '📷', '🦋']
++
++export function lumiMoodForTip(tip: string): LumiMood {
++  if (WEATHER_MARKERS.some((m) => tip.includes(m))) return 'weather'
++  if (DIARY_MARKERS.some((m) => tip.includes(m))) return 'diary'
++  return 'idle'
++}
++
++/** Ordnet den aktuellen Router-Pfad einem Nav-Bereich zu (für den Sidebar-Begleiter). */
++export function lumiMoodForRoute(path: string): LumiMood {
++  if (path.startsWith('/pflanzen')) return 'plants'
++  if (path.startsWith('/beete')) return 'beds'
++  if (path.startsWith('/aufgaben')) return 'tasks'
++  if (path.startsWith('/geraete')) return 'devices'
++  if (path.startsWith('/tagebuch') || path.startsWith('/entdeckungen')) return 'diary'
++  return 'idle'
++}
+diff --git a/src/shared/LumiAvatar.vue b/src/shared/LumiAvatar.vue
+new file mode 100644
+index 0000000..5e410d4
+--- /dev/null
++++ b/src/shared/LumiAvatar.vue
+@@ -0,0 +1,41 @@
++<script setup lang="ts">
++import { computed } from 'vue'
++import type { LumiMood } from '../features/dashboard/lumiMood'
++
++const props = withDefaults(defineProps<{ mood?: LumiMood; alt?: string }>(), {
++  mood: 'idle',
++  alt: 'Lumi',
++})
++
++// Welches Mascot-Bild zu welcher Stimmung gehört. Wird von mehreren Stellen
++// verwendet (Dashboard-Hero, künftig auch Geräte-Seite/KI-Assistent), damit
++// Lumi überall dieselben, konsistenten Ausdrücke zeigt.
++const MOOD_ASSETS: Record<LumiMood, string> = {
++  weather: 'lumi-watering.png',
++  devices: 'lumi-question.png',
++  diary: 'lumi-hug.png',
++  plants: 'lumi-pot.png',
++  beds: 'lumi-wanderer.png',
++  tasks: 'lumi-cheer.png',
++  idle: 'lumi-hero.png',
++}
++
++const src = computed(() => `${import.meta.env.BASE_URL}lumi/mascot/${MOOD_ASSETS[props.mood]}`)
++</script>
++
++<template>
++  <Transition name="lumi-fade" mode="out-in">
++    <img :key="mood" :src="src" :alt="alt" class="lumi-avatar" />
++  </Transition>
++</template>
++
++<style scoped>
++.lumi-fade-enter-active,
++.lumi-fade-leave-active {
++  transition: opacity 0.2s ease;
++}
++.lumi-fade-enter-from,
++.lumi-fade-leave-to {
++  opacity: 0;
++}
++</style>
+-- 
+2.43.0
+

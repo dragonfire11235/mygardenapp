@@ -1,4 +1,4 @@
-# lumi — Projektplan (konsolidiert, Stand: 2026-07-20)
+# lumi — Projektplan (konsolidiert, Stand: 2026-07-22)
 
 > **Eine** zentrale Plan-Datei. Frühere Einzelpläne (Handy/Tunnel, Profil-SaaS, Sync,
 > Gardena, Entdeckungen) sind umgesetzt und hier zusammengeführt; ihre Historie liegt
@@ -67,9 +67,61 @@ Biodiversitäts-Score, Nützlings-Tipps, Vogelwert, Artenlisten mit Referenzfoto
 
 ---
 
+## AKTUELLES PROJEKT: Lumi-KI-Assistent (geplant 22. Juli 2026)
+
+**Vision:** Chat-Agent „Lumi" als persönlicher Gartenmanager — kennt Pflanzen/Beete/Aufgaben/
+Wetter des Nutzers, beantwortet Pflege-/Schnittfragen, liefert ein Tages-Briefing („3 wichtigste
+Dinge" + Frost/Hagel-Warnung), erkennt Pflanzen per Foto und berät beim Einkauf im Gartencenter
+(Etikett fotografieren — bewusst **kein** QR-Decoder: Pflanzenpass-QR enthält nur
+Registrierungsdaten, keinen Pflanzennamen).
+
+**Fixe Entscheidungen (mit User geklärt):**
+- Rollout zunächst **nur Owner** (Secret `LUMI_ALLOWED_USER_IDS`), später Pro-Feature mit Stripe.
+- Zugang: **schwebender Lumi-FAB** über der Tabbar (z-50, zwischen Tabbar 40 und InstallTip 55)
+  → Vollbild-Chat-Overlay. Overlay-State im `uiStore` (Muster ProDialog/AuthDialog).
+- Wetterwarnung **beim App-Öffnen** (kein Web-Push). Frost/Hagel/Gewitter deterministisch aus
+  WMO-Codes 95/96/99 in `weatherApi.ts` — LLM formuliert nur.
+- **Eine Edge Function `lumi`** (Routen `/chat`, `/briefing`, `/identify`) nach `gardena`-Muster;
+  `callLlm()`-Helper mit **Provider-Schalter** Secret `LUMI_PROVIDER` (`anthropic` | `mistral`),
+  Start Claude `claude-haiku-4-5`, Mistral/Pixtral als EU-Vergleichsanbieter. Kein SDK, roher fetch.
+- **`lumi_usage`-Tabelle** (user_id, day, requests, tokens; RLS ohne Policies) mit Tageslimit
+  → 429. Kostenschutz + spätere Metering-Basis für Pro.
+- Neues Modul **`src/features/assistant/`** — darf wie das Dashboard fremde Stores lesen
+  (2. sanktionierte Ausnahme der Import-Regel). Garten-Kontext = kompakter deutscher Text
+  (~1,5–3K Tokens, Kappung 60 Pflanzen/15 Aufgaben), Katalog NIE mitsenden (~100K Tokens),
+  Mischkultur via `relationBetween()` clientseitig vorberechnet.
+- Chat-Verlauf session-only (Pinia), Briefing-Cache im Settings-KV (`lumiBriefing` {date,text},
+  1 Call/Tag), Anzeige in der Dashboard-Hero-Bubble (gepinnt vor `lumiTips`) + Chat-Begrüßung.
+- Markdown-Antworten über Mini-Renderer (~40 Zeilen, kein HTML-Passthrough, keine neuen Deps).
+- Fotos: `<input capture="environment">` + bestehendes `resizeImage` (1600px) → base64; kein
+  getUserMedia. `LumiIdentifier implements SpeciesIdentifier` (Naht `sightings/identify/`).
+
+**Arbeitspakete** (Abhängigkeiten: AP1→AP2→AP3→AP4; AP5 unabhängig; AP6 braucht AP1+AP2+AP5;
+AP7 braucht AP4; AP8+AP9 brauchen AP7). Details/Abnahmekriterien: **Paket-Prompts liegen in
+`pakete/AP0<n>-*.md`** (AP01–AP09; AP10 geparkt, kein Prompt):
+
+| AP | Titel | Aufwand | Status |
+|----|-------|---------|--------|
+| AP1 | Edge Function `lumi` + `lumi_usage`-Migration + Secrets + Provider-Schalter | 4–6 h | abgenommen |
+| AP2 | Garten-Kontext-Builder (`assistant/context.ts`, pure + testbar) | 2–3 h | abgenommen |
+| AP3 | Client-API + assistantStore (`lumiApi.ts` nach `callEdge`-Muster) | 2 h | abgenommen |
+| AP4 | Chat-UI: LumiFab + Vollbild-Overlay + Mini-Markdown | 4–5 h | abgenommen |
+| AP5 | Wetter: Gewitter-/Hagelwarnung (WMO 95/96/99, deterministisch) | 1–2 h | offen |
+| AP6 | Tages-Briefing (1×/Tag, Settings-KV-Cache, Hero-Bubble) | 3 h | offen |
+| AP7 | Foto-Erkennung im Chat (`/identify`, Vision, Bild-Bubble) | 4 h | offen |
+| AP8 | `LumiIdentifier` für Entdeckungen (`mode:'species-only'`) | 1–2 h | offen |
+| AP9 | Einkaufsberater (`mode:'shopping'`, Chip im Chat) | 2 h | offen |
+| AP10 | (geparkt) SSE-Streaming + Pro-Gating-Naht | 3 h | geparkt |
+
+Stufe 1 = AP1–AP6 (~16–21 h), Stufe 2 = AP7–AP9 (~7–8 h). Laufende Kosten Owner-Phase < 5 €/Monat.
+Risiken: Haiku-Vision-Genauigkeit (→ Modell-Konstante, notfalls Sonnet für `/identify`),
+Kontext-Bloat (→ Kappungen), Prompt-Injection unkritisch solange Function nur Text weiterreicht.
+
+---
+
 ## OFFENE ROADMAP (Reihenfolge = Empfehlung)
 
-1. **Stripe / Abo + serverseitiges Pro-Gating** *(nächster großer Schritt)*
+1. **Stripe / Abo + serverseitiges Pro-Gating** *(nächster großer Schritt nach Lumi)*
    - Stripe Checkout (gehostet), Webhook als Edge Function → **`subscriptions`-Tabelle**
      (Quelle der Wahrheit, nicht der Client). Stripe Customer Portal fürs Kündigen.
    - **Feature-Gating serverseitig** für alles, was Geld kostet. Kandidaten für **Pro**:
@@ -95,7 +147,7 @@ Biodiversitäts-Score, Nützlings-Tipps, Vogelwert, Artenlisten mit Referenzfoto
 - **Auto-Backup-Erinnerung** — sanfter Hinweis „lange kein Backup".
 - **In-App „Installieren"-Button** (`beforeinstallprompt`) in den Einstellungen (nie gebaut).
 - **Home-Assistant-Adapter** — Naht bereit (`adapters/`), nur `HomeAssistantAdapter` ergänzen.
-- **KI-Arterkennung** für Entdeckungen — Naht (`SpeciesIdentifier`/`source`) da; Impl. via Proxy.
+- **KI-Arterkennung** für Entdeckungen — jetzt Teil des Lumi-Projekts (AP8).
 - **Katalog ausbauen** — Perenual als 2. Quelle / Florenliste (9.434 Taxa) / mehr Zierpflanzen.
 - **Gardena-Ausbau** — wählbare Mäh-/Bewässerungsdauer, Zeitpläne, mehr Sensortypen.
 - **Verworfen:** Fruchtfolge-Warnung (Nutzerwunsch).
