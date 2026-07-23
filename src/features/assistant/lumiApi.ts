@@ -58,6 +58,7 @@ async function callLumi<T = unknown>(route: string, body: unknown): Promise<T> {
 export interface ChatMessage {
   role: 'user' | 'assistant'
   text: string
+  imageUrl?: string
 }
 
 export interface ChatResponse {
@@ -66,7 +67,16 @@ export interface ChatResponse {
   provider: string
 }
 
+export interface IdentifyPayload {
+  imageBase64: string
+  mediaType: string
+  mode: 'identify' | 'shopping' | 'species-only'
+  question?: string
+  context?: string
+}
+
 export const lumiApi = {
   chat: (messages: ChatMessage[], context: string) => callLumi<ChatResponse>('chat', { messages, context }),
   briefing: (context: string) => callLumi<ChatResponse>('briefing', { context }),
+  identify: (payload: IdentifyPayload) => callLumi<ChatResponse>('identify', payload),
 }

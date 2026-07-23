@@ -4,6 +4,7 @@ import { storage } from '../../data'
 import { todayIso } from '../../shared/dates'
 import { useAuthStore } from '../auth/authStore'
 import { collectGardenContext } from './context'
+import { fileToLumiImage } from './imageUtil'
 import { lumiApi, LumiError, type ChatMessage, type LumiErrorCode } from './lumiApi'
 
 interface BriefingCache {
@@ -50,6 +51,40 @@ export const useAssistantStore = defineStore('assistant', () => {
     }
   }
 
+  /** Fotografierte Pflanze erkennen lassen — eigener Modus, kein Verlauf wie bei send(). */
+  async function sendImage(file: File, question?: string) {
+    const trimmedQuestion = question?.trim()
+    const imageUrl = URL.createObjectURL(file)
+
+    messages.value.push({ role: 'user', text: trimmedQuestion ?? '', imageUrl })
+    error.value = null
+    sending.value = true
+
+    try {
+      if (gardenContext === null) {
+        try {
+          gardenContext = await collectGardenContext()
+        } catch {
+          gardenContext = ''
+        }
+      }
+
+      const { imageBase64, mediaType } = await fileToLumiImage(file)
+      const response = await lumiApi.identify({
+        imageBase64,
+        mediaType,
+        mode: 'identify',
+        question: trimmedQuestion,
+        context: gardenContext,
+      })
+      messages.value.push({ role: 'assistant', text: response.reply })
+    } catch (e) {
+      error.value = e instanceof LumiError ? e.code : 'error'
+    } finally {
+      sending.value = false
+    }
+  }
+
   /**
    * Lädt das Tages-Briefing: 1×/Tag via Edge Function, danach aus dem Settings-Cache.
    * Alle Fehler werden still geschluckt — ohne Allowlist/Login/Netz bleiben die
@@ -84,5 +119,5 @@ export const useAssistantStore = defineStore('assistant', () => {
     gardenContext = null
   }
 
-  return { messages, sending, error, briefing, send, loadBriefing, reset }
+  return { messages, sending, error, briefing, send, sendImage, loadBriefing, reset }
 })

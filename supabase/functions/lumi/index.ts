@@ -41,6 +41,18 @@ const BRIEFING_SYSTEM_PROMPT =
   'Kein Markdown, keine Aufzählung — fließender, freundlicher Text. ' +
   'Gartendaten des Nutzers folgen als Kontext.'
 
+const IDENTIFY_SYSTEM_PROMPT =
+  'Bestimme die Pflanze auf dem Foto (deutscher + botanischer Name, Sicherheit hoch/mittel/niedrig). ' +
+  'Danach: Passt sie in den Garten des Nutzers (Kontext unten)? Welches Beet (Sonne/Platz), welche vorhandenen ' +
+  'Pflanzen sind gute/schlechte Nachbarn, wie aufwendig die Pflege? Max. 6 Sätze, einfaches Markdown. ' +
+  'Wenn kein Pflanzenfoto: sag es freundlich.'
+
+// Platzhalter für kommende Pakete (AP08/AP09) — noch nicht verdrahtet, siehe route === 'identify'.
+const SHOPPING_SYSTEM_PROMPT =
+  'Du bist Lumi. Einkaufs-Modus: noch nicht verfügbar.'
+const SPECIES_ONLY_SYSTEM_PROMPT =
+  'Du bist Lumi. Reiner Arten-Modus ohne Gartenbezug: noch nicht verfügbar.'
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -229,6 +241,30 @@ Deno.serve(async (req) => {
       const messages: ChatMessage[] = [{ role: 'user', text: 'Was sind heute die wichtigsten Dinge in meinem Garten?' }]
 
       const { reply, inputTokens, outputTokens } = await callLlm({ system, messages, maxTokens: 512 })
+      await incrementUsage(userId, inputTokens, outputTokens)
+
+      return json({ reply, usage: { input_tokens: inputTokens, output_tokens: outputTokens }, provider: LUMI_PROVIDER })
+    }
+
+    if (req.method === 'POST' && route === 'identify') {
+      const { imageBase64, mediaType, mode, question, context } = (await req.json()) as {
+        imageBase64: string
+        mediaType: string
+        mode: 'identify' | 'shopping' | 'species-only'
+        question?: string
+        context?: string
+      }
+
+      if (mode !== 'identify') return json({ code: 'mode_not_ready' }, 400)
+
+      await checkUsageLimit(userId)
+
+      const system = context ? `${IDENTIFY_SYSTEM_PROMPT}\n\n${context}` : IDENTIFY_SYSTEM_PROMPT
+      const messages: ChatMessage[] = [
+        { role: 'user', text: question?.trim() || 'Was ist das für eine Pflanze?', imageBase64, mediaType },
+      ]
+
+      const { reply, inputTokens, outputTokens } = await callLlm({ system, messages, maxTokens: 1024 })
       await incrementUsage(userId, inputTokens, outputTokens)
 
       return json({ reply, usage: { input_tokens: inputTokens, output_tokens: outputTokens }, provider: LUMI_PROVIDER })

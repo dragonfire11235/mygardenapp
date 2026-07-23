@@ -19,6 +19,7 @@ const { src: mascotUrl, label: mascotLabel } = useLumiMascot()
 const draft = ref('')
 const listEl = ref<HTMLElement | null>(null)
 const online = ref(navigator.onLine)
+const photoInput = ref<HTMLInputElement | null>(null)
 
 function updateOnline() {
   online.value = navigator.onLine
@@ -49,6 +50,15 @@ async function send() {
   const text = draft.value
   draft.value = ''
   await store.send(text)
+}
+
+async function onPhotoSelected(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (photoInput.value) photoInput.value.value = ''
+  if (!file) return
+  const question = draft.value.trim() || undefined
+  draft.value = ''
+  await store.sendImage(file, question)
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -89,8 +99,9 @@ function onKeydown(e: KeyboardEvent) {
         class="lumi-bubble"
         :class="m.role === 'user' ? 'lumi-bubble-user' : 'lumi-bubble-assistant'"
       >
-        <span v-if="m.role === 'user'">{{ m.text }}</span>
-        <span v-else v-html="renderLumiMarkdown(m.text)" />
+        <img v-if="m.imageUrl" :src="m.imageUrl" alt="" class="lumi-bubble-photo" />
+        <span v-if="m.role === 'user' && m.text">{{ m.text }}</span>
+        <span v-else-if="m.role === 'assistant'" v-html="renderLumiMarkdown(m.text)" />
       </div>
 
       <div v-if="store.sending" class="lumi-bubble lumi-bubble-assistant lumi-typing">
@@ -111,6 +122,23 @@ function onKeydown(e: KeyboardEvent) {
       <span>Du bist offline. Sobald du wieder verbunden bist, geht's weiter.</span>
     </div>
     <form v-else class="lumi-input-row" @submit.prevent="send">
+      <input
+        ref="photoInput"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        class="file-hidden"
+        @change="onPhotoSelected"
+      />
+      <button
+        type="button"
+        class="round-icon-btn"
+        aria-label="Foto aufnehmen"
+        :disabled="store.sending"
+        @click="photoInput?.click()"
+      >
+        <i class="ph-fill ph-camera" />
+      </button>
       <textarea
         v-model="draft"
         class="lumi-input"
@@ -223,6 +251,20 @@ function onKeydown(e: KeyboardEvent) {
   color: var(--danger);
   font-weight: 700;
   text-align: center;
+}
+
+.lumi-bubble-photo {
+  display: block;
+  max-width: 200px;
+  border-radius: var(--radius-m);
+}
+.lumi-bubble-photo + span {
+  display: block;
+  margin-top: 8px;
+}
+
+.file-hidden {
+  display: none;
 }
 
 .lumi-typing {

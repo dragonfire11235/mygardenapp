@@ -39,6 +39,20 @@ npm run dev   # Chat → Kamera-Button → Testbild wählen → Antwort prüfen
 - [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` (Tabelle „Lumi-KI-Assistent") auf `umgesetzt` gesetzt
 
 ## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
-- Geänderte/neue Dateien: …
-- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): …
-- Offene Punkte/Überraschungen: …
+- Geänderte/neue Dateien:
+  - `supabase/functions/lumi/index.ts` — Route `POST /identify` (gleicher Allowlist-/Usage-Guard wie `/chat`), `IDENTIFY_SYSTEM_PROMPT` + Platzhalter `SHOPPING_SYSTEM_PROMPT`/`SPECIES_ONLY_SYSTEM_PROMPT` (nicht verdrahtet, `mode !== 'identify'` → 400 `{code:'mode_not_ready'}`, vor `checkUsageLimit`, damit unfertige Modi kein Kontingent verbrauchen).
+  - `src/features/assistant/lumiApi.ts` — `ChatMessage.imageUrl?`, `IdentifyPayload`-Typ, `lumiApi.identify()`.
+  - `src/features/assistant/imageUtil.ts` (neu) — `fileToLumiImage()`: nutzt `resizeImage` aus `shared/photos.ts`, base64 via `FileReader.readAsDataURL` ohne `data:`-Präfix.
+  - `src/features/assistant/assistantStore.ts` — `sendImage(file, question?)`: Objekt-URL für die Bubble, User-Message anhängen, Gartenkontext wie `send()` sicherstellen, `lumiApi.identify({mode:'identify', …})`, gleiches Fehler-Mapping.
+  - `src/features/assistant/LumiChatOverlay.vue` — Kamera-Button (`ph-camera`) im Eingabe-Formular + verstecktes `<input type="file" accept="image/*" capture="environment">`; `onPhotoSelected` ruft `store.sendImage(file, draftText)` und leert das Eingabefeld; User-Bubbles zeigen `imageUrl` (max. 200px, `--radius-m`).
+  - `.claude/planung/PLAN.md` — AP7-Status auf `umgesetzt`.
+- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis):
+  - `npm test` → „Test Files 20 passed (20) / Tests 153 passed (153)".
+  - `npm run build` → „✓ built in 922ms" (vue-tsc + vite build grün, keine neuen Warnings außer dem bereits bestehenden Chunk-Size-Hinweis).
+  - `npx supabase functions deploy lumi` → „{"project_ref":"vqcoacpusktyeszhcmfw","functions":["lumi"],"dashboard_url":"…","message":"Deployed Functions."}" (Docker-Warnung ignorierbar, kein `--no-docker` nötig).
+  - `curl -X POST https://…supabase.co/functions/v1/lumi/identify` (ohne Auth) → `401`, bestätigt: Route ist live und durchläuft denselben Auth-Guard wie `/chat`/`/briefing`.
+  - Browser-Check (`npm run dev` bereits von anderer Session gestartet, an Port 5173 angehängt): Lumi-Overlay geöffnet, `read_page` zeigt Button „Foto aufnehmen" + Eingabefeld + „Senden" im DOM, keine Konsolenfehler beim Öffnen.
+- Offene Punkte/Überraschungen:
+  - Echter Foto-Roundtrip (Testbild → Antwort mit deutschem+botanischem Namen und Bezug auf ein echtes Beet) konnte in dieser Session **nicht** automatisiert verifiziert werden: kein Zugriff auf einen eingeloggten Nutzer/JWT und das Herunterladen eines Testbilds aus dem Netz erfordert laut Sicherheitsrichtlinie explizite Freigabe im Chat, die hier nicht eingeholt wurde. **User-Test nötig:** im Chat auf den Kamera-Button tippen, ein Pflanzenfoto wählen und die Antwort prüfen (Name + Beet-Bezug), zusätzlich ein Nicht-Pflanzen-Foto (z. B. Tasse) für die höfliche Fehlmeldung.
+  - iPhone-PWA-Verhalten (`capture="environment"` → echte Kamera statt Dateidialog) ebenfalls nur vom User selbst testbar.
+  - base64-Payload-Größe eines sehr großen Fotos (z. B. 4000px) wurde nicht separat geloggt/gemessen — `resizeImage` deckelt aber hart auf 1600px/JPEG 0.82, das bestehende Muster aus `photos.ts` bleibt unverändert, Risiko daher gering.
