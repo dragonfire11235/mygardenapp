@@ -31,6 +31,9 @@ auf GitHub Pages.
 ## Stand
 - **Version/Tag:** `package.json` 1.0.0, Git-Tag `v1.0.0`; seither mehrere kleine Fixes on top
   (Tag nicht nachgezogen). **Alles committed und gepusht**, Arbeitsverzeichnis sauber.
+- **Zuletzt erledigt (23. Juli 2026):**
+  - Lumi-Avatar reagiert auf Kontext (Dashboard-Tipp + Nav-Bereich).
+  - Beetplaner-Hintergrund lesbar gemacht, Pflanzenkatalog verkleinert, Katalog-Suche im Namensfeld.
 - **Zuletzt erledigt (22. Juli 2026):**
   - PWA-Install-Dialog (`<pwa-install>`): fehlendes `icon`-Attribut ergänzt — zeigte vorher nur
     Platzhaltertext „icon" statt Logo, weil `name`/`description` gesetzt waren, `icon` aber nicht.
