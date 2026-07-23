@@ -2,10 +2,12 @@
 // Schwebender Maskottchen-Button — öffnet den Vollbild-Chat. Auf jeder Route
 // sichtbar, außer der Chat ist selbst offen (dann würde er ihn nur verdecken).
 import { useUiStore } from '../ui/uiStore'
+import { useLumiMascot } from './useLumiMascot'
 
 const ui = useUiStore()
 
-const mascotUrl = `${import.meta.env.BASE_URL}lumi/mascot/lumi-hero.png`
+// Bild wechselt mit der aktuellen Seite (Pflanzen, Beete, Aufgaben …).
+const { src: mascotUrl } = useLumiMascot()
 </script>
 
 <template>

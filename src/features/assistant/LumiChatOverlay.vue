@@ -6,11 +6,15 @@ import { useUiStore } from '../ui/uiStore'
 import { useAuthStore } from '../auth/authStore'
 import { useAssistantStore } from './assistantStore'
 import { renderLumiMarkdown } from './markdown'
+import { useLumiMascot } from './useLumiMascot'
 import type { LumiErrorCode } from './lumiApi'
 
 const ui = useUiStore()
 const auth = useAuthStore()
 const store = useAssistantStore()
+
+// Bild + Kontext-Text passend zur Seite, von der aus Lumi geöffnet wurde.
+const { src: mascotUrl, label: mascotLabel } = useLumiMascot()
 
 const draft = ref('')
 const listEl = ref<HTMLElement | null>(null)
@@ -58,9 +62,10 @@ function onKeydown(e: KeyboardEvent) {
 <template>
   <div v-if="ui.lumiOpen" class="lumi-overlay">
     <header class="lumi-header">
+      <img :src="mascotUrl" alt="" class="lumi-avatar" />
       <div class="lumi-header-text">
         <div class="lumi-title">Lumi</div>
-        <div class="lumi-sub">Dein Gartenhelfer</div>
+        <div class="lumi-sub">{{ mascotLabel }}</div>
       </div>
       <button type="button" class="circle-glass-btn" aria-label="Chat zurücksetzen" @click="store.reset()">
         <i class="ph-bold ph-arrows-clockwise" />
@@ -135,6 +140,15 @@ function onKeydown(e: KeyboardEvent) {
   gap: 10px;
   padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
   border-bottom: 1px solid var(--border-soft);
+}
+.lumi-avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--accent);
+  box-shadow: var(--shadow-card);
 }
 .lumi-header-text {
   flex: 1;
@@ -273,5 +287,30 @@ function onKeydown(e: KeyboardEvent) {
   color: var(--text-2);
   text-align: center;
   flex-wrap: wrap;
+}
+
+/* Desktop: kein Vollbild, sondern ein kleines schwebendes Glas-Panel unten
+   rechts. Der Garten scheint durch (transparent), statt alles zu verdecken. */
+@media (min-width: 1024px) {
+  .lumi-overlay {
+    inset: auto;
+    right: 24px;
+    bottom: 24px;
+    width: 380px;
+    height: 600px;
+    max-height: calc(100vh - 48px);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+    background: var(--surface-card);
+    backdrop-filter: var(--glass-blur-strong);
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    box-shadow: var(--shadow-deep);
+  }
+  /* Kopf-/Eingabe-Leisten transparent lassen, damit der Glas-Effekt trägt. */
+  .lumi-overlay .lumi-header,
+  .lumi-overlay .lumi-input-row {
+    background: transparent;
+  }
 }
 </style>
