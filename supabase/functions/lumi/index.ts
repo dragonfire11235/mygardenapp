@@ -34,6 +34,13 @@ const SYSTEM_PROMPT =
   'Du antwortest auf Deutsch und nutzt NUR einfaches Markdown (fett, Listen). ' +
   'Gartendaten des Nutzers folgen ggf. als zusätzlicher Kontext.'
 
+const BRIEFING_SYSTEM_PROMPT =
+  'Du bist Lumi, ein freundlicher Gartenassistent der App „lumi". ' +
+  'Nenne die 2–3 wichtigsten Dinge für heute im Garten in max. 3 kurzen Sätzen. ' +
+  'Beginne mit der dringendsten Sache. Erwähne Wetterwarnungen (Frost/Hagel/Gewitter) zuerst, falls vorhanden. ' +
+  'Kein Markdown, keine Aufzählung — fließender, freundlicher Text. ' +
+  'Gartendaten des Nutzers folgen als Kontext.'
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -209,6 +216,19 @@ Deno.serve(async (req) => {
       const system = context ? `${SYSTEM_PROMPT}\n\n${context}` : SYSTEM_PROMPT
 
       const { reply, inputTokens, outputTokens } = await callLlm({ system, messages, maxTokens: 1024 })
+      await incrementUsage(userId, inputTokens, outputTokens)
+
+      return json({ reply, usage: { input_tokens: inputTokens, output_tokens: outputTokens }, provider: LUMI_PROVIDER })
+    }
+
+    if (req.method === 'POST' && route === 'briefing') {
+      await checkUsageLimit(userId)
+
+      const { context } = (await req.json()) as { context?: string }
+      const system = context ? `${BRIEFING_SYSTEM_PROMPT}\n\n${context}` : BRIEFING_SYSTEM_PROMPT
+      const messages: ChatMessage[] = [{ role: 'user', text: 'Was sind heute die wichtigsten Dinge in meinem Garten?' }]
+
+      const { reply, inputTokens, outputTokens } = await callLlm({ system, messages, maxTokens: 512 })
       await incrementUsage(userId, inputTokens, outputTokens)
 
       return json({ reply, usage: { input_tokens: inputTokens, output_tokens: outputTokens }, provider: LUMI_PROVIDER })

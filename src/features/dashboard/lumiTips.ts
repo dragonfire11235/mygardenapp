@@ -28,11 +28,16 @@ const DIARY_NUDGES = [
 ]
 
 /**
- * Baut die Tipp-Liste. Ein aktuell relevanter Wetter-Tipp (falls vorhanden)
- * steht vorne, danach folgen allgemeine Tipps und Tagebuch-Nudges im Wechsel.
+ * Baut die Tipp-Liste. Ist ein Tages-Briefing gesetzt, steht es ganz vorne;
+ * danach folgt ein aktuell relevanter Wetter-Tipp (falls vorhanden) und
+ * schließlich allgemeine Tipps und Tagebuch-Nudges im Wechsel.
  */
-export function buildLumiTips(w: WeatherLike | null | undefined): string[] {
+export function buildLumiTips(w: WeatherLike | null | undefined, briefing?: string | null): string[] {
   const tips: string[] = []
+
+  if (briefing) {
+    tips.push('🌱 ' + briefing)
+  }
 
   if (w?.hailWarning) {
     tips.push('🧊 Lumi-Tipp: Hagel möglich — Kübel unters Dach, Vlies bereitlegen!')

@@ -5,12 +5,14 @@ import { useSettingsStore } from '../settings/settingsStore'
 import { useWeatherStore } from '../weather/weatherStore'
 import { weatherLabel } from '../weather/weatherApi'
 import { useAccountStore } from '../account/accountStore'
+import { useAssistantStore } from '../assistant/assistantStore'
 import { buildLumiTips } from './lumiTips'
 import { widgetRegistry } from './widgetRegistry'
 
 const settings = useSettingsStore()
 const weatherStore = useWeatherStore()
 const account = useAccountStore()
+const assistant = useAssistantStore()
 
 const mascotUrl = `${import.meta.env.BASE_URL}lumi/mascot/lumi-watering.png`
 
@@ -58,7 +60,7 @@ const weatherLine = computed(() => {
 })
 
 // Lumi-Tipps: wetterbewusst + allgemein + Tagebuch-Nudges, rotieren alle 8 s
-const tips = computed(() => buildLumiTips(weatherStore.weather))
+const tips = computed(() => buildLumiTips(weatherStore.weather, assistant.briefing))
 const tipIndex = ref(0)
 let tipTimer: ReturnType<typeof setInterval> | undefined
 

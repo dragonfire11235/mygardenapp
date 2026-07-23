@@ -38,4 +38,15 @@ describe('buildLumiTips', () => {
     const tips = buildLumiTips(null)
     expect(tips.some((t) => t.toLowerCase().includes('tagebuch'))).toBe(true)
   })
+
+  it('stellt ein Briefing ganz vorne voran — noch vor Wetterwarnungen', () => {
+    const tips = buildLumiTips({ hailWarning: true }, 'Gieß heute die Tomaten.')
+    expect(tips[0]).toBe('🌱 Gieß heute die Tomaten.')
+    expect(tips[1]).toContain('Hagel')
+  })
+
+  it('ohne Briefing bleibt die bestehende Reihenfolge unverändert', () => {
+    expect(buildLumiTips({ frostWarning: true })[0]).toContain('Nachtfrost')
+    expect(buildLumiTips({ frostWarning: true }, null)[0]).toContain('Nachtfrost')
+  })
 })

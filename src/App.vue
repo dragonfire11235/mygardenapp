@@ -16,6 +16,7 @@ import { useAccountStore } from './features/account/accountStore'
 import { useAuthStore } from './features/auth/authStore'
 import { useSyncStore } from './features/sync/syncStore'
 import { useUiStore } from './features/ui/uiStore'
+import { useAssistantStore } from './features/assistant/assistantStore'
 import ProDialog from './features/ui/ProDialog.vue'
 import AuthDialog from './features/auth/AuthDialog.vue'
 import InstallTip from './features/settings/InstallTip.vue'
@@ -34,6 +35,7 @@ const account = useAccountStore()
 const auth = useAuthStore()
 const sync = useSyncStore()
 const ui = useUiStore()
+const assistant = useAssistantStore()
 const route = useRoute()
 
 // Logo aus public/ — BASE_URL beachten (GitHub Pages liegt unter /<repo>/)
@@ -115,6 +117,9 @@ onMounted(async () => {
 
   // Wetter laden (für Widget + „Alles gegossen"-Hervorhebung bei Regen)
   void weather.load()
+
+  // Tages-Briefing von Lumi laden (Cache/Netz, still) — nicht awaiten, darf den Start nicht bremsen
+  void assistant.loadBriefing()
 
   // Geräte-Sync: letzten Stand lesen; wenn angemeldet, beim App-Start abgleichen.
   await sync.loadMeta()

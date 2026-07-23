@@ -76,7 +76,10 @@ function onKeydown(e: KeyboardEvent) {
     </header>
 
     <div ref="listEl" class="lumi-messages">
-      <div v-if="store.messages.length === 0" class="lumi-empty">
+      <div v-if="store.messages.length === 0 && store.briefing" class="lumi-bubble lumi-bubble-assistant">
+        🌱 {{ store.briefing }}
+      </div>
+      <div v-else-if="store.messages.length === 0" class="lumi-empty">
         Hallo! Ich bin Lumi 🌱 — frag mich alles zu deinem Garten.
       </div>
 

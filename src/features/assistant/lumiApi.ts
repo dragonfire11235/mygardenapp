@@ -68,4 +68,5 @@ export interface ChatResponse {
 
 export const lumiApi = {
   chat: (messages: ChatMessage[], context: string) => callLumi<ChatResponse>('chat', { messages, context }),
+  briefing: (context: string) => callLumi<ChatResponse>('briefing', { context }),
 }
