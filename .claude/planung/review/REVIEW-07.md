@@ -1,9 +1,9 @@
 # REVIEW-07 — AP07 Foto-Pflanzenerkennung im Chat (`/identify`)
 
-**Verdikt: abgenommen mit offenem User-Test.** Code, Verdrahtung und alle automatisiert
-prüfbaren Kriterien sind korrekt und verifiziert; die drei Kriterien, die eine echte Foto-
-Antwort vom LLM voraussetzen, konnten in dieser Session nicht selbst ausgeführt werden (siehe
-unten) und sollten vom User kurz nachgeprüft werden, bevor das Paket endgültig als erledigt gilt.
+**Verdikt: abgenommen.** Code, Verdrahtung und alle automatisiert prüfbaren Kriterien waren
+korrekt und verifiziert; die drei Kriterien, die eine echte Foto-Antwort vom LLM voraussetzen,
+konnten in dieser Session nicht selbst ausgeführt werden (siehe unten) und wurden vom User
+nachgeprüft — **User-Test am 23.07.2026 bestanden** ("test durchgeführt. passt alles!").
 
 ## Verifikation (selbst ausgeführt)
 - `npm test` → `Test Files 20 passed (20)`, `Tests 153 passed (153)`.
@@ -54,5 +54,5 @@ selbst prüfen:
 3. iPhone/PWA: `capture="environment"` sollte die echte Kamera statt eines Dateidialogs öffnen
    (am Desktop bleibt es beim Dateidialog — das ist erwartet und laut Paket-Vorgabe ok).
 
-Sollten diese drei Checks passen, kann AP7 ohne weitere Code-Änderung final auf „abgenommen"
-gesetzt werden — die Verdrahtung selbst ist geprüft und korrekt.
+Alle drei Checks vom User bestätigt — AP7 ist damit final abgenommen, keine weitere
+Code-Änderung nötig.
