@@ -47,11 +47,14 @@ const IDENTIFY_SYSTEM_PROMPT =
   'Pflanzen sind gute/schlechte Nachbarn, wie aufwendig die Pflege? Max. 6 Sätze, einfaches Markdown. ' +
   'Wenn kein Pflanzenfoto: sag es freundlich.'
 
-// Platzhalter für kommende Pakete (AP08/AP09) — noch nicht verdrahtet, siehe route === 'identify'.
+// Platzhalter für kommendes Paket (AP09) — noch nicht verdrahtet, siehe route === 'identify'.
 const SHOPPING_SYSTEM_PROMPT =
   'Du bist Lumi. Einkaufs-Modus: noch nicht verfügbar.'
+
 const SPECIES_ONLY_SYSTEM_PROMPT =
-  'Du bist Lumi. Reiner Arten-Modus ohne Gartenbezug: noch nicht verfügbar.'
+  'Bestimme das Lebewesen/die Pflanze auf dem Foto. Antworte NUR mit JSON: ' +
+  '{"group": "wildbee|butterfly|hoverfly|beetle|bird|other", "species": "deutscher Artname", "confidence": "high|medium|low"} ' +
+  '— kein weiterer Text. Bei Unkenntlichkeit: {"group":"other","species":null,"confidence":"low"}.'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -253,6 +256,23 @@ Deno.serve(async (req) => {
         mode: 'identify' | 'shopping' | 'species-only'
         question?: string
         context?: string
+      }
+
+      if (mode === 'species-only') {
+        await checkUsageLimit(userId)
+
+        const messages: ChatMessage[] = [
+          { role: 'user', text: 'Was ist das für ein Lebewesen/eine Pflanze?', imageBase64, mediaType },
+        ]
+
+        const { reply, inputTokens, outputTokens } = await callLlm({
+          system: SPECIES_ONLY_SYSTEM_PROMPT,
+          messages,
+          maxTokens: 256,
+        })
+        await incrementUsage(userId, inputTokens, outputTokens)
+
+        return json({ reply, usage: { input_tokens: inputTokens, output_tokens: outputTokens }, provider: LUMI_PROVIDER })
       }
 
       if (mode !== 'identify') return json({ code: 'mode_not_ready' }, 400)

@@ -2,7 +2,7 @@
 import { resizeImage } from '../../shared/photos'
 
 /** Verkleinert (via resizeImage) und liefert Base64 ohne `data:`-Präfix + MIME-Typ. */
-export async function fileToLumiImage(file: File): Promise<{ imageBase64: string; mediaType: string }> {
+export async function fileToLumiImage(file: Blob): Promise<{ imageBase64: string; mediaType: string }> {
   const { blob, mimeType } = await resizeImage(file)
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader()

@@ -11,7 +11,7 @@ const JPEG_QUALITY = 0.82
 const urlCache = new Map<string, string>()
 
 /** Verkleinert ein Bild auf max. 1600px Kantenlänge und gibt Blob + MIME zurück. */
-export async function resizeImage(file: File): Promise<{ blob: Blob; mimeType: string }> {
+export async function resizeImage(file: Blob): Promise<{ blob: Blob; mimeType: string }> {
   const bitmap = await createImageBitmap(file)
   const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
   const width = Math.round(bitmap.width * scale)

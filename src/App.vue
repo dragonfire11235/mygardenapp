@@ -17,6 +17,9 @@ import { useAuthStore } from './features/auth/authStore'
 import { useSyncStore } from './features/sync/syncStore'
 import { useUiStore } from './features/ui/uiStore'
 import { useAssistantStore } from './features/assistant/assistantStore'
+import { LumiIdentifier } from './features/assistant/LumiIdentifier'
+import { ManualIdentifier } from './features/sightings/identify/ManualIdentifier'
+import { setSpeciesIdentifier } from './features/sightings/identify/registry'
 import ProDialog from './features/ui/ProDialog.vue'
 import AuthDialog from './features/auth/AuthDialog.vue'
 import InstallTip from './features/settings/InstallTip.vue'
@@ -98,6 +101,15 @@ watch(
   (yes, was) => {
     if (yes && !was) void sync.syncNow()
   },
+)
+
+// KI-Arterkennung für Entdeckungen nur eingeloggt (AP08) — sonst manuell wie bisher.
+watch(
+  () => auth.isAuthenticated,
+  (yes) => {
+    setSpeciesIdentifier(yes ? new LumiIdentifier() : new ManualIdentifier())
+  },
+  { immediate: true },
 )
 
 // Angemeldet: Konto-Anzeigename in den lokalen Namen spiegeln (Begrüßung/Avatar bleiben konsistent).

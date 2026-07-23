@@ -7,14 +7,14 @@ import AutoComplete from 'primevue/autocomplete'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
-import type { Sighting, SightingGroup } from '../../data'
+import type { Sighting, SightingGroup, SightingSource } from '../../data'
 import { toIsoDate } from '../../shared/dates'
 import { sightingGroupOptions } from '../../shared/texts'
 import PhotoPicker from '../../shared/PhotoPicker.vue'
 import { getPhotoFile } from '../../shared/photos'
 import PlantSelect from '../plants/PlantSelect.vue'
 import { useBedsStore } from '../beds/bedsStore'
-import { ManualIdentifier } from './identify/ManualIdentifier'
+import { getSpeciesIdentifier } from './identify/registry'
 import { searchSpecies, speciesForGroup } from './speciesCatalog'
 import type { SightingDraft } from './sightingsStore'
 
@@ -33,7 +33,6 @@ const emit = defineEmits<{
 const visible = defineModel<boolean>('visible', { required: true })
 
 const bedsStore = useBedsStore()
-const identifier = new ManualIdentifier()
 
 const date = ref<Date>(new Date())
 const group = ref<SightingGroup | null>(null)
@@ -42,6 +41,10 @@ const photoId = ref<string | null>(null)
 const plantId = ref<string | null>(null)
 const bedId = ref<string | null>(null)
 const notes = ref('')
+
+// Snapshot des zuletzt übernommenen KI-Vorschlags — nur wenn Gruppe/Art beim
+// Speichern noch exakt so dastehen, zählt die Sichtung als `source: 'ai'`.
+const appliedSuggestion = ref<{ source: SightingSource; group: SightingGroup; species: string } | null>(null)
 
 watch(visible, (open) => {
   if (!open) return
@@ -53,6 +56,7 @@ watch(visible, (open) => {
   plantId.value = s ? s.plantId : (props.presetPlantId ?? null)
   bedId.value = s ? s.bedId : (props.presetBedId ?? null)
   notes.value = s?.notes ?? ''
+  appliedSuggestion.value = null
 })
 
 const bedOptions = computed(() => bedsStore.beds.map((b) => ({ label: b.name, value: b.id })))
@@ -66,18 +70,26 @@ function onSpeciesSearch(event: { query: string }) {
 
 async function onPhotoChanged(id: string | null) {
   photoId.value = id
+  appliedSuggestion.value = null
   if (!id || species.value.trim()) return
   const photo = await getPhotoFile(id)
   if (!photo) return
+  const identifier = getSpeciesIdentifier()
   const suggestion = await identifier.suggest(photo)
-  if (suggestion?.group) group.value = suggestion.group
-  if (suggestion?.species) species.value = suggestion.species
+  if (!suggestion?.group && !suggestion?.species) return
+  if (suggestion.group) group.value = suggestion.group
+  if (suggestion.species) species.value = suggestion.species
+  if (group.value) {
+    appliedSuggestion.value = { source: identifier.source, group: group.value, species: species.value.trim() }
+  }
 }
 
 const canSave = computed(() => Boolean(photoId.value && group.value))
 
 function save() {
   if (!canSave.value || !group.value) return
+  const suggestion = appliedSuggestion.value
+  const unchanged = suggestion !== null && suggestion.group === group.value && suggestion.species === species.value.trim()
   emit('save', {
     date: toIsoDate(date.value),
     group: group.value,
@@ -86,7 +98,7 @@ function save() {
     plantId: plantId.value,
     bedId: bedId.value,
     notes: notes.value.trim(),
-    source: identifier.source,
+    source: unchanged ? suggestion!.source : 'manual',
   })
   visible.value = false
 }

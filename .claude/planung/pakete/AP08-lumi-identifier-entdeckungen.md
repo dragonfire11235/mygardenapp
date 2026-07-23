@@ -35,6 +35,20 @@ npm run dev   # Entdeckungen: Foto-Flow mit Testbild (Schmetterling o. ä.) durc
 - [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` (Tabelle „Lumi-KI-Assistent") auf `umgesetzt` gesetzt
 
 ## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
-- Geänderte/neue Dateien: …
-- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): …
-- Offene Punkte/Überraschungen: …
+- Geänderte/neue Dateien:
+  - `supabase/functions/lumi/index.ts` — `SPECIES_ONLY_SYSTEM_PROMPT` aktiviert, Route `/identify` behandelt `mode: 'species-only'` (max_tokens 256, eigener System-Prompt, kein Garten-Kontext).
+  - `src/features/assistant/LumiIdentifier.ts` (neu) — `implements SpeciesIdentifier`, `source: 'ai'`, ruft `lumiApi.identify({mode:'species-only'})`, entfernt Markdown-Codefences vor `JSON.parse` (siehe Überraschung unten), liefert bei `confidence:'low'`/Parse-Fehler/Netzfehler `null`.
+  - `src/features/assistant/LumiIdentifier.test.ts` (neu) — 5 Tests: valides JSON, gefenctes JSON, kaputtes JSON, `confidence:'low'`, Netzfehler.
+  - `src/features/sightings/identify/registry.ts` (neu) — `setSpeciesIdentifier`/`getSpeciesIdentifier`, Default `ManualIdentifier`.
+  - `src/features/sightings/SightingDialog.vue` — nutzt `getSpeciesIdentifier()` statt fest verdrahtetem `ManualIdentifier`; neuer Snapshot-Vergleich (`appliedSuggestion`) setzt `source: 'ai'` nur, wenn Gruppe+Art beim Speichern noch exakt dem übernommenen Vorschlag entsprechen — sonst `'manual'`.
+  - `src/App.vue` — Watcher auf `auth.isAuthenticated` (immediate) registriert `LumiIdentifier` bei Login, `ManualIdentifier` bei Logout/Start.
+  - `src/shared/photos.ts`, `src/features/assistant/imageUtil.ts` — `resizeImage`/`fileToLumiImage` von `File` auf `Blob` verallgemeinert (Interface verlangt `suggest(blob: Blob)`; beide Implementierungen nutzten intern ohnehin nur Blob-APIs).
+- Verifikations-Ergebnisse wörtlich:
+  - `npm test -- --run` → `Test Files 21 passed (21)` / `Tests 158 passed (158)`.
+  - `npm run build` → `vue-tsc -b && vite build` fehlerfrei, `✓ built in 839ms`.
+  - `npx supabase functions deploy lumi` → `{"project_ref":"vqcoacpusktyeszhcmfw","functions":["lumi"],"message":"Deployed Functions."}` (zweimal, nach Fence-Fix erneut).
+  - Browser-Test (echter, laufender Dev-Server, eingeloggt als Owner `dragonfire11235@hotmail.com`): `registry.getSpeciesIdentifier()` liefert nach Login `LumiIdentifier`; `suggest(blob)` mit generiertem Testbild löst einen echten Call gegen die deployte Function aus (Antwort enthielt reale `usage`-Tokens, Provider `anthropic`), parst das JSON korrekt trotz Markdown-Codefences und liefert bei niedriger Konfidenz sauber `null` ohne Exception. Keine Konsolen-Fehler. Keine Testdaten gespeichert (Dialog ohne Speichern verworfen).
+- Offene Punkte/Überraschungen:
+  - **Überraschung:** Claude (Haiku) hält sich trotz `„kein weiterer Text"`-Anweisung nicht zuverlässig daran und umschließt die JSON-Antwort mit ` ```json ... ``` `. Ohne Gegenmaßnahme wäre `JSON.parse` bei **jeder** Antwort gescheitert und `suggest()` hätte immer `null` geliefert (stiller Totalausfall, wäre ohne echten End-to-End-Test nicht aufgefallen). Fix: Codefences vor dem Parsen abstreifen (`LumiIdentifier.ts`), Test dafür ergänzt.
+  - Nicht verifiziert: ein tatsächlicher **positiver** Vorschlag (hohe Konfidenz, vorausgefülltes Formular) mit einem echten Insekten-/Vogelfoto — im Testsetup stand kein reales Artenfoto zur Verfügung, nur ein per Canvas generiertes Testbild (korrekt als `other`/`low` erkannt). Bitte am Handy mit einem echten Foto (z. B. Schmetterling) gegenprüfen: Vorschlag erscheint vorausgefüllt, unverändert übernommen → `source === 'ai'` in IndexedDB.
+  - Ausgeloggt-Verhalten (`ManualIdentifier`, `source === 'manual'`) nicht separat im Browser nachgestellt, um die laufende reale Session des Nutzers auf dem gemeinsam genutzten Dev-Server nicht zu stören — Logik ist aber trivial (Default der Registry + Watcher-Zweig) und durch den bestehenden bisherigen Ablauf (unverändertes `ManualIdentifier.suggest()` → immer `null`) ohnehin abgedeckt.
