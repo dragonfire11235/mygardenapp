@@ -43,7 +43,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <p v-if="weather.frostWarning" class="hint frost">❄️ Frost erwartet — empfindliche Pflanzen schützen.</p>
+    <p v-if="weather.hailWarning" class="hint frost">🧊 Hagel/Gewitter möglich — empfindliche Pflanzen schützen!</p>
+    <p v-else-if="weather.thunderstormWarning" class="hint frost">⛈️ Gewitter erwartet — hohe Pflanzen sichern.</p>
+    <p v-else-if="weather.frostWarning" class="hint frost">❄️ Frost erwartet — empfindliche Pflanzen schützen.</p>
     <p v-else-if="weather.rainToday" class="hint rain">🌧️ Regen wahrscheinlich — Gießen kann heute warten.</p>
   </div>
 </template>

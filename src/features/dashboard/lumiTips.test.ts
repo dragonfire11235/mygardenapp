@@ -6,6 +6,14 @@ describe('buildLumiTips', () => {
     expect(buildLumiTips({ frostWarning: true })[0]).toContain('Nachtfrost')
   })
 
+  it('stellt bei Hagel den Hagel-Tipp voran — auch vor Frost', () => {
+    expect(buildLumiTips({ hailWarning: true, frostWarning: true })[0]).toContain('Hagel')
+  })
+
+  it('stellt bei Gewitter den Gewitter-Tipp voran', () => {
+    expect(buildLumiTips({ thunderstormWarning: true })[0]).toContain('Gewitter')
+  })
+
   it('stellt bei Regen den Regen-Tipp voran', () => {
     expect(buildLumiTips({ rainToday: true })[0]).toContain('Regen')
   })

@@ -13,6 +13,8 @@ export const useWeatherStore = defineStore('weather', () => {
 
   const rainToday = computed(() => weather.value?.rainToday ?? false)
   const frostWarning = computed(() => weather.value?.frostWarning ?? false)
+  const thunderstormWarning = computed(() => weather.value?.thunderstormWarning ?? false)
+  const hailWarning = computed(() => weather.value?.hailWarning ?? false)
 
   async function load() {
     if (!settings.weatherLocation) {
@@ -33,5 +35,5 @@ export const useWeatherStore = defineStore('weather', () => {
   // Standortwechsel → neu laden
   watch(() => settings.weatherLocation, load, { deep: true })
 
-  return { weather, loading, error, rainToday, frostWarning, load }
+  return { weather, loading, error, rainToday, frostWarning, thunderstormWarning, hailWarning, load }
 })

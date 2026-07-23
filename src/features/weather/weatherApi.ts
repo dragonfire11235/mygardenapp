@@ -26,6 +26,10 @@ export interface Weather {
   days: DayForecast[]
   /** Nächtlicher Frost in den nächsten Tagen erwartet */
   frostWarning: boolean
+  /** Gewitter (WMO 95/96/99) heute oder morgen erwartet */
+  thunderstormWarning: boolean
+  /** Gewitter mit Hagel (WMO 96/99) heute oder morgen erwartet */
+  hailWarning: boolean
   /** Heute hohe Regenwahrscheinlichkeit → Gießen kann warten */
   rainToday: boolean
 }
@@ -66,6 +70,16 @@ export async function searchLocation(name: string): Promise<GeoResult[]> {
   }))
 }
 
+/** Gewitter (WMO 95/96/99) heute oder morgen? */
+export function thunderstormExpected(days: DayForecast[]): boolean {
+  return days.slice(0, 2).some((d) => d.code === 95 || d.code === 96 || d.code === 99)
+}
+
+/** Gewitter mit Hagel (WMO 96/99) heute oder morgen? */
+export function hailExpected(days: DayForecast[]): boolean {
+  return days.slice(0, 2).some((d) => d.code === 96 || d.code === 99)
+}
+
 export async function fetchWeather(loc: WeatherLocation): Promise<Weather> {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}` +
@@ -90,6 +104,8 @@ export async function fetchWeather(loc: WeatherLocation): Promise<Weather> {
     humidity: json.current.relative_humidity_2m,
     days,
     frostWarning: days.some((d) => d.tempMin <= 0),
+    thunderstormWarning: thunderstormExpected(days),
+    hailWarning: hailExpected(days),
     rainToday: (days[0]?.precipProbability ?? 0) >= 60,
   }
 }

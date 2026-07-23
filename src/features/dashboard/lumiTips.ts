@@ -5,6 +5,8 @@
 export interface WeatherLike {
   currentTemp?: number
   frostWarning?: boolean
+  thunderstormWarning?: boolean
+  hailWarning?: boolean
   rainToday?: boolean
 }
 
@@ -32,7 +34,11 @@ const DIARY_NUDGES = [
 export function buildLumiTips(w: WeatherLike | null | undefined): string[] {
   const tips: string[] = []
 
-  if (w?.frostWarning) {
+  if (w?.hailWarning) {
+    tips.push('🧊 Lumi-Tipp: Hagel möglich — Kübel unters Dach, Vlies bereitlegen!')
+  } else if (w?.thunderstormWarning) {
+    tips.push('⛈️ Lumi-Tipp: Gewitter im Anzug — binde hohe Stauden fest.')
+  } else if (w?.frostWarning) {
     tips.push('❄️ Lumi-Tipp: Nachtfrost erwartet — deck empfindliche Pflanzen ab!')
   } else if (w?.rainToday) {
     tips.push('🌧️ Lumi-Tipp: Heute ist Regen angesagt — das Gießen kann warten.')

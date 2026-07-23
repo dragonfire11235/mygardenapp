@@ -106,6 +106,8 @@ const weather: Weather = {
     { date: '2026-07-24', code: 2, tempMax: 24, tempMin: 13, precipProbability: 10 },
   ],
   frostWarning: true,
+  thunderstormWarning: false,
+  hailWarning: false,
   rainToday: true,
 }
 

@@ -106,7 +106,7 @@ AP7 braucht AP4; AP8+AP9 brauchen AP7). Details/Abnahmekriterien: **Paket-Prompt
 | AP2 | Garten-Kontext-Builder (`assistant/context.ts`, pure + testbar) | 2–3 h | abgenommen |
 | AP3 | Client-API + assistantStore (`lumiApi.ts` nach `callEdge`-Muster) | 2 h | abgenommen |
 | AP4 | Chat-UI: LumiFab + Vollbild-Overlay + Mini-Markdown | 4–5 h | abgenommen |
-| AP5 | Wetter: Gewitter-/Hagelwarnung (WMO 95/96/99, deterministisch) | 1–2 h | offen |
+| AP5 | Wetter: Gewitter-/Hagelwarnung (WMO 95/96/99, deterministisch) | 1–2 h | abgenommen |
 | AP6 | Tages-Briefing (1×/Tag, Settings-KV-Cache, Hero-Bubble) | 3 h | offen |
 | AP7 | Foto-Erkennung im Chat (`/identify`, Vision, Bild-Bubble) | 4 h | offen |
 | AP8 | `LumiIdentifier` für Entdeckungen (`mode:'species-only'`) | 1–2 h | offen |

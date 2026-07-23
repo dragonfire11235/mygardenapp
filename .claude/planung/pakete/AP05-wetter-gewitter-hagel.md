@@ -36,6 +36,15 @@ npm run dev   # WeatherWidget-Hinweis prüfen (Mock siehe oben)
 - [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` (Tabelle „Lumi-KI-Assistent") auf `umgesetzt` gesetzt
 
 ## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
-- Geänderte/neue Dateien: …
-- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): …
-- Offene Punkte/Überraschungen: …
+- Geänderte/neue Dateien:
+  - `src/features/weather/weatherApi.ts` — Helfer `thunderstormExpected`/`hailExpected` (heute+morgen, `days.slice(0,2)`), Interface `Weather` um `thunderstormWarning`/`hailWarning` erweitert, in `fetchWeather` befüllt.
+  - `src/features/weather/weatherStore.ts` — Computeds `thunderstormWarning`/`hailWarning` analog zu `frostWarning`, im Return exportiert.
+  - `src/features/weather/WeatherWidget.vue` — Hinweiszeile mit Priorität Hagel > Gewitter > Frost > Regen.
+  - `src/features/dashboard/lumiTips.ts` — `WeatherLike` um beide Flags erweitert; Hagel- und Gewitter-Tipp VOR dem Frost-Tipp.
+  - `src/features/weather/weatherApi.test.ts` — NEU: Fixtures Code 96 heute (beide true), Code 95 morgen (nur Gewitter), Code 95 Tag 3 (beide false), Codes < 95 (false).
+  - `src/features/dashboard/lumiTips.test.ts` — Hagel-Flag → Hagel-Tipp vorn (auch vor Frost); Gewitter-Tipp-Test ergänzt.
+  - `src/features/assistant/context.test.ts` — bestehendes `Weather`-Literal um die zwei neuen Pflichtfelder ergänzt (sonst TS-Fehler im Build).
+- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis):
+  - `npm test` → `Test Files  20 passed (20)` / `Tests  147 passed (147)`.
+  - `npm run build` → `✓ built in 838ms`, `vue-tsc` fehlerfrei (nur bekannter chunk-size-Hinweis).
+- Offene Punkte/Überraschungen: Der Build erzwingt Vollständigkeit des `Weather`-Literals — ein bestehender Assistant-Test musste um die zwei Felder ergänzt werden (innerhalb des Auftrags, kein Verhaltenswechsel). Kein Test-Mock im Produktivcode zurückgelassen.
