@@ -57,8 +57,12 @@ describe('searchCatalog', () => {
     expect(r.map((e) => e.id)).toEqual(['salvia'])
   })
 
-  it('respektiert das Limit', () => {
-    expect(searchCatalog(FIXTURE, '', {}, 2).length).toBe(2)
+  it('respektiert das Limit bei einem Suchbegriff', () => {
+    expect(searchCatalog(FIXTURE, 'a', {}, 2).length).toBe(2)
+  })
+
+  it('ignoriert das Limit ohne Suchbegriff (kompletter Katalog zum Durchstöbern)', () => {
+    expect(searchCatalog(FIXTURE, '', {}, 2).length).toBe(FIXTURE.length)
   })
 })
 
