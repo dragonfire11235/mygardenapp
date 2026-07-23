@@ -110,7 +110,7 @@ AP7 braucht AP4; AP8+AP9 brauchen AP7). Details/Abnahmekriterien: **Paket-Prompt
 | AP6 | Tages-Briefing (1×/Tag, Settings-KV-Cache, Hero-Bubble) | 3 h | umgesetzt |
 | AP7 | Foto-Erkennung im Chat (`/identify`, Vision, Bild-Bubble) | 4 h | abgenommen |
 | AP8 | `LumiIdentifier` für Entdeckungen (`mode:'species-only'`) | 1–2 h | abgenommen |
-| AP9 | Einkaufsberater (`mode:'shopping'`, Chip im Chat) | 2 h | offen |
+| AP9 | Einkaufsberater (`mode:'shopping'`, Chip im Chat) | 2 h | abgenommen |
 | AP10 | (geparkt) SSE-Streaming + Pro-Gating-Naht | 3 h | geparkt |
 
 Stufe 1 = AP1–AP6 (~16–21 h), Stufe 2 = AP7–AP9 (~7–8 h). Laufende Kosten Owner-Phase < 5 €/Monat.

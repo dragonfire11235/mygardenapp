@@ -20,6 +20,7 @@ const draft = ref('')
 const listEl = ref<HTMLElement | null>(null)
 const online = ref(navigator.onLine)
 const photoInput = ref<HTMLInputElement | null>(null)
+let pendingPhotoMode: 'identify' | 'shopping' = 'identify'
 
 function updateOnline() {
   online.value = navigator.onLine
@@ -57,8 +58,15 @@ async function onPhotoSelected(event: Event) {
   if (photoInput.value) photoInput.value.value = ''
   if (!file) return
   const question = draft.value.trim() || undefined
+  const mode = pendingPhotoMode
+  pendingPhotoMode = 'identify'
   draft.value = ''
-  await store.sendImage(file, question)
+  await store.sendImage(file, question, mode)
+}
+
+function openPhotoInput(mode: 'identify' | 'shopping') {
+  pendingPhotoMode = mode
+  photoInput.value?.click()
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -91,6 +99,11 @@ function onKeydown(e: KeyboardEvent) {
       </div>
       <div v-else-if="store.messages.length === 0" class="lumi-empty">
         Hallo! Ich bin Lumi 🌱 — frag mich alles zu deinem Garten.
+      </div>
+
+      <div v-if="store.messages.length === 0" class="lumi-chip-row">
+        <button type="button" class="chip" @click="openPhotoInput('shopping')">🛒 Einkaufsberater</button>
+        <button type="button" class="chip" @click="openPhotoInput('identify')">📷 Pflanze erkennen</button>
       </div>
 
       <div
@@ -135,7 +148,7 @@ function onKeydown(e: KeyboardEvent) {
         class="round-icon-btn"
         aria-label="Foto aufnehmen"
         :disabled="store.sending"
-        @click="photoInput?.click()"
+        @click="openPhotoInput('identify')"
       >
         <i class="ph-fill ph-camera" />
       </button>
@@ -210,6 +223,35 @@ function onKeydown(e: KeyboardEvent) {
   color: var(--text-2);
   font-size: 15px;
   max-width: 280px;
+}
+
+.lumi-chip-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-glow);
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  user-select: none;
+  cursor: pointer;
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+.chip:hover {
+  filter: brightness(var(--hover-brightness));
 }
 
 .lumi-bubble {

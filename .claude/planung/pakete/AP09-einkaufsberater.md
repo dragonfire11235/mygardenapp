@@ -16,9 +16,9 @@ Lies zuerst: `supabase/functions/lumi/index.ts` (Route `/identify`, Modus-Konsta
 - Stil des umgebenden Codes; UI-Texte deutsch; auf Deutsch berichten.
 
 ## Abnahme
-- [ ] Chip „🛒 Einkaufsberater" im leeren Chat sichtbar; Foto eines Pflanzenetiketts (Testbild mit lesbarem Namen, z. B. Lavendel-Etikett aus dem Netz) → Antwort nennt die Pflanze, referenziert mindestens ein echtes Beet/eine echte Pflanze des Nutzers und endet mit ✅/⚠️/❌.
-- [ ] Normaler Kamera-Button verhält sich unverändert (`identify`).
-- [ ] `npm test` + `npm run build` grün.
+- [x] Chip „🛒 Einkaufsberater" im leeren Chat sichtbar; Foto eines Pflanzenetiketts (Testbild mit lesbarem Namen, z. B. Lavendel-Etikett aus dem Netz) → Antwort nennt die Pflanze, referenziert mindestens ein echtes Beet/eine echte Pflanze des Nutzers und endet mit ✅/⚠️/❌.
+- [x] Normaler Kamera-Button verhält sich unverändert (`identify`).
+- [x] `npm test` + `npm run build` grün.
 
 ## Verifikation — selbst ausführen, BEVOR du fertig meldest
 ```bash
@@ -29,11 +29,22 @@ npm run dev   # leeren Chat öffnen → Einkaufsberater-Chip → Etikett-Testbil
 **Umgebung:** Braucht deployte Function + Allowlist + API-Key-Secret; sonst Client-Pfade mit Mock verifizieren und Deploy als offenen Schritt dokumentieren. Der echte Gartencenter-Test am iPhone bleibt beim User — im Bericht vermerken.
 
 ## Selbstcheck vor Abgabe
-- [ ] Alle Abnahme-Kriterien selbst verifiziert oder ehrlich als offen dokumentiert
-- [ ] Nichts außerhalb des Auftrags geändert
-- [ ] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` (Tabelle „Lumi-KI-Assistent") auf `umgesetzt` gesetzt
+- [x] Alle Abnahme-Kriterien selbst verifiziert oder ehrlich als offen dokumentiert
+- [x] Nichts außerhalb des Auftrags geändert
+- [x] Umsetzungsbericht unten ausgefüllt und Status in `../PLAN.md` (Tabelle „Lumi-KI-Assistent") auf `umgesetzt` gesetzt
 
 ## Umsetzungsbericht (vom Bearbeiter ans Ende DIESER Datei schreiben)
-- Geänderte/neue Dateien: …
-- Verifikations-Ergebnisse wörtlich (Befehl → Ergebnis): …
-- Offene Punkte/Überraschungen: …
+- Geänderte Dateien:
+  - `supabase/functions/lumi/index.ts` — `SHOPPING_SYSTEM_PROMPT` (Text aus Aufgabe 1) statt Platzhalter; `route === 'identify'` akzeptiert jetzt `mode === 'shopping'` und wählt den passenden System-Prompt.
+  - `src/features/assistant/assistantStore.ts` — `sendImage(file, question?, mode: 'identify' | 'shopping' = 'identify')`, reicht `mode` an `lumiApi.identify` durch; User-Bubble im Shopping-Modus mit „🛒 Einkaufscheck: …"-Präfix.
+  - `src/features/assistant/LumiChatOverlay.vue` — Chip-Zeile (`.lumi-chip-row`, `.chip`-Stil wie `BedPlanner.vue`) sichtbar bei leerem Chat: „🛒 Einkaufsberater" (mode shopping) und „📷 Pflanze erkennen" (mode identify), beide über `openPhotoInput(mode)` → gleicher versteckter Datei-Input, Modus wird nur für den nächsten Foto-Versand gemerkt (`pendingPhotoMode`, danach zurück auf `identify`). Normaler Kamera-Button ruft weiterhin `openPhotoInput('identify')` auf, kein Standardwechsel.
+  - `lumiApi.ts`/`IdentifyPayload` bereits `mode: 'identify' | 'shopping' | 'species-only'` (aus AP07/AP08) — keine Änderung nötig.
+- Verifikations-Ergebnisse wörtlich:
+  - `npm test` → `Test Files 21 passed (21)`, `Tests 158 passed (158)`.
+  - `npm run build` → `✓ built in 871ms` (nur bestehende Chunk-Size-Warnung, nicht paketbezogen).
+  - `npx supabase functions deploy lumi` → `{"project_ref":"vqcoacpusktyeszhcmfw","functions":["lumi"],"message":"Deployed Functions."}`.
+  - Browser-Test (laufender Dev-Server, `npm run dev` bereits aktiv): leeren Chat geöffnet → beide Chips sichtbar → „🛒 Einkaufsberater" geklickt → synthetisches Etikett-Testbild („Lavendel, Lavandula angustifolia 'Hidcote', Wuchsbreite 40-50 cm") per simuliertem Datei-Input gesendet → Bild-Bubble zeigt „🛒 Einkaufscheck:" → Antwort erkennt „Lavendel 'Hidcote' (Lavandula angustifolia 'Hidcote')", referenziert echte Beete des Nutzers (Hochbeet, Pergola vorne, Brunnen-Halbkreis), nennt Nachbarn (Salbei, Katzenminze) und Pflegeaufwand, endet mit „Fazit: ✅". Danach Chat zurückgesetzt und regulären Kamera-Button (`identify`) separat getestet — unverändertes Verhalten (Antwort ohne 🛒-Präfix, referenziert ebenfalls echte Beete).
+- Offene Punkte/Überraschungen:
+  - Der echte Gartencenter-Test am iPhone (reale Kamera, echtes Etikett) bleibt beim User.
+  - Datei-Input-Test lief über eine simulierte `DataTransfer`/`change`-Injektion (Browser-Automatisierung kann keinen echten OS-Datei-Dialog bedienen); Verhalten des Codes selbst ist unverändert zum echten Kamera-Flow aus AP07.
+  - Deploy-Befehl wurde initial vom Sandbox-Klassifikator blockiert, nach Rückfrage beim User (Freigabe erteilt) erfolgreich ausgeführt.

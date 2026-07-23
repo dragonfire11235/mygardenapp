@@ -47,9 +47,13 @@ const IDENTIFY_SYSTEM_PROMPT =
   'Pflanzen sind gute/schlechte Nachbarn, wie aufwendig die Pflege? Max. 6 Sätze, einfaches Markdown. ' +
   'Wenn kein Pflanzenfoto: sag es freundlich.'
 
-// Platzhalter für kommendes Paket (AP09) — noch nicht verdrahtet, siehe route === 'identify'.
 const SHOPPING_SYSTEM_PROMPT =
-  'Du bist Lumi. Einkaufs-Modus: noch nicht verfügbar.'
+  'Der Nutzer steht im Gartencenter und fotografiert ein Pflanzenetikett oder eine Pflanze. ' +
+  '1) Erkenne die Pflanze (Etikett-Text bevorzugen: deutscher + botanischer Name, Sorte falls lesbar). ' +
+  '2) Berate ehrlich anhand des Gartens im Kontext: Lohnt der Kauf? In welches Beet passt sie (Licht, Platz — ' +
+  'Wuchsbreite beachten)? Welche vorhandenen Pflanzen sind gute/schlechte Nachbarn? Wie hoch ist der Pflegeaufwand ' +
+  'verglichen mit den vorhandenen Pflanzen? Rate auch mal ab, wenn es nicht passt. Max. 7 Sätze, einfaches ' +
+  'Markdown, am Ende ein klares Fazit-Emoji (✅ / ⚠️ / ❌).'
 
 const SPECIES_ONLY_SYSTEM_PROMPT =
   'Bestimme das Lebewesen/die Pflanze auf dem Foto. Antworte NUR mit JSON: ' +
@@ -275,11 +279,12 @@ Deno.serve(async (req) => {
         return json({ reply, usage: { input_tokens: inputTokens, output_tokens: outputTokens }, provider: LUMI_PROVIDER })
       }
 
-      if (mode !== 'identify') return json({ code: 'mode_not_ready' }, 400)
+      if (mode !== 'identify' && mode !== 'shopping') return json({ code: 'mode_not_ready' }, 400)
 
       await checkUsageLimit(userId)
 
-      const system = context ? `${IDENTIFY_SYSTEM_PROMPT}\n\n${context}` : IDENTIFY_SYSTEM_PROMPT
+      const basePrompt = mode === 'shopping' ? SHOPPING_SYSTEM_PROMPT : IDENTIFY_SYSTEM_PROMPT
+      const system = context ? `${basePrompt}\n\n${context}` : basePrompt
       const messages: ChatMessage[] = [
         { role: 'user', text: question?.trim() || 'Was ist das für eine Pflanze?', imageBase64, mediaType },
       ]

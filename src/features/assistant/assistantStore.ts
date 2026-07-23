@@ -52,11 +52,12 @@ export const useAssistantStore = defineStore('assistant', () => {
   }
 
   /** Fotografierte Pflanze erkennen lassen — eigener Modus, kein Verlauf wie bei send(). */
-  async function sendImage(file: File, question?: string) {
+  async function sendImage(file: File, question?: string, mode: 'identify' | 'shopping' = 'identify') {
     const trimmedQuestion = question?.trim()
     const imageUrl = URL.createObjectURL(file)
+    const bubbleText = mode === 'shopping' ? `🛒 Einkaufscheck: ${trimmedQuestion ?? ''}`.trim() : trimmedQuestion ?? ''
 
-    messages.value.push({ role: 'user', text: trimmedQuestion ?? '', imageUrl })
+    messages.value.push({ role: 'user', text: bubbleText, imageUrl })
     error.value = null
     sending.value = true
 
@@ -73,7 +74,7 @@ export const useAssistantStore = defineStore('assistant', () => {
       const response = await lumiApi.identify({
         imageBase64,
         mediaType,
-        mode: 'identify',
+        mode,
         question: trimmedQuestion,
         context: gardenContext,
       })
